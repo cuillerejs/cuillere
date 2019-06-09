@@ -1,0 +1,9 @@
+{
+  "eslint.options": {
+    "extensions": [".js", ".ts"]
+  },
+  "eslint.validate": ["javascript", "typescript"],
+  "eslint.enable": true,
+  "eslint.autoFixOnSave": true,
+  "editor.formatOnSave": true
+}

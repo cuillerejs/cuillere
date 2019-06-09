@@ -1,0 +1,54 @@
+{
+  "name": "saga",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "repository": "https://github.com/EmrysMyrddin/saga.git",
+  "author": "Valentin Cocaud <v.cocaud@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "yarn jest",
+    "lint": "yarn eslint --ext .ts src tests",
+    "prebuild": "yarn lint",
+    "build": "yarn tsc",
+    "watch": "yarn tsc --watch"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.13",
+    "@typescript-eslint/eslint-plugin": "^1.9.0",
+    "@typescript-eslint/parser": "^1.9.0",
+    "eslint": "^5.16.0",
+    "jest": "^24.8.0",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.1"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    },
+    "extends": [
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/member-delimiter-style": "none",
+      "@typescript-eslint/indent": [
+        "warn",
+        2
+      ],
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "no-use-before-define": "off",
+      "@typescript-eslint/no-use-before-define": [
+        "error",
+        {
+          "functions": false,
+          "typedefs": false
+        }
+      ]
+    }
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
