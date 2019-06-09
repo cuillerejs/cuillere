@@ -1,4 +1,3 @@
-import { Context } from './context'
 import { crud, CrudOperation } from './operations'
 
 export interface Service {

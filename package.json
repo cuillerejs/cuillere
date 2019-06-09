@@ -1,8 +1,8 @@
 {
-  "name": "saga",
+  "name": "cuillere",
   "version": "0.0.1",
   "main": "dist/index.js",
-  "repository": "https://github.com/EmrysMyrddin/saga.git",
+  "repository": "https://github.com/EmrysMyrddin/cuillere.git",
   "author": "Valentin Cocaud <v.cocaud@gmail.com>",
   "license": "MIT",
   "scripts": {
