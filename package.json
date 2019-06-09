@@ -38,13 +38,7 @@
       ],
       "@typescript-eslint/explicit-function-return-type": "off",
       "no-use-before-define": "off",
-      "@typescript-eslint/no-use-before-define": [
-        "error",
-        {
-          "functions": false,
-          "typedefs": false
-        }
-      ]
+      "@typescript-eslint/no-use-before-define": "off"
     }
   },
   "jest": {

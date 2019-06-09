@@ -24,12 +24,12 @@ export function isOperation(operation: any): operation is Operation {
   return operation && operation[DB_OPERATION_SYMBOL]
 }
 
-export function isCallOperation(operation: any): operation is CallOperation {
-  return isOperation(operation) && operation.type === 'CALL'
+export function isCallOperation(operation: Operation): operation is CallOperation {
+  return operation.type === 'CALL'
 }
 
-export function isCrudOperation(operation: any): operation is CrudOperation {
-  return isOperation(operation) && operation.type === 'CRUD'
+export function isCrudOperation(operation: Operation): operation is CrudOperation {
+  return operation.type === 'CRUD'
 }
 
 export function call<Args extends any[]>(
