@@ -1,7 +1,7 @@
 import { error } from './errors'
 
 export interface Runner {
-  (operation: any, ctx?: any): Promise<any>
+  (operation: any, ctx: Record<string, any>): Promise<any>
 }
 
 export interface Middleware {

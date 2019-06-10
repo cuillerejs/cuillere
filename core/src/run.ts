@@ -51,10 +51,10 @@ function finalRunner(runnerRef: RunnerRef): Runner {
   }
 }
 
-export function makeRunner(...middlewares: Middleware[]): Runner {
+export function makeRunner(...middlewares: Middleware[]) {
   checkMiddlewares(middlewares)
   const runnerReference: RunnerRef = {}
   runnerReference.run = compose(...middlewares)(finalRunner(runnerReference))
 
-  return runnerReference.run
+  return (operation: any, ctx?: Record<string, any>) => runnerReference.run(operation, ctx || {})
 }
