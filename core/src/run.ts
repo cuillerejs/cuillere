@@ -1,48 +1,30 @@
 /* eslint-disable no-await-in-loop */
 import { isCall } from './operations'
 import { compose } from './comose'
-
-export interface Runner {
-  (operation: any, ctx?: any, final?: boolean): Promise<any>
-}
+import { error, unrecognizedOperation, isUnrecognizedOperation } from './errors'
+import { checkMiddlewares, Middleware, Runner } from './middlewares'
 
 interface RunnerRef {
   run?: Runner
 }
 
-export interface Middleware {
-  (next: Runner): Runner
-}
+/*
+  The final runner handles the 'call' operations by running it's function `func`.
+  `func` should return an Iterable yielding operations.
 
-function error(message: string, ...args): Error {
-  return new Error(
-    `[CUILLERE] Error : ${message} ${args.map(arg => JSON.stringify(arg, null, 2)).join(' ')}`,
-  )
-}
-
-function checkMiddlewares(middlewares: Middleware[]) {
-  const badMiddlewares = middlewares.map(middleware => typeof middleware !== 'function')
-  if (badMiddlewares.some(isBad => isBad)) {
-    const badMiddlwaresIndexes = badMiddlewares.filter(isBad => isBad).map((_, i) => i)
-    throw error(`some given middlewares are not a function : ${badMiddlwaresIndexes.join(', ')}`)
-  }
-}
-
-function callMiddleware(runnerRef: RunnerRef): Runner {
-  return async function(operation, ctx, final) {
+  This runner will throw if the given operation isn't a `call`. This means a middleware
+  should handle other custom operations.
+*/
+function finalRunner(runnerRef: RunnerRef): Runner {
+  return async function(operation, ctx) {
     const { run } = runnerRef
-    // final means we are trying to handle an operation returned by a generator function
-    // In this case, we should simply return the operation if it wasn't handled by a middleware and it's not a call
+
     if (!isCall(operation)) {
-      if (final) return operation
-      throw error(
-        'the operation had not been handle by any middleware. You probably used a missformed operation or forgotten to add a middleware :',
-        operation,
-      )
+      throw unrecognizedOperation(operation)
     }
 
     if (!operation.func) {
-      throw error(`the call operation should have a function 'func'`)
+      throw error(`the call operation function is null or undefined`)
     }
 
     const runningCall = operation.func(...operation.args)
@@ -55,17 +37,24 @@ function callMiddleware(runnerRef: RunnerRef): Runner {
 
     let current = runningCall.next()
     while (!current.done) {
-      current = runningCall.next(await run(current.value, ctx, false))
+      current = runningCall.next(await run(current.value, ctx))
     }
 
-    return run(current.value, ctx, true)
+    // The last value can be an operation or the return value
+    // We try to run it in case it's an operation
+    try {
+      return await run(current.value, ctx)
+    } catch (err) {
+      if (isUnrecognizedOperation(err)) return current.value
+      throw err
+    }
   }
 }
 
 export function makeRunner(...middlewares: Middleware[]): Runner {
   checkMiddlewares(middlewares)
   const runnerReference: RunnerRef = {}
-  runnerReference.run = compose(...middlewares)(callMiddleware(runnerReference))
+  runnerReference.run = compose(...middlewares)(finalRunner(runnerReference))
 
   return runnerReference.run
 }

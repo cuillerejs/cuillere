@@ -1,9 +1,12 @@
 /*eslint-en jest*/
-import { makeRunner, Middleware } from '../src'
+import { makeRunner, Middleware, call, Runner } from '../src'
 
 describe('middlewares', () => {
-  const test = async (run, expected = 'test') => {
-    expect(await run('test', null, true)).toBe(expected)
+  const test = async (run: Runner, expected = 'test') => {
+    function* func() {
+      return 'test'
+    }
+    expect(await run(call(func))).toBe(expected)
   }
 
   it('should work with no middlwares', async () => {
