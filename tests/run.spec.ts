@@ -1,43 +1,60 @@
-/*eslint-env jest*/
-import { Context, crud, call, run, makeServices } from '../src'
+/* eslint-env jest */
+/* eslint-disable require-yield */
+
+import { makeRunner, call } from '../src'
 
 describe('run', () => {
-  const ctx: Context = { getService: name => services[name] }
-  const services = {
-    service1: { get1: id => Promise.resolve({ id }) },
-    service2: { get2: id => Promise.resolve({ id }) },
-  }
-
-  it('should run a basic example', async () => {
-    function* test1(entity1, entity2) {
-      return [entity1, entity2]
-    }
-
-    function* test2() {
-      const entity1 = yield crud('service1', 'get1', 1)
-      const entity2 = yield crud('service2', 'get2', 2)
-      return call(test1, entity1, entity2)
-    }
-
-    expect(await run(call(test2), ctx)).toEqual([{ id: 1 }, { id: 2 }])
+  let run: Function
+  beforeEach(() => {
+    run = makeRunner()
   })
 
-  it('should run a basic example with service factory', async () => {
-    const {
-      getService,
-      services: { service1, service2 },
-    } = makeServices(services)
+  describe('runCallOperation', () => {
+    it('should return the result of a simple generator function', async () => {
+      function* test() {
+        return 'test'
+      }
 
-    function* test1(entity1, entity2) {
-      return [entity1, entity2]
-    }
+      expect(await run(call(test))).toBe('test')
+    })
 
-    function* test2() {
-      const entity1 = yield service1.get1(1)
-      const entity2 = yield service2.get2(2)
-      return call(test1, entity1, entity2)
-    }
+    it('should pass arguments to the generator function', async () => {
+      function* test(...args) {
+        return args
+      }
+      const testArgs = [1, 2, 3, 4]
 
-    expect(await run(call(test2), { getService })).toEqual([{ id: 1 }, { id: 2 }])
+      expect(await run(call(test, ...testArgs))).toEqual(testArgs)
+    })
+
+    it('should run returned operations', async () => {
+      function* test1() {
+        return 'test'
+      }
+
+      function* test2() {
+        return call(test1)
+      }
+
+      expect(await run(call(test2))).toBe('test')
+    })
+
+    it('should run yielded operations', async () => {
+      function* test1() {
+        return 'test1'
+      }
+
+      function* test2() {
+        return 'test2'
+      }
+
+      function* test3() {
+        const result1 = yield call(test1)
+        const result2 = yield call(test2)
+        return [result1, result2]
+      }
+
+      expect(await run(call(test3))).toEqual(['test1', 'test2'])
+    })
   })
 })

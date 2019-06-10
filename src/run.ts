@@ -1,55 +1,71 @@
 /* eslint-disable no-await-in-loop */
-import {
-  Operation,
-  isOperation,
-  isCallOperation,
-  isCrudOperation,
-  CallOperation,
-  CrudOperation,
-} from './operations'
-import { Context } from './context'
+import { isCall } from './operations'
+import { compose } from './comose'
 
-function error(message: string): Error {
-  return new Error(`Database operation error : ${message}`)
+export interface Runner {
+  (operation: any, ctx?: any, final?: boolean): Promise<any>
 }
 
-type Runner<O extends Operation> = (operation: O, ctx: Context) => Promise<any>
-
-export const run: Runner<Operation> = (operation, ctx) => {
-  if (!isOperation(operation)) throw error('given argument is not a DB Operation')
-
-  if (isCallOperation(operation)) return runCallOperation(operation, ctx)
-  if (isCrudOperation(operation)) return runCrudOperation(operation, ctx)
-
-  throw error(`unknown operation type '${operation.type}'`)
+interface RunnerRef {
+  run?: Runner
 }
 
-const runCallOperation: Runner<CallOperation> = async (operation, ctx) => {
-  if (!operation.func) throw error('call operation needs a function')
+export interface Middleware {
+  (next: Runner): Runner
+}
 
-  const runningOperation = operation.func(...operation.args)
+function error(message: string, ...args): Error {
+  return new Error(
+    `[CUILLERE] Error : ${message} ${args.map(arg => JSON.stringify(arg, null, 2)).join(' ')}`,
+  )
+}
 
-  if (!runningOperation.next) throw error('call operation function should return an iterator')
-
-  let current = runningOperation.next()
-  while (!current.done) {
-    if (!isOperation(current.value)) {
-      throw error('call operation function should only yield Operation')
-    }
-    current = runningOperation.next(await run(current.value, ctx))
+function checkMiddlewares(middlewares: Middleware[]) {
+  const badMiddlewares = middlewares.map(middleware => typeof middleware !== 'function')
+  if (badMiddlewares.some(isBad => isBad)) {
+    const badMiddlwaresIndexes = badMiddlewares.filter(isBad => isBad).map((_, i) => i)
+    throw error(`some given middlewares are not a function : ${badMiddlwaresIndexes.join(', ')}`)
   }
-
-  return isOperation(current.value) ? run(current.value, ctx) : current.value
 }
 
-const runCrudOperation: Runner<CrudOperation> = async (operation, ctx) => {
-  if (!operation.method) throw error('crud operation needs a method name')
+function callMiddleware(runnerRef: RunnerRef): Runner {
+  return async function(operation, ctx, final) {
+    const { run } = runnerRef
+    // final means we are trying to handle an operation returned by a generator function
+    // In this case, we should simply return the operation if it wasn't handled by a middleware and it's not a call
+    if (!isCall(operation)) {
+      if (final) return operation
+      throw error(
+        'the operation had not been handle by any middleware. You probably used a missformed operation or forgotten to add a middleware :',
+        operation,
+      )
+    }
 
-  const service = ctx.getService(operation.service)
-  if (!service) throw error(`service ${operation.service} not found in context`)
+    if (!operation.func) {
+      throw error(`the call operation should have a function 'func'`)
+    }
 
-  const method = service[operation.method]
-  if (!method) throw error(`method ${operation.method} not found in service ${operation.service}`)
+    const runningCall = operation.func(...operation.args)
 
-  return method(...operation.args)
+    if (!runningCall.next) {
+      throw error(
+        `the call operation function should return an Iterable. You probably used 'function' instead of 'function*'`,
+      )
+    }
+
+    let current = runningCall.next()
+    while (!current.done) {
+      current = runningCall.next(await run(current.value, ctx, false))
+    }
+
+    return run(current.value, ctx, true)
+  }
+}
+
+export function makeRunner(...middlewares: Middleware[]): Runner {
+  checkMiddlewares(middlewares)
+  const runnerReference: RunnerRef = {}
+  runnerReference.run = compose(...middlewares)(callMiddleware(runnerReference))
+
+  return runnerReference.run
 }
