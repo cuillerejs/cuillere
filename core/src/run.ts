@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { isCall } from './operations'
-import { compose } from './comose'
+import { compose } from './compose'
 import { error, unrecognizedOperation, isUnrecognizedOperation } from './errors'
 import { checkMiddlewares, Middleware, Runner } from './middlewares'
 

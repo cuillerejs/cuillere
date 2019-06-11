@@ -1,5 +1,5 @@
 {
-  "name": "cuillere",
+  "name": "@cuillere/core",
   "version": "0.0.1",
   "main": "dist/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere.git",
