@@ -39,17 +39,18 @@ function finalRunner(runnerRef: RunnerRef): Runner {
     do {
       current = runningCall.next(res)
 
-      // Last value is the return value
-      // If it is a call run it, otherwise return it
-      if (current.done) {
-        if (isCall(current.value)) {
-          return await run(current.value, ctx)
+      try {
+        res = await run(current.value, ctx)
+      } catch (e) {
+        if (!isUnrecognizedOperation(e)) {
+          throw e
         }
-        return current.value
+        res = current.value
+        if (!current.done) console.warn(`${e.message}:`, e.operation)
       }
-
-      res = await run(current.value, ctx)
     } while (!current.done)
+
+    return res
   }
 }
 
