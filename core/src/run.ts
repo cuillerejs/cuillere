@@ -6,7 +6,11 @@ export interface Run {
   (operation: any): Promise<any>
 }
 
-const final: (ctx: any, run: Run) => Run = () => operation => {
+export interface Next {
+  (ctx: any, run: Run): Run
+}
+
+const final: Next = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
@@ -14,7 +18,7 @@ export function makeRunner(...middlewares: Middleware[]) {
   checkMiddlewares(middlewares)
 
   const run = [...middlewares, callMiddleware, contextMiddleware]
-    .map(middleware => (next: (ctx: any, run: Run) => Run) => (ctx: any, run: Run): Run => {
+    .map(middleware => (next: Next) => (ctx: any, run: Run): Run => {
       const middlewareWithNext = middleware(next(ctx, run))
       return operation => middlewareWithNext(operation, ctx, run)
     })
