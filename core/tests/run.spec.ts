@@ -6,7 +6,7 @@ import { makeRunner, call } from '../src'
 describe('run', () => {
   let run: Function
   beforeEach(() => {
-    run = makeRunner()
+    run = makeRunner()()
   })
 
   describe('runCallOperation', () => {

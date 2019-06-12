@@ -9,7 +9,7 @@ export interface Call {
 }
 
 export function isCall(operation: any): operation is Call {
-  return operation[CALL_SYMBOL]
+  return operation && operation[CALL_SYMBOL]
 }
 
 export function call<Args extends any[]>(func: GeneratorFunction<Args, any>, ...args: Args): Call {

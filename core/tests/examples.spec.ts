@@ -5,12 +5,12 @@ import { Middleware, makeRunner, call } from '../src'
 describe('examples', () => {
   it('promise middleware basic example', async () => {
     // A middleware which handles promises
-    const promiseMiddleware: Middleware = next => async (operation, ctx) => {
+    const promiseMiddleware: Middleware = next => async operation => {
       if (Promise.resolve(operation) === operation) return operation
-      return next(operation, ctx)
+      return next(operation)
     }
 
-    const run = makeRunner(promiseMiddleware)
+    const run = makeRunner(promiseMiddleware)()
 
     // Some fake api
     const get = id => Promise.resolve({ id })
@@ -33,12 +33,12 @@ describe('examples', () => {
     const awaitFunc = (func, ...args) => ({ [AWAIT_SYMBOL]: true, func, args })
 
     // The promise middleware
-    const promiseMiddleware: Middleware = next => async (operation, ctx) => {
+    const promiseMiddleware: Middleware = next => async operation => {
       if (operation[AWAIT_SYMBOL]) return operation.func(...operation.args)
-      return next(operation, ctx)
+      return next(operation)
     }
 
-    const run = makeRunner(promiseMiddleware)
+    const run = makeRunner(promiseMiddleware)()
 
     // Some fake api
     const get = id => Promise.resolve({ id })

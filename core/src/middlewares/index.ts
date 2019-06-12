@@ -1,11 +1,11 @@
-import { error } from './errors'
+import { error } from '../errors'
+import { Run } from '..'
 
-export interface Runner {
-  (operation: any, ctx: Record<string, any>): Promise<any>
-}
+export * from './call'
+export * from './context'
 
 export interface Middleware {
-  (next: Runner): Runner
+  (next: Run): (operation: any, ctx: any, run: Run) => Promise<any>
 }
 
 export function checkMiddlewares(middlewares: Middleware[]) {
