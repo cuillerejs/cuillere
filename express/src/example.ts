@@ -27,11 +27,11 @@ const update = (name, updater): UpdateOperation => ({
 
 const isUpdate = (operation: any): operation is UpdateOperation => operation && operation[UPDATE_SYMBOL]
 
-const updateMiddleware: Middleware = next => async (operation, ctx) => {
-    if (!isUpdate(operation)) return next(operation, ctx)
-    const value = await next(get(operation.name), ctx)
+const updateMiddleware: Middleware = next => async (operation) => {
+    if (!isUpdate(operation)) return next(operation)
+    const value = await next(get(operation.name))
     const updated = operation.updater(value)
-    await next(set(operation.name, updated), ctx)
+    await next(set(operation.name, updated))
     return updated
 }
 

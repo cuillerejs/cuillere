@@ -17,6 +17,6 @@ export const makeRequestHandlerFactory = (...middlewares: Middleware[]) => {
   const run = makeRunner(...middlewares)
 
   return (operation: GeneratorFunction<[Request, Response, NextFunction], any>): RequestHandler => (req, ...args) => {
-    run(call(operation, req, ...args), getContext(req))
+    run(getContext(req))(call(operation, req, ...args))
   }
 }
