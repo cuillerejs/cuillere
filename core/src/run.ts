@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { unrecognizedOperation } from './errors'
 import { contextMiddleware, callMiddleware, checkMiddlewares, Middleware } from './middlewares'
 
