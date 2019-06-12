@@ -8,26 +8,23 @@ import {
   Next,
 } from './middlewares'
 
-const final: (ctx: any) => Next = () => operation => {
+const final: (ctx: any, run: Function) => Next = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
 export function makeRunner(...middlewares: Middleware[]) {
-  const RUN = Symbol('RUN')
-
   checkMiddlewares(middlewares)
 
-  const run = [...middlewares, callMiddleware(RUN), contextMiddleware]
-    .map(middleware => (next: (ctx: any) => Next) => (ctx: any): Next => {
-      const middlewareWithNext = middleware(next(ctx))
-      return operation => middlewareWithNext(operation, ctx)
+  const run = [...middlewares, callMiddleware, contextMiddleware]
+    .map(middleware => (next: (ctx: any, run: Function) => Next) => (ctx: any, run): Next => {
+      const middlewareWithNext = middleware(next(ctx, run))
+      return operation => middlewareWithNext(operation, ctx, run)
     })
     .reduceRight((acc, middleware) => middleware(acc), final)
 
   return (ctx?: any) => {
     const runCtx = ctx || {}
-    const runWithContext = run(runCtx)
-    runCtx[RUN] = runWithContext
+    const runWithContext = run(runCtx, operation => runWithContext(operation))
     return runWithContext
   }
 }

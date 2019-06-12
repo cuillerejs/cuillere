@@ -8,7 +8,7 @@ export interface Next {
 }
 
 export interface Middleware {
-  (next: Next): (operation: any, ctx: any) => Promise<any>
+  (next: Next): (operation: any, ctx: any, run: Next) => Promise<any>
 }
 
 export function checkMiddlewares(middlewares: Middleware[]) {
