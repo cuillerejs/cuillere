@@ -6,25 +6,25 @@ export interface Run {
   (operation: any): Promise<any>
 }
 
-export interface Next {
+export interface RunFactory {
   (ctx: any, run: Run): Run
 }
 
-const final: Next = () => operation => {
+const final: RunFactory = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
-export function makeRunner(...middlewares: Middleware[]) {
+export function makeRunner(...middlewares: Middleware[]): (ctx: any) => Run {
   checkMiddlewares(middlewares)
 
   const run = [...middlewares, callMiddleware, contextMiddleware]
-    .map(middleware => (next: Next): Next => (ctx, run) => {
-      const middlewareWithNext = middleware(next(ctx, run))
+    .map(middleware => (nextFactory: RunFactory): RunFactory => (ctx, run) => {
+      const middlewareWithNext = middleware(nextFactory(ctx, run))
       return operation => middlewareWithNext(operation, ctx, run)
     })
     .reduceRight((acc, middleware) => middleware(acc), final)
 
-  return (ctx?: any) => {
+  return (ctx?) => {
     const runCtx = ctx || {}
     const runWithContext = run(runCtx, operation => runWithContext(operation))
     return runWithContext
