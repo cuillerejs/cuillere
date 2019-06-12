@@ -32,7 +32,7 @@ export function callMiddleware(runnerRef: RunnerRef): Middleware {
           res = await run(current.value, ctx)
         } catch (e) {
           if (!isUnrecognizedOperation(e)) {
-            throw e
+            runningCall.throw(e)
           }
           res = current.value
           if (!current.done) console.warn(`${e.message}:`, e.operation)

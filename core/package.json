@@ -8,9 +8,11 @@
   "scripts": {
     "test": "yarn jest",
     "lint": "yarn eslint --ext .ts src tests",
-    "prebuild": "yarn lint",
+    "prebuild": "yarn clean && yarn lint",
     "build": "yarn tsc",
-    "watch": "yarn tsc --watch"
+    "prewatch": "yarn clean",
+    "watch": "yarn tsc --watch",
+    "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@types/jest": "^24.0.13",

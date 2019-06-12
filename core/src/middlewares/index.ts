@@ -1,5 +1,8 @@
 import { error } from '../errors'
 
+export * from './call'
+export * from './context'
+
 export interface Runner {
   (operation: any, ctx: Record<string, any>): Promise<any>
 }

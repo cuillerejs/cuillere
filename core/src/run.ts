@@ -1,8 +1,13 @@
 /* eslint-disable no-await-in-loop */
 import { compose } from './compose'
 import { unrecognizedOperation } from './errors'
-import { checkMiddlewares, Middleware, Runner } from './middlewares'
-import { callMiddleware } from './middlewares/call-middleware'
+import {
+  contextMiddleware,
+  callMiddleware,
+  checkMiddlewares,
+  Middleware,
+  Runner,
+} from './middlewares'
 
 export interface RunnerRef {
   run?: Runner
@@ -18,6 +23,7 @@ export function makeRunner(...middlewares: Middleware[]) {
   runnerReference.run = compose(
     ...middlewares,
     callMiddleware(runnerReference),
+    contextMiddleware,
   )(finalRunner)
 
   return (operation: any, ctx?: Record<string, any>) => runnerReference.run(operation, ctx || {})
