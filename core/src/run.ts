@@ -8,7 +8,7 @@ import {
   Next,
 } from './middlewares'
 
-const final: (ctx: any, run: Function) => Next = () => operation => {
+const final: (ctx: any, run: Next) => Next = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
