@@ -1,0 +1,22 @@
+{
+  "name": "@cuillere/postgres",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "repository": "https://github.com/EmrysMyrddin/cuillere",
+  "author": "Valentin Cocaud <v.cocaud@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "yarn tsc"
+  },
+  "dependencies": {
+    "@cuillere/core": "^0.0.1"
+  },
+  "peerDependencies": {
+    "pg": "^7.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^7.4.14",
+    "pg": "^7.11.0",
+    "typescript": "^3.5.1"
+  }
+}
