@@ -6,7 +6,9 @@
   "author": "Nicolas Lepage (https://github.com/nlepage)",
   "license": "MIT",
   "scripts": {
-    "build": "yarn tsc"
+    "build": "yarn tsc",
+    "preexample": "yarn build",
+    "example": "node dist/example"
   },
   "peerDependencies": {
     "express": "^4.0"

@@ -1,15 +1,12 @@
 import { Middleware } from './index'
 import { isCall } from '../operations'
 import { error, isUnrecognizedOperation } from '../errors'
-import { RunnerRef } from '../run'
 
-export function callMiddleware(runnerRef: RunnerRef): Middleware {
+export function callMiddleware(RUN: symbol): Middleware {
   return next =>
     async function(operation, ctx) {
-      const { run } = runnerRef
-
       if (!isCall(operation)) {
-        return next(operation, ctx)
+        return next(operation)
       }
 
       if (!operation.func) {
@@ -24,12 +21,14 @@ export function callMiddleware(runnerRef: RunnerRef): Middleware {
         )
       }
 
+      const run = ctx[RUN]
+
       let current, res
       do {
         current = runningCall.next(res)
 
         try {
-          res = await run(current.value, ctx)
+          res = await run(current.value)
         } catch (e) {
           if (!isUnrecognizedOperation(e)) {
             runningCall.throw(e)

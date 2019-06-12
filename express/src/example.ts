@@ -1,26 +1,39 @@
 import * as express from 'express';
 import { makeRequestHandlerFactory, middleware } from '.';
-import { call, set, get } from '@cuillere/core';
+import { call, set, get, Middleware } from '@cuillere/core';
 
 const app = express()
 
 app.use(middleware)
 
 const UPDATE_SYMBOL = Symbol('update')
-const updateMiddleware = next => async (operation, ctx) => {
-    if (!operation || !operation[UPDATE_SYMBOL]) return next(operation, ctx)
-    return next(
-        call(function*() {
-            yield set(operation['name'], operation['updater'](yield get(operation['name'])))
-        }),
-        ctx,
-    )
-}
-const update = (name, updater) => ({
+
+interface UpdateOperation {
     [UPDATE_SYMBOL]: true,
-    name,
-    updater,
+    name: string,
+    updater(value: any): any
+}
+
+function* updateFunc(name, updater) {
+    const value = yield get(name)
+    const updated = updater(value)
+    yield set(name, updated)
+    return updated
+}
+
+const update = (name, updater): UpdateOperation => ({
+    [UPDATE_SYMBOL]: true, name, updater,
 })
+
+const isUpdate = (operation: any): operation is UpdateOperation => operation && operation[UPDATE_SYMBOL]
+
+const updateMiddleware: Middleware = next => async (operation, ctx) => {
+    if (!isUpdate(operation)) return next(operation, ctx)
+    const value = await next(get(operation.name), ctx)
+    const updated = operation.updater(value)
+    await next(set(operation.name, updated), ctx)
+    return updated
+}
 
 const makeRequestHandler = makeRequestHandlerFactory(
     updateMiddleware,

@@ -3,12 +3,12 @@ import { error } from '../errors'
 export * from './call'
 export * from './context'
 
-export interface Runner {
-  (operation: any, ctx: Record<string, any>): Promise<any>
+export interface Next {
+  (operation: any): Promise<any>
 }
 
 export interface Middleware {
-  (next: Runner): Runner
+  (next: Next): (operation: any, ctx: any) => Promise<any>
 }
 
 export function checkMiddlewares(middlewares: Middleware[]) {
