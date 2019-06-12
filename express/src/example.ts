@@ -14,14 +14,7 @@ interface UpdateOperation {
     updater(value: any): any
 }
 
-function* updateFunc(name, updater) {
-    const value = yield get(name)
-    const updated = updater(value)
-    yield set(name, updated)
-    return updated
-}
-
-const update = (name, updater): UpdateOperation => ({
+const update = (name: string, updater: (value: any) => any): UpdateOperation => ({
     [UPDATE_SYMBOL]: true, name, updater,
 })
 
@@ -39,7 +32,7 @@ const makeRequestHandler = makeRequestHandlerFactory(
     updateMiddleware,
 )
 
-app.get('/', makeRequestHandler(function*(req, res) {
+app.get('/', makeRequestHandler(function*(_req, res) {
     yield set('name', 'toto')
     yield update('name', value => value && value.toUpperCase())
     res.send(yield call(hello))
