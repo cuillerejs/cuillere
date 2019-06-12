@@ -13,8 +13,7 @@ export const getContext = (req: Request): any => {
   return req[CTX_SYMBOL]
 }
 
-// FIXME rename
-export const makeRequestHandler = (...middlewares: Middleware[]) => {
+export const makeRequestHandlerFactory = (...middlewares: Middleware[]) => {
   const run = makeRunner(...middlewares)
 
   return (operation: GeneratorFunction<[Request, Response, NextFunction], any>): RequestHandler => (req, ...args) => {
