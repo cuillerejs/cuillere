@@ -1,4 +1,4 @@
-import { error } from './errors'
+import { error } from '../errors'
 
 export interface Runner {
   (operation: any, ctx: Record<string, any>): Promise<any>
