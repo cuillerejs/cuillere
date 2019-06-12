@@ -18,7 +18,7 @@ export function makeRunner(...middlewares: Middleware[]) {
   checkMiddlewares(middlewares)
 
   const run = [...middlewares, callMiddleware, contextMiddleware]
-    .map(middleware => (next: Next) => (ctx: any, run: Run): Run => {
+    .map(middleware => (next: Next): Next => (ctx, run) => {
       const middlewareWithNext = middleware(next(ctx, run))
       return operation => middlewareWithNext(operation, ctx, run)
     })
