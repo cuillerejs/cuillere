@@ -8,7 +8,7 @@ import {
   Next,
 } from './middlewares'
 
-const final: (ctx: any) => (operation: any) => Promise<any> = () => operation => {
+const final: (ctx: any) => Next = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
@@ -26,9 +26,8 @@ export function makeRunner(...middlewares: Middleware[]) {
 
   return (ctx?: any) => {
     const runCtx = ctx || {}
-
-    runCtx[RUN] = run
-
-    return run(runCtx)
+    const runWithContext = run(runCtx)
+    runCtx[RUN] = runWithContext
+    return runWithContext
   }
 }
