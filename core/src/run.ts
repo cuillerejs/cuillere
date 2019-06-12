@@ -13,7 +13,7 @@ const finalFactory: RunFactory = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
-export function makeRunner(...middlewares: Middleware[]): (ctx: any) => Run {
+export function makeRunner(...middlewares: Middleware[]): (ctx?: any) => Run {
   checkMiddlewares(middlewares)
 
   const run = [...middlewares, callMiddleware, contextMiddleware]
@@ -23,7 +23,7 @@ export function makeRunner(...middlewares: Middleware[]): (ctx: any) => Run {
     })
     .reduceRight((nextFactory, makePrevFactory) => makePrevFactory(nextFactory), finalFactory)
 
-  return (ctx?) => {
+  return (ctx) => {
     const runCtx = ctx || {}
     const runWithContext = run(runCtx, operation => runWithContext(operation))
     return runWithContext
