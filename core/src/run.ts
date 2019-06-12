@@ -10,7 +10,7 @@ export interface RunFactory {
   (ctx: any, run: Run): Run
 }
 
-const final: RunFactory = () => operation => {
+const finalFactory: RunFactory = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
@@ -22,7 +22,7 @@ export function makeRunner(...middlewares: Middleware[]): (ctx: any) => Run {
       const middlewareWithNext = middleware(nextFactory(ctx, run))
       return operation => middlewareWithNext(operation, ctx, run)
     })
-    .reduceRight((acc, middleware) => middleware(acc), final)
+    .reduceRight((nextFactory, makePrevFactory) => makePrevFactory(nextFactory), finalFactory)
 
   return (ctx?) => {
     const runCtx = ctx || {}
