@@ -1,14 +1,12 @@
 /* eslint-disable no-await-in-loop */
 import { unrecognizedOperation } from './errors'
-import {
-  contextMiddleware,
-  callMiddleware,
-  checkMiddlewares,
-  Middleware,
-  Next,
-} from './middlewares'
+import { contextMiddleware, callMiddleware, checkMiddlewares, Middleware } from './middlewares'
 
-const final: (ctx: any, run: Next) => Next = () => operation => {
+export interface Run {
+  (operation: any): Promise<any>
+}
+
+const final: (ctx: any, run: Run) => Run = () => operation => {
   throw unrecognizedOperation(operation)
 }
 
@@ -16,7 +14,7 @@ export function makeRunner(...middlewares: Middleware[]) {
   checkMiddlewares(middlewares)
 
   const run = [...middlewares, callMiddleware, contextMiddleware]
-    .map(middleware => (next: (ctx: any, run: Next) => Next) => (ctx: any, run: Next): Next => {
+    .map(middleware => (next: (ctx: any, run: Run) => Run) => (ctx: any, run: Run): Run => {
       const middlewareWithNext = middleware(next(ctx, run))
       return operation => middlewareWithNext(operation, ctx, run)
     })

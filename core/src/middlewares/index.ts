@@ -1,14 +1,11 @@
 import { error } from '../errors'
+import { Run } from '..'
 
 export * from './call'
 export * from './context'
 
-export interface Next {
-  (operation: any): Promise<any>
-}
-
 export interface Middleware {
-  (next: Next): (operation: any, ctx: any, run: Next) => Promise<any>
+  (next: Run): (operation: any, ctx: any, run: Run) => Promise<any>
 }
 
 export function checkMiddlewares(middlewares: Middleware[]) {
