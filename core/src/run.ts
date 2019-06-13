@@ -33,10 +33,12 @@ export function makeRunner(...middlewares: Middleware[]): (ctx?: any) => Run {
     const runWithContext = run(runCtx, operation => runWithContext(operation))
 
     return async (operation) => {
-      await runWithContext(START)
-      const res = await runWithContext(operation)
-      await runWithContext(STOP)
-      return res
+      try {
+        await runWithContext(START)
+        return await runWithContext(operation)
+      } finally {
+        await runWithContext(STOP)
+      }
     }
   }
 }
