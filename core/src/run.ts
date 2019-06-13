@@ -1,6 +1,9 @@
 import { unrecognizedOperation } from './errors'
 import { contextMiddleware, callMiddleware, checkMiddlewares, Middleware } from './middlewares'
 
+export const START = Symbol('START')
+export const STOP = Symbol('STOP')
+
 export interface Run {
   (operation: any): Promise<any>
 }
@@ -9,7 +12,8 @@ export interface RunFactory {
   (ctx: any, run: Run): Run
 }
 
-const finalFactory: RunFactory = () => operation => {
+const finalFactory: RunFactory = () => async operation => {
+  if (operation === START || operation === STOP) return
   throw unrecognizedOperation(operation)
 }
 
@@ -25,7 +29,14 @@ export function makeRunner(...middlewares: Middleware[]): (ctx?: any) => Run {
 
   return (ctx) => {
     const runCtx = ctx || {}
+
     const runWithContext = run(runCtx, operation => runWithContext(operation))
-    return runWithContext
+
+    return async (operation) => {
+      await runWithContext(START)
+      const res = await runWithContext(operation)
+      await runWithContext(STOP)
+      return res
+    }
   }
 }
