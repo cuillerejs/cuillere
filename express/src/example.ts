@@ -20,12 +20,9 @@ const update = (name: string, updater: (value: any) => any): UpdateOperation => 
 
 const isUpdate = (operation: any): operation is UpdateOperation => operation && operation[UPDATE_SYMBOL]
 
-const updateMiddleware: Middleware = next => async (operation) => {
+const updateMiddleware: Middleware = next => (operation, ctx) => {
     if (!isUpdate(operation)) return next(operation)
-    const value = await next(get(operation.name))
-    const updated = operation.updater(value)
-    await next(set(operation.name, updated))
-    return updated
+    return ctx[operation.name] = operation.updater(ctx[operation.name])
 }
 
 const makeRequestHandler = makeRequestHandlerFactory(
