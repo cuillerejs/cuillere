@@ -1,11 +1,42 @@
-import { Pool, PoolClient, PoolConfig } from 'pg'
-import { Middleware } from '@cuillere/core'
+import { Pool, PoolConfig, PoolClient } from 'pg'
+import { Middleware, isStart } from '@cuillere/core'
 
-interface Options {
-    poolConfig?: PoolConfig
+const GET_CLIENT = Symbol('GET_CLIENT')
+const CLIENT = Symbol('CLIENT')
+
+export function makePool(poolConfig?: PoolConfig) {
+    const pool = new Pool(poolConfig)
+
+    return async (ctx: any, cb: Function) => {
+        ctx[GET_CLIENT] = async () => {
+            let client = ctx[CLIENT]
+            if (!client) ctx[CLIENT] = client = await pool.connect()
+            return client
+        }
+
+        try {
+            return await cb()
+        } finally {
+            if (ctx[CLIENT]) await ctx[CLIENT].release()
+        }
+    }
 }
 
-const QUERY = Symbol("QUERY")
+export const getClient = async (ctx: any): Promise<PoolClient> => ctx[GET_CLIENT]()
+
+export function poolMiddleware(poolConfig?: PoolConfig): Middleware {
+    const pool = makePool(poolConfig)
+
+    return next => async (operation, ctx) => {
+        if (isStart(operation)) {
+            return pool(ctx, () => next(operation))
+        }
+
+        return next(operation)
+    }
+}
+
+const QUERY = Symbol('QUERY')
 
 interface Query {
     [QUERY]: true,
@@ -23,23 +54,13 @@ function isQuery(operation: any): operation is Query {
     return operation && operation[QUERY]
 }
 
-export function middleware(options: Options = {}): Middleware {
-    const CLIENT = Symbol("CLIENT")
-
-    const pool = new Pool(options.poolConfig)
+export function queryMiddleware(): Middleware {
 
     return next => async (operation, ctx) => {
         if (!isQuery(operation)) return next(operation)
 
-        let client: PoolClient = ctx[CLIENT]
-        if (!client) {
-            ctx[CLIENT] = client = await pool.connect()
-        }
+        const client = await getClient(ctx)
 
-        try {
-            return await client.query(operation.sql)
-        } finally {
-            client.release()
-        }
+        return client.query(operation.sql)
     }
 }
