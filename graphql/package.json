@@ -1,0 +1,9 @@
+{
+  "name": "@cuillere/graphql",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@cuillere/core": "0.0.1"
+  }
+}

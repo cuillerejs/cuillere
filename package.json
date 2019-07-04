@@ -4,6 +4,7 @@
     "core",
     "express",
     "koa",
+    "graphql",
     "graphql-example",
     "postgres"
   ]

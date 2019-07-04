@@ -1,25 +1,25 @@
 import Koa from 'koa'
 import { ApolloServer, gql } from 'apollo-server-koa'
-import { makeRequestHandlerFactory } from '@cuillere/koa'
-import { poolMiddleware, queryMiddleware, query, makePool } from '@cuillere/postgres'
-import { call, makeRunner } from '@cuillere/core'
+import { makeRunner } from '@cuillere/core'
+import { makeResolverFactory } from '@cuillere/graphql'
+import { queryMiddleware, query, makePool } from '@cuillere/postgres'
 
 const typeDefs = gql`
   type Query {
     hello(name: String): String!
   }
 `
-const run = makeRunner(
+const makeResolver = makeResolverFactory(makeRunner(
   queryMiddleware(),
-)
+))
 
 const resolvers = {
   Query: {
-    hello: (_, { name }, context) => run(context)(call(function* () {
+    hello: makeResolver(function* (_, { name }) {
       const res = yield query('SELECT NOW()')
       const { rows:[{ now }] } = res
       return `Hello ${name} (${now})`
-    })),
+    }),
   },
 }
 
@@ -38,7 +38,7 @@ const pool = makePool({
   port: 32768,
 })
 
-app.use(async (ctx, next) => pool.execute(ctx, next))
+app.use(pool.execute)
 
 server.applyMiddleware({ app })
 
