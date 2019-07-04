@@ -1,0 +1,17 @@
+{
+  "name": "@cuillere/graphql-example",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "start": "node ."
+  },
+  "dependencies": {
+    "@cuillere/core": "^0.0.1",
+    "@cuillere/koa": "^0.0.1",
+    "@cuillere/postgres": "^0.0.1",
+    "apollo-server-koa": "^2.6.7",
+    "esm": "^3.2.25",
+    "graphql": "^14.4.2",
+    "pg": "^7.11.0"
+  }
+}

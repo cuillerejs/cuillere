@@ -3,6 +3,8 @@
   "workspaces": [
     "core",
     "express",
+    "koa",
+    "graphql-example",
     "postgres"
   ]
 }

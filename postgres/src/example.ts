@@ -1,5 +1,5 @@
 import { makeRunner, call } from '@cuillere/core'
-import { poolMiddleware, queryMiddleware, query } from './'
+import { poolMiddleware, queryMiddleware, query, end } from './'
 
 const run = makeRunner(
     poolMiddleware({
@@ -9,14 +9,19 @@ const run = makeRunner(
         port: 32768,
     }),
     queryMiddleware(),
-)
+);
 
-run()(call(function*() {
-    console.log(yield query('SELECT NOW()'))
-    console.log(yield query('SELECT NOW()'))
-}))
+(async () => {
+    await Promise.all([
+        run()(call(function*() {
+            console.log(yield query('SELECT NOW()'))
+            console.log(yield query('SELECT NOW()'))
+        })),
+        run()(call(function*() {
+            console.log(yield query('SELECT NOW()'))
+            console.log(yield query('SELECT NOW()'))
+        })),
+    ])
 
-run()(call(function*() {
-    console.log(yield query('SELECT NOW()'))
-    console.log(yield query('SELECT NOW()'))
-}))
+    await run()(end())
+})()
