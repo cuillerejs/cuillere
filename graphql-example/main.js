@@ -31,14 +31,12 @@ const server = new ApolloServer({
 
 const app = new Koa()
 
-const pool = makePool({
+app.use(makePool({
   database: 'postgres',
   user: 'postgres',
   password:'password',
   port: 32768,
-})
-
-app.use(pool.execute)
+}))
 
 server.applyMiddleware({ app })
 

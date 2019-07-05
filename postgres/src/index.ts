@@ -35,10 +35,9 @@ export function makePool(poolConfig?: PoolConfig) {
         }
     }
 
-    return {
-        execute,
-        end: () => pool.end(),
-    }
+    execute.end = () => pool.end()
+
+    return execute
 }
 
 export const getClient = async (ctx: any): Promise<PoolClient> => ctx[GET_CLIENT]()
@@ -48,7 +47,7 @@ export function poolMiddleware(poolConfig?: PoolConfig): Middleware {
 
     return next => async (operation, ctx) => {
         if (isStart(operation)) {
-            return pool.execute(ctx, () => next(operation))
+            return pool(ctx, () => next(operation))
         }
 
         if (isEnd(operation)) {
