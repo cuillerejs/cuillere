@@ -1,27 +1,9 @@
 import Koa from 'koa'
 import { ApolloServer, gql } from 'apollo-server-koa'
-import { makeRunner } from '@cuillere/core'
-import { makeResolverFactory } from '@cuillere/graphql'
-import { queryMiddleware, query, makePool } from '@cuillere/postgres'
+import { createClientPovider, createTransactionExecutor } from '@cuillere/postgres'
 
-const typeDefs = gql`
-  type Query {
-    hello(name: String): String!
-  }
-`
-const makeResolver = makeResolverFactory(makeRunner(
-  queryMiddleware(),
-))
-
-const resolvers = {
-  Query: {
-    hello: makeResolver(function* (_, { name }) {
-      const res = yield query('SELECT NOW()')
-      const { rows:[{ now }] } = res
-      return `Hello ${name} (${now})`
-    }),
-  },
-}
+import { typeDefs } from './schema'
+import { resolvers } from './resolvers'
 
 const server = new ApolloServer({
   typeDefs,
@@ -29,14 +11,22 @@ const server = new ApolloServer({
   context: ({ ctx }) => ctx,
 })
 
-const app = new Koa()
-
-app.use(makePool({
+const basePoolConfig = {
   database: 'postgres',
   user: 'postgres',
-  password:'password',
-  port: 32768,
-}))
+  password: 'password',
+}
+
+const clientProvider = createClientPovider(
+  { ...basePoolConfig, name: 'foo', port: 32773 },
+  { ...basePoolConfig, name: 'bar', port: 32772 },
+)
+
+const transactionExecutor = createTransactionExecutor()
+
+const app = new Koa()
+app.use(clientProvider)
+app.use(transactionExecutor)
 
 server.applyMiddleware({ app })
 

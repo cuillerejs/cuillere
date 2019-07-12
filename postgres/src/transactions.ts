@@ -1,0 +1,65 @@
+import { PoolClient } from 'pg'
+import { promiseChain, uuidv4 } from './utils'
+
+const TRANSACTION_ID = Symbol('TRANSACTION_ID')
+
+interface Client extends PoolClient {
+  [TRANSACTION_ID]?: string
+}
+
+const error = (message: string) => new Error(`[CUILLERE] ${message}`)
+
+export const rollback = async (clients: Client[]) => {
+  if (clients.length === 0) return
+  await promiseChain(clients, async client => {
+    try {
+      if (!client[TRANSACTION_ID]) await client.query('ROLLBACK')
+      else await client.query(`ROLLBACK PREPARED '${client[TRANSACTION_ID]}'`)
+    } catch (err) {
+      throw error(`error during rollback: ${err.message}`)
+    }
+  })
+}
+
+const prepare = async (clients: Client[])=> {
+  try {
+    await promiseChain(clients, async client => {
+      const id = uuidv4()
+      await client.query(`PREPARE TRANSACTION '${id}'`)
+      client[TRANSACTION_ID] = id
+    })
+  } catch (err) {
+    throw error(`error durring transaction preparation phase: ${err.message}`)
+  }
+}
+
+const commitPrepared = async (clients: Client[]) => {
+  try {
+    await promiseChain(clients, async (client, index) => {
+      if (!client[TRANSACTION_ID]) throw new Error(`the client ${index} doesn't have a prepared transaction id`)
+      await client.query(`COMMIT PREPARED '${client[TRANSACTION_ID]}'`)
+      client[TRANSACTION_ID] = undefined
+    })
+  } catch (err) {
+    throw error(`error during commit ${err}`)
+  }
+}
+
+export const commit = async (clients: Client[]): Promise<void> => {
+  if (clients.length === 1) {
+    await clients[0].query('COMMIT')
+  } else {
+    await prepare(clients)
+    await commitPrepared(clients)
+  }
+}
+
+export const UNSAFE_commit = async (clients: Client[]) => {
+  try {
+    await promiseChain(clients, (client) => client.query(`COMMIT`))
+  } catch (err) {
+    throw error(`error during unsafe commit ${err}`)
+  }
+}
+
+export const release = (clients: Client[], err?: Error) => promiseChain(clients, async client => client.release(err))
