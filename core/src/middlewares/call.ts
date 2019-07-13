@@ -22,7 +22,7 @@ export const callMiddleware: Middleware = next =>
 
     let current, res
     do {
-      current = runningCall.next(res)
+      current = await runningCall.next(res)
 
       try {
         res = await run(current.value)
