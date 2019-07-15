@@ -5,11 +5,7 @@ import { createClientPovider, createTransactionExecutor } from '@cuillere/postgr
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-  context: ({ ctx }) => ctx,
-})
+const app = new Koa()
 
 const basePoolConfig = {
   database: 'postgres',
@@ -17,16 +13,18 @@ const basePoolConfig = {
   password: 'password',
 }
 
-const clientProvider = createClientPovider(
-  { ...basePoolConfig, name: 'foo', port: 32773 },
-  { ...basePoolConfig, name: 'bar', port: 32772 },
-)
+app.use(createClientPovider(
+  { ...basePoolConfig, name: 'foo', port: 54321 },
+  { ...basePoolConfig, name: 'bar', port: 54322 },
+))
 
-const transactionExecutor = createTransactionExecutor()
+app.use(createTransactionExecutor())
 
-const app = new Koa()
-app.use(clientProvider)
-app.use(transactionExecutor)
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  context: ({ ctx }) => ctx,
+})
 
 server.applyMiddleware({ app })
 
