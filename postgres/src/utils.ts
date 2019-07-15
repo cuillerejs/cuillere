@@ -15,7 +15,7 @@ export const promiseChain = async <T, R>(array: T[], mapper: Mapper<T, R>): Prom
       await acc
       return mapper(item, index)
     },
-    Promise.resolve<R>(undefined)
+    Promise.resolve<R>(undefined),
   )
 
 /* implementation from https://stackoverflow.com/a/2117523/3548191
@@ -27,9 +27,3 @@ export function uuidv4() {
     return v.toString(16);
   });
 }
-
-/* values return the list of values of both string and symbols properties defined on the given object */
-const values = <T>(obj: Object): T[] => [
-  ...Object.values(obj),
-  ...Object.getOwnPropertySymbols(obj).map(symbol => obj[symbol]),
-]
