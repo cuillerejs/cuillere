@@ -22,7 +22,7 @@ export interface Executor {
 }
 
 export interface Provider extends Executor {
-  close(): Promise<void>
+  end(): Promise<void>
 }
 
 export const getClient = async (ctx: Context, name?: string): Promise<PoolClient> => ctx[GET_CLIENT](name)
@@ -47,14 +47,14 @@ export function createClientPovider(...poolConfigs: PoolConfig[]): Provider {
   const pools = makePools(poolConfigs)
 
   const provider: Provider = async (ctx, cb) => {
-    if (ctx[CLIENTS]) throw new Error("[CUILLERE] this context is already in use. You can't use a transactionExecutor with the same context in parallel.")
+    if (ctx[CLIENTS]) throw new Error("[CUILLERE] this context is already in use in another provider")
     ctx[CLIENTS] = {}
 
     ctx[CREATE_CLIENT] = (name: string) => pools[name].connect()
-    ctx[GET_CLIENT] = async (name?: string) => {
-      const clientName = name || DEFAULT_POOL
-      if (!ctx[CLIENTS][clientName]) ctx[CLIENTS][clientName] = ctx[CREATE_CLIENT](clientName)
-      return ctx[CLIENTS][clientName]
+    ctx[GET_CLIENT] = (pName?: string) => {
+      const name = pName || DEFAULT_POOL
+      if (!ctx[CLIENTS][name]) ctx[CLIENTS][name] = ctx[CREATE_CLIENT](name)
+      return ctx[CLIENTS][name]
     }
 
     let error: Error
@@ -64,19 +64,19 @@ export function createClientPovider(...poolConfigs: PoolConfig[]): Provider {
       error = err
     } finally {
       await release(await getClients(ctx), error)
-      ctx[CLIENTS] = null
-      ctx[GET_CLIENT] = null
-      ctx[CREATE_CLIENT] = null
+      delete ctx[CLIENTS]
+      delete ctx[GET_CLIENT]
+      delete ctx[CREATE_CLIENT]
     }
   }
 
-  provider.close = (): any => promiseChain(Object.values(pools), async (pool) => await pool.end())
+  provider.end = (): any => promiseChain(Object.values(pools), pool => pool.end())
 
   return provider
 }
 
-export const createTransactionExecutor = ({ disablePreparedTransactions = false } = {}): Executor => {
-  const commitClients = disablePreparedTransactions ? UNSAFE_commit : commit
+export const createTransactionExecutor = ({ prepared = true } = {}): Executor => {
+  const commitClients = prepared ? commit : UNSAFE_commit
 
   return async (ctx, cb) => {
     const createClient = ctx[CREATE_CLIENT]

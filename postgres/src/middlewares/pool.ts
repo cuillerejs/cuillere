@@ -24,7 +24,7 @@ export function poolMiddleware(...poolConfigs: PoolConfig[]): Middleware {
     }
 
     if (isEnd(operation)) {
-      return pool.close()
+      return pool.end()
     }
 
     return next(operation)
