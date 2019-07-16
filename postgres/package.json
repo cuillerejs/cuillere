@@ -6,7 +6,9 @@
   "author": "Valentin Cocaud <v.cocaud@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "yarn tsc"
+    "build": "yarn tsc",
+    "example": "node --async-stack-traces --inspect=9991 dist/example",
+    "nodeversion": "node --version"
   },
   "dependencies": {
     "@cuillere/core": "^0.0.1"
