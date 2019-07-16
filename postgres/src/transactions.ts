@@ -1,6 +1,6 @@
 import { PoolClient } from 'pg'
-import { chain } from './promise'
-import uuid from './uuid'
+import { chain } from './utils/promise'
+import uuid from './utils/uuid'
 
 const TRANSACTION_ID = Symbol('TRANSACTION_ID')
 

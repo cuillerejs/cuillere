@@ -1,6 +1,6 @@
 import { Pool, PoolConfig as PgPoolConfig, PoolClient } from 'pg'
 import { commit, rollback, release, UNSAFE_commit } from './transactions'
-import { promiseChain } from './utils';
+import { chain } from './utils/promise';
 
 const GET_CLIENT = Symbol('GET_CLIENT')
 const CREATE_CLIENT = Symbol('CREATE_CLIENT')
@@ -70,7 +70,7 @@ export function createClientPovider(...poolConfigs: PoolConfig[]): Provider {
     }
   }
 
-  provider.end = (): any => promiseChain(Object.values(pools), pool => pool.end())
+  provider.end = (): any => chain(Object.values(pools), pool => pool.end())
 
   return provider
 }
