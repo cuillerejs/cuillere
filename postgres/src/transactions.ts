@@ -1,5 +1,5 @@
 import { PoolClient } from 'pg'
-import { chain } from './utils/promise'
+import { chain, allSettled } from './utils/promise'
 import uuid from './utils/uuid'
 
 const TRANSACTION_ID = Symbol('TRANSACTION_ID')
@@ -10,14 +10,14 @@ interface Client extends PoolClient {
 
 const error = (message: string) => new Error(`[CUILLERE] ${message}`)
 
-export const rollback = (clients: Client[]) => chain(clients, async client => {
+export const rollback = (clients: Client[]) => allSettled(clients.map(async client => {
   try {
     if (!client[TRANSACTION_ID]) await client.query('ROLLBACK')
     else await client.query(`ROLLBACK PREPARED '${client[TRANSACTION_ID]}'`)
   } catch (err) {
     throw error(`error during rollback: ${err.message}`)
   }
-})
+}))
 
 const prepare = async (clients: Client[])=> {
   try {

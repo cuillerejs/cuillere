@@ -80,7 +80,7 @@ export const createTransactionExecutor = ({ prepared = true } = {}): Executor =>
 
   return async (ctx, cb) => {
     const createClient = ctx[CREATE_CLIENT]
-    if(!createClient) throw new Error('[CUILLERE] the transaction executor needs to be called inside a clientProvider')
+    if (!createClient) throw new Error('[CUILLERE] the transaction executor needs to be called inside a clientProvider')
     // we override the create client context function to start a transaction at client creation
     ctx[CREATE_CLIENT] = async (name) => {
       const client = await createClient(name)
@@ -94,8 +94,8 @@ export const createTransactionExecutor = ({ prepared = true } = {}): Executor =>
       if (clients.length > 0) await commitClients(clients)
       return result
     } catch (error) {
-      await rollback(await getClients(ctx))
-      console.error(error)
+      const results = await rollback(await getClients(ctx))
+      results.filter(({status}) => status === 'rejected').forEach(({status, reason}) => console.error(reason))
       throw error
     }
   }
