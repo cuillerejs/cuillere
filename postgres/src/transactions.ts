@@ -1,5 +1,5 @@
 import { PoolClient } from 'pg'
-import { promiseChain } from './utils'
+import { chain } from './promise'
 import uuid from './uuid'
 
 const TRANSACTION_ID = Symbol('TRANSACTION_ID')
@@ -10,7 +10,7 @@ interface Client extends PoolClient {
 
 const error = (message: string) => new Error(`[CUILLERE] ${message}`)
 
-export const rollback = (clients: Client[]) => promiseChain(clients, async client => {
+export const rollback = (clients: Client[]) => chain(clients, async client => {
   try {
     if (!client[TRANSACTION_ID]) await client.query('ROLLBACK')
     else await client.query(`ROLLBACK PREPARED '${client[TRANSACTION_ID]}'`)
@@ -21,7 +21,7 @@ export const rollback = (clients: Client[]) => promiseChain(clients, async clien
 
 const prepare = async (clients: Client[])=> {
   try {
-    await promiseChain(clients, async client => {
+    await chain(clients, async client => {
       const id = uuid()
       await client.query(`PREPARE TRANSACTION '${id}'`)
       client[TRANSACTION_ID] = id
@@ -33,7 +33,7 @@ const prepare = async (clients: Client[])=> {
 
 const commitPrepared = async (clients: Client[]) => {
   try {
-    await promiseChain(clients, async (client, index) => {
+    await chain(clients, async (client, index) => {
       if (!client[TRANSACTION_ID]) throw new Error(`the client ${index} doesn't have a prepared transaction id`)
       await client.query(`COMMIT PREPARED '${client[TRANSACTION_ID]}'`)
       client[TRANSACTION_ID] = undefined
@@ -54,10 +54,10 @@ export const commit = async (clients: Client[]): Promise<void> => {
 
 export const UNSAFE_commit = async (clients: Client[]) => {
   try {
-    await promiseChain(clients, (client) => client.query(`COMMIT`))
+    await chain(clients, (client) => client.query(`COMMIT`))
   } catch (err) {
     throw error(`error during unsafe commit ${err}`)
   }
 }
 
-export const release = (clients: Client[], err?: Error) => promiseChain(clients, async client => client.release(err))
+export const release = (clients: Client[], err?: Error) => chain(clients, async client => client.release(err))
