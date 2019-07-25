@@ -1,6 +1,7 @@
 import { Pool, PoolConfig as PgPoolConfig, PoolClient } from 'pg'
 import { commit, rollback, release, UNSAFE_commit } from './transactions'
 import { chain } from './utils/promise';
+import { CuillereError } from './error';
 
 const GET_CLIENT = Symbol('GET_CLIENT')
 const CREATE_CLIENT = Symbol('CREATE_CLIENT')
@@ -47,7 +48,7 @@ export function createClientPovider(...poolConfigs: PoolConfig[]): Provider {
   const pools = makePools(poolConfigs)
 
   const provider: Provider = async (ctx, cb) => {
-    if (ctx[CLIENTS]) throw new Error("[CUILLERE] this context is already in use in another provider")
+    if (ctx[CLIENTS]) throw new CuillereError("this context is already in use in another provider")
     ctx[CLIENTS] = {}
 
     ctx[CREATE_CLIENT] = (name: string) => pools[name].connect()
@@ -80,7 +81,7 @@ export const createTransactionExecutor = ({ prepared = true } = {}): Executor =>
 
   return async (ctx, cb) => {
     const createClient = ctx[CREATE_CLIENT]
-    if (!createClient) throw new Error('[CUILLERE] the transaction executor needs to be called inside a clientProvider')
+    if (!createClient) throw new CuillereError('the transaction executor needs to be called inside a clientProvider')
     // we override the create client context function to start a transaction at client creation
     ctx[CREATE_CLIENT] = async (name) => {
       const client = await createClient(name)
@@ -95,8 +96,8 @@ export const createTransactionExecutor = ({ prepared = true } = {}): Executor =>
       return result
     } catch (error) {
       const results = await rollback(await getClients(ctx))
-      results.filter(({status}) => status === 'rejected').forEach(({status, reason}) => console.error(reason))
-      throw error
+      const rollbackErrors = results.filter(({status}) => status === 'rejected').map(({reason}) => reason)
+      throw new CuillereError('an error occured during transaction. Everything has been rollbacked', [error], rollbackErrors)
     }
   }
 }

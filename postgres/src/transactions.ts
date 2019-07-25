@@ -1,6 +1,7 @@
 import { PoolClient } from 'pg'
 import { chain, allSettled } from './utils/promise'
 import uuid from './utils/uuid'
+import { CuillereError } from './error';
 
 const TRANSACTION_ID = Symbol('TRANSACTION_ID')
 
@@ -11,15 +12,11 @@ interface Client extends PoolClient {
 const error = (message: string) => new Error(`[CUILLERE] ${message}`)
 
 export const rollback = (clients: Client[]) => allSettled(clients.map(async client => {
-  try {
-    if (!client[TRANSACTION_ID]) await client.query('ROLLBACK')
-    else await client.query(`ROLLBACK PREPARED '${client[TRANSACTION_ID]}'`)
-  } catch (err) {
-    throw error(`error during rollback: ${err.message}`)
-  }
+  if (!client[TRANSACTION_ID]) await client.query('ROLLBACK')
+  else await client.query(`ROLLBACK PREPARED '${client[TRANSACTION_ID]}'`)
 }))
 
-const prepare = async (clients: Client[])=> {
+const prepare = async (clients: Client[]) => {
   try {
     await chain(clients, async client => {
       const id = uuid()
@@ -27,7 +24,7 @@ const prepare = async (clients: Client[])=> {
       client[TRANSACTION_ID] = id
     })
   } catch (err) {
-    throw error(`error durring transaction preparation phase: ${err.message}`)
+    throw new CuillereError('error durring transaction preparation phase', [err])
   }
 }
 
