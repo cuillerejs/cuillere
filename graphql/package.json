@@ -1,9 +1,12 @@
 {
   "name": "@cuillere/graphql",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "index.js",
   "license": "MIT",
-  "dependencies": {
-    "@cuillere/core": "0.0.1"
+  "peerDependencies": {
+    "@cuillere/core": "^0.1.0"
+  },
+  "devDependencies": {
+    "@cuillere/core": "^0.1.0"
   }
 }

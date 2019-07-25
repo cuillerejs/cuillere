@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/core",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere.git",
   "author": "Valentin Cocaud <v.cocaud@gmail.com>",

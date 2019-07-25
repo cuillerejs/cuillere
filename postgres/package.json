@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "dist/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": "Valentin Cocaud <v.cocaud@gmail.com>",
@@ -10,15 +10,14 @@
     "example": "node --async-stack-traces --inspect=9991 dist/example",
     "nodeversion": "node --version"
   },
-  "dependencies": {
-    "@cuillere/core": "^0.0.1"
-  },
   "peerDependencies": {
+    "@cuillere/core": "^0.1.0",
     "pg": "^7.0"
   },
   "devDependencies": {
     "@types/pg": "^7.4.14",
     "pg": "^7.11.0",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.1",
+    "@cuillere/core": "^0.1.0"
   }
 }
