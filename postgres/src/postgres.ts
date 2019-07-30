@@ -22,6 +22,7 @@ export interface Executor {
 }
 
 export interface Provider extends Executor {
+  getPool(name: string): Pool
   end(): Promise<void>
 }
 
@@ -70,7 +71,9 @@ export function createClientPovider(...poolConfigs: PoolConfig[]): Provider {
     }
   }
 
-  provider.end = (): any => chain(Object.values(pools), pool => pool.end())
+  provider.getPool = name => pools[name]
+
+  provider.end = () => chain(Object.values(pools), pool => pool.end())
 
   return provider
 }
