@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "dist/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": "Valentin Cocaud <v.cocaud@gmail.com>",
@@ -15,9 +15,9 @@
     "pg": "^7.0"
   },
   "devDependencies": {
+    "@cuillere/core": "^0.1.0",
     "@types/pg": "^7.4.14",
     "pg": "^7.11.0",
-    "typescript": "^3.5.1",
-    "@cuillere/core": "^0.1.0"
+    "typescript": "^3.5.1"
   }
 }
