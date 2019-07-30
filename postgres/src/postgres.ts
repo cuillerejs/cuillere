@@ -44,7 +44,7 @@ const makePools = (poolConfigs: PoolConfig[]): Record<string, Pool> => {
   return pools
 }
 
-export function createClientPovider(...poolConfigs: PoolConfig[]): Provider {
+export function createClientProvider(...poolConfigs: PoolConfig[]): Provider {
   const pools = makePools(poolConfigs)
 
   const provider: Provider = async (ctx, cb) => {

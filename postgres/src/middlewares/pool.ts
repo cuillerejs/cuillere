@@ -1,5 +1,5 @@
 import { isStart, Middleware } from "@cuillere/core";
-import { PoolConfig, createClientPovider } from "../postgres";
+import { PoolConfig, createClientProvider } from "../postgres";
 
 const END = Symbol('END')
 
@@ -16,7 +16,7 @@ function isEnd(operation: any): operation is End {
 }
 
 export function poolMiddleware(...poolConfigs: PoolConfig[]): Middleware {
-  const pool = createClientPovider(...poolConfigs)
+  const pool = createClientProvider(...poolConfigs)
 
   return next => async (operation, ctx) => {
     if (isStart(operation)) {

@@ -1,6 +1,6 @@
 import Koa from 'koa'
 import { ApolloServer, gql } from 'apollo-server-koa'
-import { createClientPovider, createTransactionExecutor } from '@cuillere/postgres'
+import { createClientProvider, createTransactionExecutor } from '@cuillere/postgres'
 
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
@@ -13,7 +13,7 @@ const basePoolConfig = {
   password: 'password',
 }
 
-app.use(createClientPovider(
+app.use(createClientProvider(
   { ...basePoolConfig, name: 'foo', port: 54321 },
   { ...basePoolConfig, name: 'bar', port: 54322 },
 ))
