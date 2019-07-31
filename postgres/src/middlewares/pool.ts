@@ -1,32 +1,27 @@
 import { isStart, Middleware } from "@cuillere/core";
-import { PoolConfig, createClientProvider } from "../postgres";
+import { PoolConfig, ClientProvider, createClientProvider, isClientProvider } from "../postgres";
 
-const END = Symbol('END')
-
-interface End {
-  [END]: true,
+interface PoolMiddleware extends Middleware {
+  end(): Promise<void>
 }
 
-export function end(): End {
-  return { [END]: true }
-}
+export function poolMiddleware(...args: [PoolConfig | ClientProvider, ...PoolConfig[]]): PoolMiddleware {
+  let provider: ClientProvider
+  if (isClientProvider(args[0])) {
+    provider = args[0]
+  } else {
+    provider = createClientProvider(...(args as PoolConfig[]))
+  }
 
-function isEnd(operation: any): operation is End {
-  return operation && operation[END]
-}
-
-export function poolMiddleware(...poolConfigs: PoolConfig[]): Middleware {
-  const pool = createClientProvider(...poolConfigs)
-
-  return next => async (operation, ctx) => {
+  const mw: PoolMiddleware = next => async (operation, ctx) => {
     if (isStart(operation)) {
-      return pool(ctx, () => next(operation))
-    }
-
-    if (isEnd(operation)) {
-      return pool.end()
+      return provider(ctx, () => next(operation))
     }
 
     return next(operation)
   }
+
+  mw.end = provider.end
+
+  return mw
 }

@@ -1,24 +1,26 @@
 import { makeRunner, call } from '@cuillere/core'
-import { poolMiddleware, end } from './middlewares/pool'
+import { poolMiddleware as createPoolMiddleware } from './middlewares/pool'
 import { queryMiddleware, query } from './middlewares/query'
 
+const poolMiddleware = createPoolMiddleware(
+    {
+        name: 'foo',
+        database: 'postgres',
+        user: 'postgres',
+        password: 'password',
+        port: 54321,
+    },
+    {
+        name: 'bar',
+        database: 'postgres',
+        user: 'postgres',
+        password: 'password',
+        port: 54322,
+    },
+)
+
 const run = makeRunner(
-    poolMiddleware(
-        {
-            name: 'foo',
-            database: 'postgres',
-            user: 'postgres',
-            password: 'password',
-            port: 54321,
-        },
-        {
-            name: 'bar',
-            database: 'postgres',
-            user: 'postgres',
-            password: 'password',
-            port: 54322,
-        },
-    ),
+    poolMiddleware,
     queryMiddleware(),
 );
 
@@ -42,5 +44,5 @@ const run = makeRunner(
         console.error(err)
     }
 
-    await run()(end())
+    await poolMiddleware.end()
 })()

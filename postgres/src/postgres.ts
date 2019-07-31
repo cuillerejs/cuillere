@@ -2,6 +2,7 @@ import { Pool, PoolConfig as PgPoolConfig, PoolClient } from 'pg'
 import { commit, rollback, release, UNSAFE_commit } from './transactions'
 import { chain } from './utils/promise';
 
+const PROVIDER = Symbol('PROVIDER')
 const GET_CLIENT = Symbol('GET_CLIENT')
 const CREATE_CLIENT = Symbol('CREATE_CLIENT')
 const CLIENTS = Symbol('CLIENTS')
@@ -21,7 +22,7 @@ export interface Executor {
   <R>(ctx: Context, cb: () => Promise<R>): Promise<R>
 }
 
-export interface Provider extends Executor {
+export interface ClientProvider extends Executor {
   getPool(name: string): Pool
   end(): Promise<void>
 }
@@ -44,10 +45,10 @@ const makePools = (poolConfigs: PoolConfig[]): Record<string, Pool> => {
   return pools
 }
 
-export function createClientProvider(...poolConfigs: PoolConfig[]): Provider {
+export function createClientProvider(...poolConfigs: PoolConfig[]): ClientProvider {
   const pools = makePools(poolConfigs)
 
-  const provider: Provider = async (ctx, cb) => {
+  const provider: ClientProvider = async (ctx, cb) => {
     if (ctx[CLIENTS]) throw new Error("[CUILLERE] this context is already in use in another provider")
     ctx[CLIENTS] = {}
 
@@ -71,12 +72,16 @@ export function createClientProvider(...poolConfigs: PoolConfig[]): Provider {
     }
   }
 
+  provider[PROVIDER] = true
+
   provider.getPool = name => pools[name]
 
   provider.end = () => chain(Object.values(pools), pool => pool.end())
 
-  return provider
+  return provider as ClientProvider
 }
+
+export const isClientProvider = (value: any): value is ClientProvider => value && value[PROVIDER]
 
 export const createTransactionExecutor = ({ prepared = true } = {}): Executor => {
   const commitClients = prepared ? commit : UNSAFE_commit
