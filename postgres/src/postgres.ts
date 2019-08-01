@@ -1,6 +1,6 @@
 import { Pool, PoolConfig as PgPoolConfig, PoolClient } from 'pg'
 import { commit, rollback, release, UNSAFE_commit } from './transactions'
-import { chain } from './utils/promise';
+import { chain } from '@cuillere/core/dist/utils/promise';
 
 const PROVIDER = Symbol('PROVIDER')
 const GET_CLIENT = Symbol('GET_CLIENT')
