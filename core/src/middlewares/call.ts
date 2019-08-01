@@ -3,7 +3,7 @@ import { isCall } from '../operations'
 import { error, isUnrecognizedOperation } from '../errors'
 
 export const callMiddleware: Middleware = next =>
-  async function(operation, ctx, run) {
+  async function(operation, _ctx, run) {
     if (!isCall(operation)) {
       return next(operation)
     }
@@ -20,7 +20,7 @@ export const callMiddleware: Middleware = next =>
       )
     }
 
-    let current, res
+    let current: IteratorResult<any>, res: any
     do {
       current = await runningCall.next(res)
 
