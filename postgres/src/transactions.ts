@@ -1,5 +1,5 @@
 import { PoolClient } from 'pg'
-import { chain, allSettled } from '@cuillere/core/dist/utils/promise'
+import { chain, allSettled } from '@cuillere/core/lib/utils/promise'
 import uuid from './utils/uuid'
 
 const TRANSACTION_ID = Symbol('TRANSACTION_ID')
