@@ -1,10 +1,13 @@
 {
   "name": "@cuillere/core",
-  "version": "0.1.0",
-  "main": "dist/index.js",
-  "repository": "https://github.com/EmrysMyrddin/cuillere.git",
+  "version": "0.2.0",
+  "main": "lib/index.js",
+  "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": "Valentin Cocaud <v.cocaud@gmail.com>",
-  "license": "MIT",
+  "contributors": [
+    "Nicolas LEPAGE <https://github.com/nlepage>"
+  ],
+  "license": "Apache-2.0",
   "scripts": {
     "test": "yarn jest",
     "lint": "yarn eslint --ext .ts src tests",
@@ -12,8 +15,12 @@
     "build": "yarn tsc",
     "prewatch": "yarn clean",
     "watch": "yarn tsc --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf lib"
   },
+  "files": [
+    "lib",
+    "LICENSE"
+  ],
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "@typescript-eslint/eslint-plugin": "^1.9.0",
