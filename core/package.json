@@ -3,9 +3,13 @@
   "version": "0.2.0",
   "main": "lib/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
-  "author": "Valentin Cocaud <v.cocaud@gmail.com>",
+  "author": {
+    "name": "Valentin COCAUD",
+    "email": "v.cocaud@gmail.com",
+    "url": "https://github.com/EmrysMyrddin"
+  },
   "contributors": [
-    "Nicolas LEPAGE <https://github.com/nlepage>"
+    {"name": "Nicolas LEPAGE", "url": "https://github.com/nlepage" }
   ],
   "license": "Apache-2.0",
   "scripts": {
