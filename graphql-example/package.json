@@ -1,14 +1,28 @@
 {
   "name": "@cuillere/graphql-example",
-  "version": "0.1.0",
-  "license": "MIT",
+  "version": "0.2.0",
+  "repository": "https://github.com/EmrysMyrddin/cuillere",
+  "author": {
+    "name": "Valentin COCAUD",
+    "email": "v.cocaud@gmail.com",
+    "url": "https://github.com/EmrysMyrddin"
+  },
+  "contributors": [
+    {"name": "Nicolas LEPAGE", "url": "https://github.com/nlepage" }
+  ],
+  "license": "Apache-2.0",
+  "files": [
+    "*.js",
+    "docker-compose.yml",
+    "LICENSE"
+  ],
   "scripts": {
     "start": "node ."
   },
   "dependencies": {
-    "@cuillere/core": "^0.1.0",
-    "@cuillere/koa": "^0.1.0",
-    "@cuillere/postgres": "^0.1.0",
+    "@cuillere/core": "^0.2.0",
+    "@cuillere/koa": "^0.2.0",
+    "@cuillere/postgres": "^0.2.0",
     "apollo-server-koa": "^2.6.7",
     "esm": "^3.2.25",
     "graphql": "^14.4.2",
