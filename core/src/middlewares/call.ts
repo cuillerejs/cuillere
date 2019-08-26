@@ -20,20 +20,27 @@ export const callMiddleware: Middleware = next =>
       )
     }
 
-    let current: IteratorResult<any>, res: any
+    let current: IteratorResult<any>
+    let currentErr: any
+    let hasThrown: boolean
+    let res: any
+
     do {
-      current = await runningCall.next(res)
+      current = hasThrown ? await runningCall.throw(currentErr) : await runningCall.next(res)
 
       try {
-        res = await run(current.value)
+        res = current.done ? current.value : await run(current.value)
+        hasThrown = false
       } catch (e) {
-        if (!isUnrecognizedOperation(e)) {
-          current = await runningCall.throw(e)
-        }
-        res = current.value
-        if (!current.done) console.warn(`${e.message}:`, e.operation)
+        currentErr = e
+        hasThrown = true
+        // if (!isUnrecognizedOperation(e)) {
+        //   current = await runningCall.throw(e)
+        // }
+        // res = current.value
+        // if (!current.done) console.warn(`${e.message}:`, e.operation)
       }
-    } while (!current.done)
+    } while (!current.done || hasThrown)
 
     return res
   }
