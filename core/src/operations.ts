@@ -1,10 +1,10 @@
 const CALL_SYMBOL = Symbol('CALL')
 
-export type GeneratorFunction<Args extends any[], R> = (...args: Args) => IterableIterator<R>
+export type GeneratorFunction<Args extends any[], R> = (...args: Args) => (IterableIterator<R> | AsyncIterableIterator<R>)
 
 export interface Call {
   [CALL_SYMBOL]: true
-  func(...args: any[]): IterableIterator<any>
+  func(...args: any[]): (IterableIterator<any> | AsyncIterableIterator<any>)
   args: any[]
 }
 

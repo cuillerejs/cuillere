@@ -28,7 +28,7 @@ export const callMiddleware: Middleware = next =>
         res = await run(current.value)
       } catch (e) {
         if (!isUnrecognizedOperation(e)) {
-          runningCall.throw(e)
+          current = await runningCall.throw(e)
         }
         res = current.value
         if (!current.done) console.warn(`${e.message}:`, e.operation)
