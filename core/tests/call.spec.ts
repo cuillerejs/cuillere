@@ -74,40 +74,6 @@ describe('call', () => {
     }
   })
 
-  it('should throw uncaught exception from nested return call', async () => {
-    function* throwValue(value?: any) {
-      if (value) throw value
-    }
-
-    function* test() {
-      return call(throwValue, 'testError')
-    }
-
-    try {
-      await run(call(test))
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
-  })
-
-  it('should throw uncaught exception from nested return call (async)', async () => {
-    function* throwValue(value?: any) {
-      if (value) throw value
-    }
-
-    function* test() {
-      return call(throwValue, 'testError')
-    }
-
-    try {
-      await run(call(test))
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
-  })
-
   it('should catch and return exception from nested call', async () => {
     function* test() {
       try {
@@ -124,30 +90,6 @@ describe('call', () => {
     async function* test() {
       try {
         yield call(throwValue, 'testError')
-      } catch (e) {
-        return e
-      }
-    }
-
-    expect(await run(call(test))).toBe('testError')
-  })
-
-  it('should catch and return exception from nested return call', async () => {
-    function* test() {
-      try {
-        return call(throwValue, 'testError')
-      } catch (e) {
-        return e
-      }
-    }
-
-    expect(await run(call(test))).toBe('testError')
-  })
-
-  it('should catch and return exception from nested return call (async)', async () => {
-    function* test() {
-      try {
-        return call(throwValue, 'testError')
       } catch (e) {
         return e
       }

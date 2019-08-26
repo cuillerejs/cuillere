@@ -27,18 +27,6 @@ describe('run', () => {
       expect(await run(call(test, ...testArgs))).toEqual(testArgs)
     })
 
-    it('should run returned operations', async () => {
-      function* test1() {
-        return 'test'
-      }
-
-      function* test2() {
-        return call(test1)
-      }
-
-      expect(await run(call(test2))).toBe('test')
-    })
-
     it('should run yielded operations', async () => {
       function* test1() {
         return 'test1'

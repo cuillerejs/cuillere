@@ -1,6 +1,6 @@
 import { Middleware } from './index'
 import { isCall } from '../operations'
-import { error, isUnrecognizedOperation } from '../errors'
+import { error } from '../errors'
 
 export const callMiddleware: Middleware = next =>
   async function(operation, _ctx, run) {
@@ -21,26 +21,20 @@ export const callMiddleware: Middleware = next =>
     }
 
     let current: IteratorResult<any>
-    let currentErr: any
-    let hasThrown: boolean
-    let res: any
+    let hasThrown: boolean = false
+    let res: any, err: any
 
     do {
-      current = hasThrown ? await runningCall.throw(currentErr) : await runningCall.next(res)
+      current = hasThrown ? await runningCall.throw(err) : await runningCall.next(res)
 
+      if (current.done) return current.value
+      
       try {
-        res = current.done ? current.value : await run(current.value)
+        res = await run(current.value)
         hasThrown = false
       } catch (e) {
-        currentErr = e
+        err = e
         hasThrown = true
-        // if (!isUnrecognizedOperation(e)) {
-        //   current = await runningCall.throw(e)
-        // }
-        // res = current.value
-        // if (!current.done) console.warn(`${e.message}:`, e.operation)
       }
-    } while (!current.done || hasThrown)
-
-    return res
+    } while (true)
   }

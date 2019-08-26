@@ -46,7 +46,7 @@ describe('examples', () => {
 
     function* update(data) {
       const entity = yield awaitFunc(get, 1)
-      return awaitFunc(put, { ...entity, ...data })
+      return yield awaitFunc(put, { ...entity, ...data })
     }
 
     const entityToUpdate = { id: 1, test: 'test' }
