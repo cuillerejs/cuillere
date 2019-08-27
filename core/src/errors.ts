@@ -6,6 +6,7 @@ export function error(message: string, ...args): Error {
   )
 }
 
+// FIXME is this useful ?
 export const isUnrecognizedOperation = (err: Error) => err[UNRECOGNIZED_ERROR]
 export const unrecognizedOperation = (operation: any) => {
   const err = error('operation could not be handled, misformed operation or missing middleware')

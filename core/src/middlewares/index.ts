@@ -3,7 +3,7 @@ import { Run } from '..'
 
 export * from './call'
 export * from './context'
-export * from './promise'
+export * from './concurrent'
 
 export interface Middleware {
   (next: Run): (operation: any, ctx: any, run: Run) => Promise<any>
