@@ -21,7 +21,7 @@ export const callMiddleware: Middleware = next =>
     }
 
     let current: IteratorResult<any>
-    let hasThrown: boolean = false
+    let hasThrown = false
     let res: any, err: any
 
     while (true) {

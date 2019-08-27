@@ -5,7 +5,7 @@ interface PoolMiddleware extends Middleware {
   end(): Promise<void>
 }
 
-export function poolMiddleware(...args: [PoolConfig | ClientProvider, ...PoolConfig[]]): PoolMiddleware {
+export function poolMiddleware(...args: [ClientProvider] | PoolConfig[]): PoolMiddleware {
   let provider: ClientProvider
   if (isClientProvider(args[0])) {
     provider = args[0]

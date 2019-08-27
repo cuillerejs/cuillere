@@ -1,7 +1,5 @@
 import { Pool, PoolConfig as PgPoolConfig, PoolClient } from 'pg'
 import { commit, rollback, release, UNSAFE_commit } from './transactions'
-import { chain } from '@cuillere/core/lib/utils/promise';
-
 const PROVIDER = Symbol('PROVIDER')
 const GET_CLIENT = Symbol('GET_CLIENT')
 const CREATE_CLIENT = Symbol('CREATE_CLIENT')
@@ -76,7 +74,7 @@ export function createClientProvider(...poolConfigs: PoolConfig[]): ClientProvid
 
   provider.getPool = name => pools[name]
 
-  provider.end = () => chain(Object.values(pools), pool => pool.end())
+  provider.end = async () => { await Promise.all(Object.values(pools).map(pool => pool.end())) }
 
   return provider as ClientProvider
 }
