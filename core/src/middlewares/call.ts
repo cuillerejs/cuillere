@@ -24,7 +24,7 @@ export const callMiddleware: Middleware = next =>
     let hasThrown: boolean = false
     let res: any, err: any
 
-    do {
+    while (true) {
       current = hasThrown ? await runningCall.throw(err) : await runningCall.next(res)
 
       if (current.done) return current.value
@@ -36,5 +36,5 @@ export const callMiddleware: Middleware = next =>
         err = e
         hasThrown = true
       }
-    } while (true)
+    }
   }
