@@ -1,4 +1,4 @@
-import { allSettled as promiseAllSettled } from '../utils/promise'
+import { allSettled as promiseAllSettled, chain as promiseChain } from '../utils/promise'
 import { Middleware } from './index';
 
 const ALL = Symbol('ALL')
@@ -29,9 +29,24 @@ export const allSettled = (values: Iterable<any>): AllSettled => ({
 
 const isAllSettled = (operation): operation is AllSettled => operation && operation[ALL_SETTLED]
 
+const CHAIN = Symbol('CHAIN')
+
+interface Chain {
+  [CHAIN]: true
+  values: Iterable<any>
+}
+
+const isChain = (operation): operation is Chain => operation && operation[CHAIN]
+
+export const chain = (values: Iterable<any>): Chain => ({
+  [CHAIN]: true,
+  values,
+})
+
 export const promiseMiddleware: Middleware = next => (operation, _ctx, run) => {
-  if (isAll(operation)) return Promise.all([...operation.values].map(run))
-  if (isAllSettled(operation)) return promiseAllSettled([...operation.values].map(run))
+  if (isAll(operation)) return Promise.all(Array.from(operation.values, run))
+  if (isAllSettled(operation)) return promiseAllSettled(Array.from(operation.values, run))
+  if (isChain(operation)) return promiseChain(Array.from(operation.values), run)
 
   return next(operation)
 }
