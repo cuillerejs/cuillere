@@ -3,7 +3,7 @@ import { Middleware } from './index';
 
 const ALL = Symbol('ALL')
 
-interface All {
+export interface All {
   [ALL]: true
   values: Iterable<any>
 }
@@ -13,11 +13,11 @@ export const all = (values: Iterable<any>): All => ({
   values,
 })
 
-const isAll = (operation): operation is All => operation && operation[ALL]
+export const isAll = (operation: any): operation is All => operation && operation[ALL]
 
 const ALL_SETTLED = Symbol('ALL_SETTLED')
 
-interface AllSettled {
+export interface AllSettled {
   [ALL_SETTLED]: true
   values: Iterable<any>
 }
@@ -27,23 +27,23 @@ export const allSettled = (values: Iterable<any>): AllSettled => ({
   values,
 })
 
-const isAllSettled = (operation): operation is AllSettled => operation && operation[ALL_SETTLED]
+export const isAllSettled = (operation: any): operation is AllSettled => operation && operation[ALL_SETTLED]
 
 const CHAIN = Symbol('CHAIN')
 
-interface Chain {
+export interface Chain {
   [CHAIN]: true
   values: Iterable<any>
 }
 
-const isChain = (operation): operation is Chain => operation && operation[CHAIN]
+export const isChain = (operation): operation is Chain => operation && operation[CHAIN]
 
 export const chain = (values: Iterable<any>): Chain => ({
   [CHAIN]: true,
   values,
 })
 
-export const promiseMiddleware: Middleware = next => (operation, _ctx, run) => {
+export const concurrentMiddleware: Middleware = next => (operation, _ctx, run) => {
   if (isAll(operation)) return Promise.all(Array.from(operation.values, run))
   if (isAllSettled(operation)) return promiseAllSettled(Array.from(operation.values, run))
   if (isChain(operation)) return promiseChain(Array.from(operation.values), run)

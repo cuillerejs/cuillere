@@ -131,4 +131,12 @@ describe('call', () => {
       expect(e).toBe('testError')
     }
   })
+
+  it('should accept generator as first parameter', async () => {
+    function* test() {
+      return 'test'
+    }
+
+    expect(await run(call(test()))).toBe('test')
+  })
 })
