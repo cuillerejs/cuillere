@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/graphql-example",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {
     "name": "Valentin COCAUD",
@@ -20,9 +20,9 @@
     "start": "node ."
   },
   "dependencies": {
-    "@cuillere/core": "^0.3.0",
-    "@cuillere/koa": "^0.3.0",
-    "@cuillere/postgres": "^0.3.0",
+    "@cuillere/core": "^0.4.0",
+    "@cuillere/koa": "^0.4.0",
+    "@cuillere/postgres": "^0.4.0",
     "apollo-server-koa": "^2.6.7",
     "esm": "^3.2.25",
     "graphql": "^14.4.2",
