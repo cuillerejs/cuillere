@@ -1,10 +1,10 @@
 import { makeRunner } from '@cuillere/core'
-import { makeResolverTreeFactory } from '@cuillere/graphql'
+import { makeResolversTreeFactory } from '@cuillere/graphql'
 import { queryMiddleware, query } from '@cuillere/postgres'
 
-const makeResolverTree = makeResolverTreeFactory(makeRunner(queryMiddleware()))
+const makeResolversTree = makeResolversTreeFactory(makeRunner(queryMiddleware()))
 
-export const resolvers = makeResolverTree({
+export const resolvers = makeResolversTree({
   Query: {
     hello: function* (_, { name }) {
       let res = yield query({ text: 'SELECT NOW()', pool: 'foo' })
@@ -33,7 +33,7 @@ export const resolvers = makeResolverTree({
       })
       return updated && updated.name
     },
-    wait: async function*() {
+    wait: async () => {
       await new Promise((resolve) => setTimeout(resolve, 5000))
     }
   },

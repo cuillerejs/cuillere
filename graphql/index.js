@@ -1,17 +1,22 @@
 import { call } from '@cuillere/core'
 
-export const makeResolverFactory = run => genFn => (obj, args, ctx, info) => run(ctx)(call(genFn, obj, args, ctx, info))
+const isGenerator = value => value.next && value.throw
 
-export const makeResolverTreeFactory = run => {
-  const genFnToResolver = makeResolverFactory(run)
+export const makeResolverFactory = run => fn => (obj, args, ctx, info) => {
+  const res = fn(obj, args, ctx, info)
+  return isGenerator(res) ? run(ctx)(call(res)) : res
+}
 
-  const genTreeToResolvers = genResolvers => {
+export const makeResolversTreeFactory = run => {
+  const fnToResolver = makeResolverFactory(run)
+
+  const treeToResolversTree = tree => {
     const resolvers = {}
-    Object.entries(genResolvers).forEach(([key, value]) => {
-      resolvers[key] = typeof value === 'function' ? genFnToResolver(value) : genTreeToResolvers(value)
+    Object.entries(tree).forEach(([key, value]) => {
+      resolvers[key] = typeof value === 'function' ? fnToResolver(value) : treeToResolversTree(value)
     })
     return resolvers
   }
 
-  return genTreeToResolvers
+  return treeToResolversTree
 }
