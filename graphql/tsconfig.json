@@ -1,0 +1,11 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2018",
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./lib"
+  },
+  "include": ["src/**/*"]
+}
