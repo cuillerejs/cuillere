@@ -1,5 +1,5 @@
 import { unrecognizedOperation } from './errors'
-import { contextMiddleware, callMiddleware, promiseMiddleware, checkMiddlewares, Middleware } from './middlewares'
+import { contextMiddleware, callMiddleware, concurrentMiddleware, checkMiddlewares, Middleware } from './middlewares'
 
 const START = Symbol('START')
 
@@ -35,7 +35,7 @@ const finalFactory: RunFactory = (_ctx, run) => (operation) => {
 export function makeRunner(...middlewares: Middleware[]): (ctx?: any) => Run {
   checkMiddlewares(middlewares)
 
-  const run = [...middlewares, promiseMiddleware, callMiddleware, contextMiddleware]
+  const run = [...middlewares, concurrentMiddleware, callMiddleware, contextMiddleware]
     .map(middleware => (nextFactory: RunFactory): RunFactory => (ctx, run) => {
       const middlewareWithNext = middleware(nextFactory(ctx, run))
       return operation => middlewareWithNext(operation, ctx, run)
