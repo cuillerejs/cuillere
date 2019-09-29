@@ -1,16 +1,13 @@
 import { Middleware } from './index'
 import { error } from '../errors'
-import { Run } from '../run'
+import { OperationHandler } from '../run'
+import { Generator, GeneratorFunc } from '../utils/generator'
 
 const CALL_SYMBOL = Symbol('CALL')
 
-type Generator<R> = Iterator<R> | AsyncIterator<R>
-
-type CallFunc<Args extends any[], R> = (...args: Args) => Generator<R>
-
 export interface Call<Args extends any[], R> {
   [CALL_SYMBOL]: true
-  func: CallFunc<Args, R> | Generator<R>
+  func: GeneratorFunc<Args, R> | Generator<R>
   args?: Args
   fork?: true
 }
@@ -19,11 +16,11 @@ export function isCall(operation: any): operation is Call<any, any> {
   return operation && operation[CALL_SYMBOL]
 }
 
-export function call<Args extends any[], R>(func: CallFunc<Args, R> | Generator<R>, ...args: Args): Call<Args, R> {
+export function call<Args extends any[], R>(func: GeneratorFunc<Args, R> | Generator<R>, ...args: Args): Call<Args, R> {
   return { [CALL_SYMBOL]: true, func, args }
 }
 
-export function fork<Args extends any[], R>(func: CallFunc<Args, R> | Generator<R>, ...args: Args): Call<Args, R> {
+export function fork<Args extends any[], R>(func: GeneratorFunc<Args, R> | Generator<R>, ...args: Args): Call<Args, R> {
   return { [CALL_SYMBOL]: true, func, args, fork: true }
 }
 
@@ -37,7 +34,7 @@ export const callMiddleware: Middleware = next => async (operation, _ctx, run)=>
   return operation.fork ? { promise } : promise
 }
 
-const doCall = async <Args extends any[], R>({ func, args }: Call<Args, R>, run: Run): Promise<R> => {
+const doCall = async <Args extends any[], R>({ func, args }: Call<Args, R>, run: OperationHandler): Promise<R> => {
   if (!func) {
     throw error(`the call operation function is null or undefined`)
   }

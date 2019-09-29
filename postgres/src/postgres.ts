@@ -81,6 +81,7 @@ export function createClientProvider(...poolConfigs: PoolConfig[]): ClientProvid
 
 export const isClientProvider = (value: any): value is ClientProvider => value && value[PROVIDER]
 
+//FIXME rename to createTransactionManager
 export const createTransactionExecutor = ({ prepared = true } = {}): Executor => {
   const commitClients = prepared ? commit : UNSAFE_commit
 
