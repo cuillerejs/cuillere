@@ -63,11 +63,13 @@ module.exports = {
         "import/prefer-default-export": "off",
         "max-classes-per-file": "off",
         "no-await-in-loop": "off",
+        "no-cond-assign": "off",
         "no-console": "off",
         "no-continue": "off",
         "no-multiple-empty-lines": ["warn", { "max": 1 }],
         "no-new-wrappers": "off",
         "no-param-reassign": ["error", { "props": false }],
+        "no-plusplus": "off",
         'no-restricted-syntax': [
             'error',
             {
