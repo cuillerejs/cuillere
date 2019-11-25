@@ -1,12 +1,12 @@
 /* eslint-env jest */
 /* eslint-disable require-yield */
 
-import { makeRunner, call } from '../src'
+import cuillere, { Cuillere, call } from '../src'
 
 describe('run', () => {
-  let run: Function
+  let cllr: Cuillere
   beforeEach(() => {
-    run = makeRunner()()
+    cllr = cuillere()
   })
 
   describe('runCallOperation', () => {
@@ -15,7 +15,7 @@ describe('run', () => {
         return 'test'
       }
 
-      expect(await run(call(test))).toBe('test')
+      expect(await cllr.execute(test)).toBe('test')
     })
 
     it('should pass arguments to the generator function', async () => {
@@ -24,7 +24,7 @@ describe('run', () => {
       }
       const testArgs = [1, 2, 3, 4]
 
-      expect(await run(call(test, ...testArgs))).toEqual(testArgs)
+      expect(await cllr.execute(test, ...testArgs)).toEqual(testArgs)
     })
 
     it('should run yielded operations', async () => {
@@ -42,7 +42,7 @@ describe('run', () => {
         return [result1, result2]
       }
 
-      expect(await run(call(test3))).toEqual(['test1', 'test2'])
+      expect(await cllr.execute(test3)).toEqual(['test1', 'test2'])
     })
   })
 })

@@ -1,6 +1,6 @@
-import { Middleware } from './index'
+import { Middleware } from './middleware'
 import { error } from '../errors'
-import { OperationHandler } from '../run'
+import { OperationHandler } from '../cuillere'
 import { Generator, GeneratorFunc } from '../utils/generator'
 
 const CALL_SYMBOL = Symbol('CALL')
@@ -26,7 +26,7 @@ export function fork<Args extends any[], R>(func: GeneratorFunc<Args, R> | Gener
 
 const isGenerator = (value: any): value is Generator<any> => value.next && value.throw
 
-export const callMiddleware: Middleware = next => async (operation, _ctx, run)=> {
+export const callMiddleware: Middleware = (next, _ctx, run) => async operation => {
   if (!isCall(operation)) return next(operation)
 
   const promise = doCall(operation, run)

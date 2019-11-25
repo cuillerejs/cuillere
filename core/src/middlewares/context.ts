@@ -1,4 +1,4 @@
-import { Middleware } from './index'
+import { Middleware } from './middleware'
 
 const CONTEXT_SYMBOL = Symbol('CONTEXT')
 const GET_SYMBOL = Symbol('GET')
@@ -39,7 +39,7 @@ const isSet = (operation: ContextOperation): operation is Set => operation && op
 
 const isGet = (operation: ContextOperation): operation is Get => operation && operation[GET_SYMBOL]
 
-export const contextMiddleware: Middleware = next => (operation, ctx) => {
+export const contextMiddleware: Middleware = (next, ctx) => operation => {
   if (!isContextOperation(operation)) return next(operation)
 
   if (isGet(operation)) return ctx[operation.key]

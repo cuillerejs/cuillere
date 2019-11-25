@@ -1,4 +1,4 @@
-import { Middleware, makeRunner, call } from '../src'
+import cuillere, { Middleware } from '../src'
 
 /*eslint-env jest*/
 
@@ -10,7 +10,7 @@ describe('examples', () => {
       return next(operation)
     }
 
-    const run = makeRunner(promiseMiddleware)()
+    const cllr = cuillere(promiseMiddleware)
 
     // Some fake api
     const get = id => Promise.resolve({ id })
@@ -22,7 +22,7 @@ describe('examples', () => {
     }
 
     const entityToUpdate = { id: 1, test: 'test' }
-    const result = await run(call(update, entityToUpdate))
+    const result = await cllr.execute(update, entityToUpdate)
 
     expect(result).toEqual(entityToUpdate)
   })
@@ -38,7 +38,7 @@ describe('examples', () => {
       return next(operation)
     }
 
-    const run = makeRunner(promiseMiddleware)()
+    const cllr = cuillere(promiseMiddleware)
 
     // Some fake api
     const get = id => Promise.resolve({ id })
@@ -50,7 +50,7 @@ describe('examples', () => {
     }
 
     const entityToUpdate = { id: 1, test: 'test' }
-    const result = await run(call(update, entityToUpdate))
+    const result = await cllr.execute(update, entityToUpdate)
 
     expect(result).toEqual(entityToUpdate)
   })

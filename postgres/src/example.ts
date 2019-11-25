@@ -1,8 +1,7 @@
-import { makeRunner, call } from '@cuillere/core'
-import { poolMiddleware as createPoolMiddleware } from './middlewares/pool'
-import { queryMiddleware, query } from './middlewares/query'
+import cuillere from '@cuillere/core'
+import { poolMiddleware, queryMiddleware, query } from './index'
 
-const poolMiddleware = createPoolMiddleware(
+const pool = poolMiddleware(
     {
         name: 'foo',
         database: 'postgres',
@@ -19,30 +18,30 @@ const poolMiddleware = createPoolMiddleware(
     },
 )
 
-const run = makeRunner(
-    poolMiddleware,
+const cllr = cuillere(
+    pool,
     queryMiddleware(),
 );
 
 (async () => {
     try {
         await Promise.all([
-            run()(call(function* () {
+            cllr.execute(function* () {
                 console.log('client 1 - query 1')
                 yield query({ text: 'SELECT NOW()', pool: 'foo' })
                 console.log('client 1 - query 2')
                 yield query({ text: 'SELECT NOW()', pool: 'bar' })
-            })),
-            run()(call(function* () {
+            }),
+            cllr.execute(function* () {
                 console.log('client 2 - query 1')
                 yield query({ text: 'SELECT NOW()', pool: 'foo' })
                 console.log('client 2 - query 2')
                 yield query({ text: 'SELECT NOW()', pool: 'bar' })
-            })),
+            }),
         ])
     } catch (err) {
         console.error(err)
     }
 
-    await poolMiddleware.end()
+    await pool.end()
 })()
