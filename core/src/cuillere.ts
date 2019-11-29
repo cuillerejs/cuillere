@@ -57,10 +57,10 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
 
     if (ctx && cllrCache.has(ctx)) return cllrCache.get(ctx)
 
-    const _run: OperationHandler = operation => run(operation)
+    const runProxy: OperationHandler = operation => run(operation)
     const run: OperationHandler = mws.reduceRight(
-      (next, prev) => prev(next, ctx, _run),
-      finalMiddleware(undefined, ctx, _run),
+      (next, prev) => prev(next, ctx, runProxy),
+      finalMiddleware(undefined, ctx, runProxy),
     )
 
     const cllr: Cuillere = {
