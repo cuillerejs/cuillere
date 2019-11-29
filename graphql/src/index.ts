@@ -5,8 +5,8 @@ export const makeResolverFactory = (cllr: Cuillere) => fn => (obj, args, ctx, in
   return isGenerator(res) ? cllr.ctx(ctx).execute(res) : res
 }
 
-export const makeResolversTreeFactory = run => {
-  const fnToResolver = makeResolverFactory(run)
+export const makeResolversTreeFactory = (cllr: Cuillere) => {
+  const fnToResolver = makeResolverFactory(cllr)
 
   const treeToResolversTree = tree => {
     const resolvers = {}
