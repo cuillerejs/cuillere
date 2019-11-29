@@ -1,6 +1,6 @@
 import { unrecognizedOperation } from './errors'
 import { contextMiddleware, executeMiddleware, concurrentMiddleware, Middleware, call, execute } from './middlewares'
-import { GeneratorFunc, Generator } from './utils/generator'
+import { GeneratorFunc, Generator } from './generator'
 
 const START = Symbol('START')
 

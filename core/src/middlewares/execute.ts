@@ -1,7 +1,7 @@
 import { Middleware } from './middleware'
 import { error } from '../errors'
 import { OperationHandler } from '../cuillere'
-import { Generator, GeneratorFunc } from '../utils/generator'
+import { Generator, GeneratorFunc, isGenerator } from '../generator'
 
 const CALL = Symbol('CALL')
 
@@ -38,8 +38,6 @@ export function isExecute(operation: any): operation is Execute<any> {
 export function execute<R>(gen: Generator<R>): Execute<R> {
   return { [EXECUTE]: true, gen }
 }
-
-const isGenerator = (value: any): value is Generator<any> => Boolean(value.next && value.throw && value.return)
 
 export const executeMiddleware = (): Middleware => (next, _ctx, run) => async operation => {
   let gen: Generator<any>
