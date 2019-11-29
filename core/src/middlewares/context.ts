@@ -39,7 +39,7 @@ const isSet = (operation: ContextOperation): operation is Set => operation && op
 
 const isGet = (operation: ContextOperation): operation is Get => operation && operation[GET_SYMBOL]
 
-export const contextMiddleware: Middleware = (next, ctx) => operation => {
+export const contextMiddleware = (): Middleware => (next, ctx) => operation => {
   if (!isContextOperation(operation)) return next(operation)
 
   if (isGet(operation)) return ctx[operation.key]

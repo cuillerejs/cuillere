@@ -39,9 +39,9 @@ export interface Cuillere {
 export default function cuillere(...middlewares: Middleware[]): Cuillere {
   const mws = [
     ...middlewares,
-    concurrentMiddleware,
-    callMiddleware,
-    contextMiddleware,
+    concurrentMiddleware(),
+    callMiddleware(),
+    contextMiddleware(),
   ]
 
   const make = (ctx: any) => {

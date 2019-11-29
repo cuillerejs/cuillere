@@ -26,7 +26,7 @@ export function fork<Args extends any[], R>(func: GeneratorFunc<Args, R> | Gener
 
 const isGenerator = (value: any): value is Generator<any> => value.next && value.throw
 
-export const callMiddleware: Middleware = (next, _ctx, run) => async operation => {
+export const callMiddleware = (): Middleware => (next, _ctx, run) => async operation => {
   if (!isCall(operation)) return next(operation)
 
   const promise = doCall(operation, run)

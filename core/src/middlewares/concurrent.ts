@@ -43,7 +43,7 @@ export const chain = (values: Iterable<any>): Chain => ({
   values,
 })
 
-export const concurrentMiddleware: Middleware = (next, _ctx, run) => operation => {
+export const concurrentMiddleware = (): Middleware => (next, _ctx, run) => operation => {
   if (isAll(operation)) return Promise.all(Array.from(operation.values, run))
   if (isAllSettled(operation)) return promiseAllSettled(Array.from(operation.values, run))
   if (isChain(operation)) return promiseChain(Array.from(operation.values), run)
