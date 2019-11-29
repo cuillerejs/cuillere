@@ -41,7 +41,7 @@ export function execute<R>(gen: Generator<R>): Execute<R> {
 
 const isGenerator = (value: any): value is Generator<any> => Boolean(value.next && value.throw && value.return)
 
-export const callMiddleware = (): Middleware => (next, _ctx, run) => async operation => {
+export const executeMiddleware = (): Middleware => (next, _ctx, run) => async operation => {
   let gen: Generator<any>
   let fork = false
 

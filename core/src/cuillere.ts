@@ -1,5 +1,5 @@
 import { unrecognizedOperation } from './errors'
-import { contextMiddleware, callMiddleware, concurrentMiddleware, Middleware, call, execute } from './middlewares'
+import { contextMiddleware, executeMiddleware, concurrentMiddleware, Middleware, call, execute } from './middlewares'
 import { GeneratorFunc, Generator } from './utils/generator'
 
 const START = Symbol('START')
@@ -46,7 +46,7 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
   const mws = [
     ...middlewares,
     concurrentMiddleware(),
-    callMiddleware(),
+    executeMiddleware(),
     contextMiddleware(),
   ]
 
