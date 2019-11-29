@@ -1,5 +1,5 @@
 import { unrecognizedOperation } from './errors'
-import { contextMiddleware, callMiddleware, concurrentMiddleware, Middleware, call } from './middlewares'
+import { contextMiddleware, callMiddleware, concurrentMiddleware, Middleware, call, execute } from './middlewares'
 import { GeneratorFunc, Generator } from './utils/generator'
 
 const START = Symbol('START')
@@ -32,13 +32,14 @@ export interface OperationHandler {
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
   start: OperationHandler
-  execute: <Args extends any[], R>(func: GeneratorFunc<Args, R> | Generator<R>, ...args: Args) => Promise<any>
+  call: <Args extends any[], R>(func: GeneratorFunc<Args, R>, ...args: Args) => Promise<any>
+  execute: <R>(gen: Generator<R>) => Promise<any>
 }
 
 export default function cuillere(...middlewares: Middleware[]): Cuillere {
   middlewares.forEach((mw, index) => {
     if (typeof mw !== 'function') {
-      throw TypeError(`Middleware [${index}] should be a function: ${mw}`)
+      throw TypeError(`middlewares[${index}] should be a function: ${mw}`)
     }
   })
 
@@ -56,7 +57,7 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
 
     if (ctx && cllrCache.has(ctx)) return cllrCache.get(ctx)
 
-    const _run = operation => run(operation)
+    const _run: OperationHandler = operation => run(operation)
     const run: OperationHandler = mws.reduceRight(
       (next, prev) => prev(next, ctx, _run),
       finalMiddleware(undefined, ctx, _run),
@@ -65,7 +66,8 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
     const cllr: Cuillere = {
       ctx: make,
       start: operation => run(start(operation)),
-      execute: (func, ...args) => cllr.start(call(func, ...args)),
+      call: (func, ...args) => cllr.start(call(func, ...args)),
+      execute: gen => cllr.start(execute(gen)),
     }
 
     return cllr

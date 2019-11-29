@@ -22,7 +22,7 @@ describe('examples', () => {
     }
 
     const entityToUpdate = { id: 1, test: 'test' }
-    const result = await cllr.execute(update, entityToUpdate)
+    const result = await cllr.call(update, entityToUpdate)
 
     expect(result).toEqual(entityToUpdate)
   })
@@ -50,7 +50,7 @@ describe('examples', () => {
     }
 
     const entityToUpdate = { id: 1, test: 'test' }
-    const result = await cllr.execute(update, entityToUpdate)
+    const result = await cllr.call(update, entityToUpdate)
 
     expect(result).toEqual(entityToUpdate)
   })

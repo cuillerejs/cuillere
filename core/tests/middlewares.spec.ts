@@ -6,7 +6,7 @@ describe('middlewares', () => {
     function* func() {
       return 'test'
     }
-    expect(await cllr.execute(func)).toBe(expected)
+    expect(await cllr.call(func)).toBe(expected)
   }
 
   it('should work with no middlwares', async () => {

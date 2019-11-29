@@ -3,56 +3,77 @@ import { error } from '../errors'
 import { OperationHandler } from '../cuillere'
 import { Generator, GeneratorFunc } from '../utils/generator'
 
-const CALL_SYMBOL = Symbol('CALL')
+const CALL = Symbol('CALL')
 
 export interface Call<Args extends any[], R> {
-  [CALL_SYMBOL]: true
-  func: GeneratorFunc<Args, R> | Generator<R>
+  [CALL]: true
+  func: GeneratorFunc<Args, R>
   args?: Args
   fork?: true
 }
 
 export function isCall(operation: any): operation is Call<any, any> {
-  return operation && operation[CALL_SYMBOL]
+  return Boolean(operation && operation[CALL])
 }
 
-export function call<Args extends any[], R>(func: GeneratorFunc<Args, R> | Generator<R>, ...args: Args): Call<Args, R> {
-  return { [CALL_SYMBOL]: true, func, args }
+export function call<Args extends any[], R>(func: GeneratorFunc<Args, R>, ...args: Args): Call<Args, R> {
+  return { [CALL]: true, func, args }
 }
 
-export function fork<Args extends any[], R>(func: GeneratorFunc<Args, R> | Generator<R>, ...args: Args): Call<Args, R> {
-  return { [CALL_SYMBOL]: true, func, args, fork: true }
+export function fork<Args extends any[], R>(func: GeneratorFunc<Args, R>, ...args: Args): Call<Args, R> {
+  return { [CALL]: true, func, args, fork: true }
 }
 
-const isGenerator = (value: any): value is Generator<any> => value.next && value.throw
+const EXECUTE = Symbol('EXECUTE')
+
+export interface Execute<R> {
+  [EXECUTE]: true
+  gen: Generator<R>
+}
+
+export function isExecute(operation: any): operation is Execute<any> {
+  return Boolean(operation && operation[EXECUTE])
+}
+
+export function execute<R>(gen: Generator<R>): Execute<R> {
+  return { [EXECUTE]: true, gen }
+}
+
+const isGenerator = (value: any): value is Generator<any> => Boolean(value.next && value.throw && value.return)
 
 export const callMiddleware = (): Middleware => (next, _ctx, run) => async operation => {
-  if (!isCall(operation)) return next(operation)
+  let gen: Generator<any>
+  let fork = false
 
-  const promise = doCall(operation, run)
+  if (isExecute(operation)) {
+    gen = operation.gen
 
-  return operation.fork ? { promise } : promise
+    // FIXME improve error message
+    if (!isGenerator(gen)) throw error('gen should be a generator')
+  } else {
+    if (!isCall(operation)) return next(operation)
+
+    // FIXME improve error message
+    if (!operation.func) throw error('the call operation function is null or undefined')
+
+    gen = operation.func(...operation.args)
+
+    // FIXME improve error message
+    if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
+  }
+
+  const promise = doExecute(gen, run)
+
+  return fork ? { promise } : promise
 }
 
-const doCall = async <Args extends any[], R>({ func, args }: Call<Args, R>, run: OperationHandler): Promise<R> => {
-  if (!func) {
-    throw error(`the call operation function is null or undefined`)
-  }
-
-  const runningCall = isGenerator(func) ? func : func(...args)
-
-  if (!isGenerator(runningCall)) {
-    throw error(
-      `the call operation function should return a Generator. You probably used 'function' instead of 'function*'`,
-    )
-  }
-
+const doExecute = async <R>(gen: Generator<R>, run: OperationHandler): Promise<R> => {
   let current: IteratorResult<any>
   let hasThrown = false
   let res: any, err: any
 
   while (true) {
-    current = hasThrown ? await runningCall.throw(err) : await runningCall.next(res)
+    current = hasThrown ? await gen.throw(err) : await gen.next(res)
 
     if (current.done) return current.value
     

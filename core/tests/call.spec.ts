@@ -20,7 +20,7 @@ describe('call', () => {
     }
 
     try {
-      await cllr.execute(test)
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -33,7 +33,7 @@ describe('call', () => {
     }
 
     try {
-      await cllr.execute(test)
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -50,7 +50,7 @@ describe('call', () => {
     }
 
     try {
-      await cllr.execute(test)
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -67,7 +67,7 @@ describe('call', () => {
     }
 
     try {
-      await cllr.execute(test)
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -83,7 +83,7 @@ describe('call', () => {
       }
     }
 
-    expect(await cllr.execute(test)).toBe('testError')
+    expect(await cllr.call(test)).toBe('testError')
   })
 
   it('should catch and return exception from nested call (async)', async () => {
@@ -95,7 +95,7 @@ describe('call', () => {
       }
     }
 
-    expect(await cllr.execute(test)).toBe('testError')
+    expect(await cllr.call(test)).toBe('testError')
   })
 
   it('should catch and recall nested call', async () => {
@@ -108,7 +108,7 @@ describe('call', () => {
     }
 
     try {
-      await cllr.execute(test)
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -125,7 +125,7 @@ describe('call', () => {
     }
 
     try {
-      await cllr.execute(test)
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
