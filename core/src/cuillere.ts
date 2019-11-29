@@ -31,7 +31,6 @@ export interface OperationHandler {
 
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
-  run: OperationHandler
   start: OperationHandler
   execute: <Args extends any[], R>(func: GeneratorFunc<Args, R> | Generator<R>, ...args: Args) => Promise<any>
 }
@@ -44,18 +43,22 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
     contextMiddleware(),
   ]
 
-  const make = (ctx: any) => {
+  const cllrCache = new WeakMap<any, Cuillere>()
+
+  const make = (pCtx?: any) => {
+    const ctx = pCtx || {}
+
+    if (ctx && cllrCache.has(ctx)) return cllrCache.get(ctx)
+
+    const _run = operation => run(operation)
+    const run: OperationHandler = mws.reduceRight(
+      (next, prev) => prev(next, ctx, _run),
+      finalMiddleware(undefined, ctx, _run),
+    )
+
     const cllr: Cuillere = {
       ctx: make,
-      run: operation => {
-        let runCtx = ctx || {}
-        const run: OperationHandler = operation => mws.reduceRight(
-          (next, prev) => prev(next, runCtx, run),
-          finalMiddleware(undefined, runCtx, run),
-        )(operation)
-        return run(operation)
-      },
-      start: operation => cllr.run(start(operation)),
+      start: operation => run(start(operation)),
       execute: (func, ...args) => cllr.start(call(func, ...args)),
     }
 
