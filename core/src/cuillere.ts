@@ -36,6 +36,12 @@ export interface Cuillere {
 }
 
 export default function cuillere(...middlewares: Middleware[]): Cuillere {
+  middlewares.forEach((mw, index) => {
+    if (typeof mw !== 'function') {
+      throw TypeError(`Middleware [${index}] should be a function: ${mw}`)
+    }
+  })
+
   const mws = [
     ...middlewares,
     concurrentMiddleware(),
