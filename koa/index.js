@@ -1,7 +1,7 @@
-import { makeRunner, call } from '@cuillere/core'
+import cuillere from '@cuillere/core'
 
 export const makeRequestHandlerFactory = (...middlewares) => {
-  const run = makeRunner(...middlewares)
+  const cllr = cuillere(...middlewares)
 
-  return operation => (ctx, ...args) => run(ctx)(call(operation, ...args))
+  return operation => (ctx, ...args) => cllr.ctx(ctx).execute(operation, ...args)
 }

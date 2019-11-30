@@ -1,25 +1,25 @@
 /*eslint-en jest*/
-import { makeRunner, Middleware, call } from '../src'
+import cuillere, { Cuillere, Middleware } from '../src'
 
 describe('middlewares', () => {
-  const test = async (run, expected = 'test') => {
+  const test = async (cllr: Cuillere, expected = 'test') => {
     function* func() {
       return 'test'
     }
-    expect(await run(call(func))).toBe(expected)
+    expect(await cllr.call(func)).toBe(expected)
   }
 
   it('should work with no middlwares', async () => {
-    const run = makeRunner()()
-    await test(run)
+    const cllr = cuillere()
+    await test(cllr)
   })
 
   it('should call all middlewares', async () => {
     const middleware1 = jest.fn().mockImplementation(next => operation => next(operation))
     const middleware2 = jest.fn().mockImplementation(next => operation => next(operation))
-    const run = makeRunner(middleware1, middleware2)()
+    const cllr = cuillere(middleware1, middleware2)
 
-    await test(run)
+    await test(cllr)
     await expect(middleware1).toBeCalled
     await expect(middleware2).toBeCalled
   })
@@ -29,8 +29,8 @@ describe('middlewares', () => {
     const middleware2: Middleware = next => async operation => 'returned ' + (await next(operation))
     const middleware3: Middleware = () => async () => 'value'
 
-    const run = makeRunner(middleware1, middleware2, middleware3)()
+    const cllr = cuillere(middleware1, middleware2, middleware3)
 
-    await test(run, 'expected returned value')
+    await test(cllr, 'expected returned value')
   })
 })

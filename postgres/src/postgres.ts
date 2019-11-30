@@ -81,7 +81,7 @@ export function createClientProvider(...poolConfigs: PoolConfig[]): ClientProvid
 
 export const isClientProvider = (value: any): value is ClientProvider => value && value[PROVIDER]
 
-export const createTransactionExecutor = ({ prepared = true } = {}): Executor => {
+export const createTransactionManager = ({ prepared = true } = {}): Executor => {
   const commitClients = prepared ? commit : UNSAFE_commit
 
   return async (ctx, cb) => {

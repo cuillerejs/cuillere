@@ -22,7 +22,7 @@ function isQuery(operation: any): operation is Query {
   return operation && operation[QUERY]
 }
 
-export const queryMiddleware = (): Middleware => next => async (operation, ctx) => {
+export const queryMiddleware = (): Middleware => (next, ctx) => async operation => {
   if (!isQuery(operation)) return next(operation)
 
   const { pool, ...config } = operation.config

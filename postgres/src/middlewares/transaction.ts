@@ -1,10 +1,10 @@
 import { Middleware, isStart } from "@cuillere/core";
-import { createTransactionExecutor } from "../postgres";
+import { createTransactionManager } from "../postgres";
 
 export const transactionMiddleware = (config): Middleware => {
-  const executor = createTransactionExecutor(config)
+  const executor = createTransactionManager(config)
 
-  return next => async (operation, ctx) => {
+  return (next, ctx) => async operation => {
     if (isStart(operation)) {
       return executor(ctx, () => next(operation))
     }

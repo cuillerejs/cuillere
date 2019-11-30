@@ -27,7 +27,7 @@ export function poolMiddleware(...args: [ClientProvider] | PoolConfig[]): PoolMi
     provider = createClientProvider(...(args as PoolConfig[]))
   }
 
-  const mw: PoolMiddleware = next => async (operation, ctx) => {
+  const mw: PoolMiddleware = (next, ctx) => async operation => {
     if (isStart(operation)) return provider(ctx, () => next(operation))
 
     if (isGetClient(operation)) return getClientFn(ctx, operation.name)

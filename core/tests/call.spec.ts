@@ -1,13 +1,13 @@
 /* eslint-env jest */
 /* eslint-disable require-yield */
 
-import { makeRunner, call } from '../src'
+import cuillere, { Cuillere, call } from '../src'
 
 describe('call', () => {
-  let run: Function
+  let cllr: Cuillere
 
   beforeEach(() => {
-    run = makeRunner()()
+    cllr = cuillere()
   })
 
   function* throwValue(value?: any) {
@@ -20,7 +20,7 @@ describe('call', () => {
     }
 
     try {
-      await run(call(test))
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -33,7 +33,7 @@ describe('call', () => {
     }
 
     try {
-      await run(call(test))
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -50,7 +50,7 @@ describe('call', () => {
     }
 
     try {
-      await run(call(test))
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -67,7 +67,7 @@ describe('call', () => {
     }
 
     try {
-      await run(call(test))
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -83,7 +83,7 @@ describe('call', () => {
       }
     }
 
-    expect(await run(call(test))).toBe('testError')
+    expect(await cllr.call(test)).toBe('testError')
   })
 
   it('should catch and return exception from nested call (async)', async () => {
@@ -95,7 +95,7 @@ describe('call', () => {
       }
     }
 
-    expect(await run(call(test))).toBe('testError')
+    expect(await cllr.call(test)).toBe('testError')
   })
 
   it('should catch and recall nested call', async () => {
@@ -108,7 +108,7 @@ describe('call', () => {
     }
 
     try {
-      await run(call(test))
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -125,7 +125,7 @@ describe('call', () => {
     }
 
     try {
-      await run(call(test))
+      await cllr.call(test)
       fail('did not throw')
     } catch (e) {
       expect(e).toBe('testError')
@@ -137,6 +137,6 @@ describe('call', () => {
       return 'test'
     }
 
-    expect(await run(call(test()))).toBe('test')
+    expect(await cllr.execute(test())).toBe('test')
   })
 })

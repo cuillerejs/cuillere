@@ -1,14 +1,12 @@
-import { call } from '@cuillere/core'
+import { Cuillere, isGenerator } from '@cuillere/core'
 
-const isGenerator = value => value.next && value.throw
-
-export const makeResolverFactory = run => fn => (obj, args, ctx, info) => {
+export const makeResolverFactory = (cllr: Cuillere) => fn => (obj, args, ctx, info) => {
   const res = fn(obj, args, ctx, info)
-  return isGenerator(res) ? run(ctx)(call(res)) : res
+  return isGenerator(res) ? cllr.ctx(ctx).execute(res) : res
 }
 
-export const makeResolversTreeFactory = run => {
-  const fnToResolver = makeResolverFactory(run)
+export const makeResolversTreeFactory = (cllr: Cuillere) => {
+  const fnToResolver = makeResolverFactory(cllr)
 
   const treeToResolversTree = tree => {
     const resolvers = {}

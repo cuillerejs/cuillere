@@ -21,7 +21,7 @@
     "clean": "rm -rf lib",
     "prebuild": "yarn clean",
     "build": "yarn tsc",
-    "example": "node --async-stack-traces --inspect=9991 lib/example",
+    "example": "node lib/example",
     "nodeversion": "node --version"
   },
   "peerDependencies": {

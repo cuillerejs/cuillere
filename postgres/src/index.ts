@@ -3,7 +3,7 @@ export {
   Executor,
   PoolConfig,
   createClientProvider,
-  createTransactionExecutor,
+  createTransactionManager,
 } from './postgres'
 
 export * from './middlewares'
