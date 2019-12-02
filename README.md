@@ -30,7 +30,7 @@ const cllr = cuillere(
   queryMiddleware() // Executes queries
 )
 
-const addUserAddress = (userId, address, setDefault) => cllr.execute(function*() {
+const addUserAddress = (userId, address, setDefault) => cllr.call(function*() {
   const res = yield query({
     text: `INSERT INTO addresses (userId, street, postalcode, city)
            VALUES ($1, $2, $3, $4)
