@@ -26,13 +26,13 @@ const cllr = cuillere(
 (async () => {
     try {
         await Promise.all([
-            cllr.execute(function* () {
+            cllr.call(function* () {
                 console.log('client 1 - query 1')
                 yield query({ text: 'SELECT NOW()', pool: 'foo' })
                 console.log('client 1 - query 2')
                 yield query({ text: 'SELECT NOW()', pool: 'bar' })
             }),
-            cllr.execute(function* () {
+            cllr.call(function* () {
                 console.log('client 2 - query 1')
                 yield query({ text: 'SELECT NOW()', pool: 'foo' })
                 console.log('client 2 - query 2')

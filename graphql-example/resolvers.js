@@ -1,8 +1,10 @@
-import { makeRunner } from '@cuillere/core'
+import cuillere from '@cuillere/core'
 import { makeResolversTreeFactory } from '@cuillere/graphql'
 import { queryMiddleware, query } from '@cuillere/postgres'
 
-const makeResolversTree = makeResolversTreeFactory(makeRunner(queryMiddleware()))
+const cllr = cuillere(queryMiddleware())
+
+const makeResolversTree = makeResolversTreeFactory(cllr)
 
 export const resolvers = makeResolversTree({
   Query: {
