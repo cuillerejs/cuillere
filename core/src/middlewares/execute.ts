@@ -58,6 +58,8 @@ export const executeMiddleware = (): Middleware => (next, _ctx, run) => async op
 
     // FIXME improve error message
     if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
+
+    fork = Boolean(operation.fork)
   }
 
   const promise = doExecute(gen, run)
