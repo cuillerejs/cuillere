@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "main": "lib/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {
@@ -9,7 +9,10 @@
     "url": "https://github.com/EmrysMyrddin"
   },
   "contributors": [
-    {"name": "Nicolas LEPAGE", "url": "https://github.com/nlepage" }
+    {
+      "name": "Nicolas LEPAGE",
+      "url": "https://github.com/nlepage"
+    }
   ],
   "license": "Apache-2.0",
   "scripts": {
