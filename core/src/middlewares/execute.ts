@@ -39,6 +39,24 @@ export function execute<R>(gen: Generator<R>): Execute<R> {
   return { [EXECUTE]: true, gen }
 }
 
+const DEFER = Symbol('DEFER')
+
+export interface Defer {
+  [DEFER]: true
+  operation: any
+}
+
+export function isDefer(operation: any): operation is Defer {
+  return Boolean(operation && operation[DEFER])
+}
+
+export function defer(operation: any): Defer {
+  return {
+    [DEFER]: true,
+    operation,
+  }
+}
+
 export const executeMiddleware = (): Middleware => (next, _ctx, run) => async operation => {
   let gen: Generator<any>
   let fork = false
@@ -71,18 +89,38 @@ const doExecute = async <R>(gen: Generator<R>, run: OperationHandler): Promise<R
   let current: IteratorResult<any>
   let hasThrown = false
   let res: any, err: any
+  const defers = Array<Defer>()
 
-  while (true) {
-    current = hasThrown ? await gen.throw(err) : await gen.next(res)
+  try {
+    while (true) {
+      current = hasThrown ? await gen.throw(err) : await gen.next(res)
+  
+      if (current.done) return current.value
 
-    if (current.done) return current.value
-    
-    try {
-      res = await run(current.value)
-      hasThrown = false
-    } catch (e) {
-      err = e
-      hasThrown = true
+      if (isDefer(current.value)) {
+        defers.push(current.value)
+        continue
+      }
+      
+      try {
+        res = await run(current.value)
+        hasThrown = false
+      } catch (e) {
+        err = e
+        hasThrown = true
+      }
     }
+  } finally {
+    let err: any
+
+    for (let i = defers.length - 1; i >= 0; i--) {
+      try {
+        await run(defers[i].operation)
+      } catch (e) {
+        err = e
+      }
+    }
+
+    if (err) throw err
   }
 }
