@@ -97,6 +97,10 @@ const doExecute = async <R>(gen: Generator<R>, run: OperationHandler): Promise<R
 
       if (current.done) return current.value
 
+      hasThrown = false
+      res = undefined
+      err = undefined
+
       if (isDefer(current.value)) {
         defers.push(current.value)
         continue
@@ -104,7 +108,6 @@ const doExecute = async <R>(gen: Generator<R>, run: OperationHandler): Promise<R
 
       try {
         res = await run(current.value)
-        hasThrown = false
       } catch (e) {
         err = e
         hasThrown = true
