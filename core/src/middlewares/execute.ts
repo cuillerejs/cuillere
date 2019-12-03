@@ -94,14 +94,14 @@ const doExecute = async <R>(gen: Generator<R>, run: OperationHandler): Promise<R
   try {
     while (true) {
       current = hasThrown ? await gen.throw(err) : await gen.next(res)
-  
+
       if (current.done) return current.value
 
       if (isDefer(current.value)) {
         defers.push(current.value)
         continue
       }
-      
+
       try {
         res = await run(current.value)
         hasThrown = false
