@@ -1,18 +1,10 @@
-export const ApolloMiddlewarePlugin = (...middlewares) => ({
+export const ApolloMiddlewarePlugin = (m1, m2) => ({
   requestDidStart: () => ({
     executionDidStart({ context }) {
-      // Creation of middleware list : [m1 : (cb) => Promise, m2: (cb) => Promise ...]
-      const middlewaresWithCtx = middlewares.map((middleware, i) => cb =>  middleware(context, cb))
-
       const executionPromise = resolvablePromise()
 
-      // Composition of middlewares : m1(() => m2(() => m3))
-      const middlewareChain = middlewaresWithCtx.reduceRight(
-        (prevFn, nextFn) => (...args) => nextFn(() => prevFn(...args)),
-        _ => _
-      )
-
-      middlewareChain(() => executionPromise)
+      // FIXME: make it work with a list of middleware
+      m1(context, () => m2(context, () => executionPromise))
 
       return err => err ? executionPromise.reject(err) : executionPromise.resolve()
     }
