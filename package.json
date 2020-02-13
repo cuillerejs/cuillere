@@ -6,6 +6,7 @@
     "koa",
     "graphql",
     "graphql-example",
-    "postgres"
+    "postgres",
+    "graphql-postgres"
   ]
 }

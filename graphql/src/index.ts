@@ -1,4 +1,5 @@
 import { Cuillere, isGenerator } from '@cuillere/core'
+export * from './apollo-middleware-plugin'
 
 export const makeResolverFactory = (cllr: Cuillere) => fn => (obj, args, ctx, info) => {
   const res = fn(obj, args, ctx, info)
