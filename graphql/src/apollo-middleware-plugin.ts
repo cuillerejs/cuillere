@@ -6,19 +6,20 @@ export const ApolloMiddlewarePlugin = (...middlewares: Middleware[]): ApolloServ
   )
 
   return ({
-  requestDidStart: () => ({
-    executionDidStart({ context }) {
-      const [executionPromise, resolve, reject] = resolvablePromise<void>()
+    requestDidStart: () => ({
+      executionDidStart({ context }) {
+        const [executionPromise, resolve, reject] = resolvablePromise<void>()
 
-      middlewareChain(context, () => executionPromise)
-        // Catch promise to discard node's uncaught rejection warning
-        // It can be discarded since this error is already handled by graphql
-        .catch(() => {})
+        middlewareChain(context, () => executionPromise)
+          // Catch promise to discard node's uncaught rejection warning
+          // It can be discarded since this error is already handled by graphql
+          .catch(() => { })
 
-      return err => err ? reject(err) : resolve()
-    }
+        return err => err ? reject(err) : resolve()
+      }
+    })
   })
-})}
+}
 
 export interface Middleware {
   <R>(ctx: Record<string, any>, cb: () => Promise<R>): Promise<R>
