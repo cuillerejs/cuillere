@@ -1,28 +1,30 @@
-export const ApolloMiddlewarePlugin = (m1, m2) => ({
+import { ApolloServerPlugin } from 'apollo-server-plugin-base'
+
+export const ApolloMiddlewarePlugin = (m1: Middleware, m2: Middleware): ApolloServerPlugin => ({
   requestDidStart: () => ({
     executionDidStart({ context }) {
-      const executionPromise = resolvablePromise()
+      const [executionPromise, resolve, reject] = resolvablePromise<void>()
 
       // FIXME: make it work with a list of middleware
       m1(context, () => m2(context, () => executionPromise))
 
-      return err => err ? executionPromise.reject(err) : executionPromise.resolve()
+      return err => err ? reject(err) : resolve()
     }
   })
 })
 
-interface ResolvablePromise<T> extends Promise<T> {
-  resolve(value?: T): void
-  reject(err?: Error): void
+export interface Middleware {
+  <R>(ctx: Record<string, any>, cb: () => Promise<R>): Promise<R>
 }
 
-const resolvablePromise = <T>(): ResolvablePromise<T> => {
-  let resolveFn, rejectFn
-  const promise: any = new Promise((resolve, reject) => {
+const resolvablePromise = <T>(): [Promise<T>, (value?: T | PromiseLike<T>) => void, (reason?: any) => void] => {
+  let resolveFn: (value?: T | PromiseLike<T>) => void
+  let rejectFn: (reason?: any) => void
+
+  const promise = new Promise<T>((resolve, reject) => {
     resolveFn = resolve
     rejectFn = reject
   })
-  promise.resolve = resolveFn
-  promise.reject = rejectFn
-  return promise
+
+  return [promise, resolveFn, rejectFn]
 }
