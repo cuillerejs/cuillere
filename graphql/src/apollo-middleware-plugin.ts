@@ -11,6 +11,9 @@ export const ApolloMiddlewarePlugin = (...middlewares: Middleware[]): ApolloServ
       const [executionPromise, resolve, reject] = resolvablePromise<void>()
 
       middlewareChain(context, () => executionPromise)
+        // Catch promise to discard node's uncaught rejection warning
+        // It can be discarded since this error is already handled by graphql
+        .catch(() => {})
 
       return err => err ? reject(err) : resolve()
     }
