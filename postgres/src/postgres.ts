@@ -61,7 +61,7 @@ export function createClientProvider(...poolConfigs: PoolConfig[]): ClientProvid
     try {
       return await cb()
     } catch (err) {
-      error = err
+      throw error = err
     } finally {
       await release(await getClients(ctx), error)
       delete ctx[CLIENTS]
