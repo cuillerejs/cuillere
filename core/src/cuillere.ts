@@ -1,6 +1,6 @@
 import { unrecognizedOperation } from './errors'
 import { contextMiddleware, executeMiddleware, concurrentMiddleware, Middleware, call, execute } from './middlewares'
-import { GeneratorFunc, Generator } from './generator'
+import { GeneratorFunc } from './generator'
 
 const START = Symbol('START')
 
@@ -20,9 +20,22 @@ export function isStart(operation: any): operation is Start {
   return operation && operation[START]
 }
 
-const finalMiddleware: Middleware = (_next, _ctx, run) => operation => {
-  if (!isStart(operation)) throw unrecognizedOperation(operation)
-  return run(operation.operation)
+const NEXT = Symbol('NEXT')
+
+interface Next {
+  [NEXT]: true,
+  operation: any,
+}
+
+function next(operation: any): Next {
+  return {
+    [NEXT]: true,
+    operation,
+  }
+}
+
+function isNext(operation: any): operation is Next {
+  return operation && operation[NEXT]
 }
 
 export interface OperationHandler {
@@ -34,6 +47,15 @@ export interface Cuillere {
   start: OperationHandler
   call: <Args extends any[], R>(func: GeneratorFunc<Args, R>, ...args: Args) => Promise<any>
   execute: <R>(gen: Generator<R>) => Promise<any>
+}
+
+type StackFrame = {
+  gen: Generator | AsyncGenerator
+  mwIndex: number
+  current?: IteratorResult<any>
+  hasThrown: boolean
+  res?: any
+  err?: any
 }
 
 export default function cuillere(...middlewares: Middleware[]): Cuillere {
@@ -50,18 +72,46 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
     contextMiddleware(),
   ]
 
-  const cllrCache = new WeakMap<any, Cuillere>()
-
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
 
-    if (ctx && cllrCache.has(ctx)) return cllrCache.get(ctx)
+    const run: OperationHandler = async operation => {
+      const stack: StackFrame[] = [
+        {
+          gen: mws[0](operation, ctx, next),
+          mwIndex: 0,
+          hasThrown: false,
+        }
+      ]
 
-    const runProxy: OperationHandler = operation => run(operation)
-    const run: OperationHandler = mws.reduceRight(
-      (next, prev) => prev(next, ctx, runProxy),
-      finalMiddleware(undefined, ctx, runProxy),
-    )
+      while (stack.length !== 0) {
+        const [frame, previousFrame] = stack
+
+        try {
+          frame.current = await (frame.hasThrown ? frame.gen.throw(frame.err) : frame.gen.next(frame.res))
+        } catch (e) {
+          previousFrame.err = e
+          previousFrame.hasThrown = true
+          stack.shift()
+          continue
+        }
+
+        if (frame.current.done) {
+          previousFrame.res = frame.current.value
+          previousFrame.hasThrown = false
+          stack.shift()
+          continue
+        }
+        
+        try {
+          frame.res = await run(frame.current.value) // FIXME manage next (unshift)
+          frame.hasThrown = false
+        } catch (e) {
+          frame.err = e
+          frame.hasThrown = true
+        }
+      }
+    }
 
     const cllr: Cuillere = {
       ctx: make,
@@ -73,5 +123,5 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
     return cllr
   }
 
-  return make(undefined)
+  return make()
 }
