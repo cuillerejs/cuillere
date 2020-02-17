@@ -1,6 +1,5 @@
 import { unrecognizedOperation } from './errors'
 import { contextMiddleware, executeMiddleware, concurrentMiddleware, Middleware, call, execute } from './middlewares'
-import { GeneratorFunc } from './generator'
 
 const START = Symbol('START')
 
@@ -38,6 +37,27 @@ function isNext(operation: any): operation is Next {
   return operation && operation[NEXT]
 }
 
+const CALL = Symbol('CALL')
+
+export interface Call {
+  [CALL]: true
+  func: GeneratorFunction
+  args?: any[]
+  fork?: true
+}
+
+export function isCall(operation: any): operation is Call {
+  return Boolean(operation && operation[CALL])
+}
+
+export function call(func: GeneratorFunction, ...args: any[]): Call {
+  return { [CALL]: true, func, args }
+}
+
+export function fork(func: GeneratorFunction, ...args: any[]): Call {
+  return { [CALL]: true, func, args, fork: true }
+}
+
 export interface OperationHandler {
   (operation: any): Promise<any>
 }
@@ -51,8 +71,7 @@ export interface Cuillere {
 
 type StackFrame = {
   gen: Generator | AsyncGenerator
-  mwIndex: number
-  current?: IteratorResult<any>
+  mwIndex?: number
   hasThrown: boolean
   res?: any
   err?: any
@@ -78,38 +97,70 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
     const run: OperationHandler = async operation => {
       const stack: StackFrame[] = [
         {
+          // FIXME check mws isn't empty
           gen: mws[0](operation, ctx, next),
           mwIndex: 0,
           hasThrown: false,
         }
       ]
 
+      let current: IteratorResult<any>
+
       while (stack.length !== 0) {
-        const [frame, previousFrame] = stack
+        const [curFrame, prevFrame] = stack
 
         try {
-          frame.current = await (frame.hasThrown ? frame.gen.throw(frame.err) : frame.gen.next(frame.res))
+          current = await (curFrame.hasThrown ? curFrame.gen.throw(curFrame.err) : curFrame.gen.next(curFrame.res))
         } catch (e) {
-          previousFrame.err = e
-          previousFrame.hasThrown = true
+          prevFrame.err = e
+          prevFrame.hasThrown = true
           stack.shift()
           continue
         }
 
-        if (frame.current.done) {
-          previousFrame.res = frame.current.value
-          previousFrame.hasThrown = false
+        if (current.done) {
+          prevFrame.res = current.value
+          prevFrame.hasThrown = false
           stack.shift()
           continue
         }
-        
-        try {
-          frame.res = await run(frame.current.value) // FIXME manage next (unshift)
-          frame.hasThrown = false
-        } catch (e) {
-          frame.err = e
-          frame.hasThrown = true
+
+        if (!isNext(current.value)) {
+          stack.unshift({
+            gen: mws[0](current.value, ctx, next),
+            mwIndex: 0,
+            hasThrown: false,
+          })
+          continue
         }
+
+        if (curFrame.mwIndex + 1 < mws.length) {
+          stack.unshift({
+            gen: mws[curFrame.mwIndex + 1](current.value.operation, ctx, next),
+            mwIndex: curFrame.mwIndex + 1,
+            hasThrown: false,
+          })
+          continue
+        }
+
+        if (isStart(current.value.operation)) {
+          stack.unshift({
+            gen: mws[0](current.value.operation.operation, ctx, next),
+            mwIndex: 0,
+            hasThrown: false,
+          })
+          continue
+        }
+
+        if (isCall(current.value.operation)) {
+          stack.unshift({
+            gen: current.value.operation.func(...current.value.operation.args),
+            hasThrown: false,
+          })
+          continue
+        }
+
+        throw unrecognizedOperation(operation)
       }
     }
 
