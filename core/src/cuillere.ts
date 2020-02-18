@@ -1,5 +1,6 @@
-import { unrecognizedOperation } from './errors'
-import { contextMiddleware, executeMiddleware, concurrentMiddleware, Middleware, call, execute } from './middlewares'
+import { error, unrecognizedOperation } from './errors'
+import { Middleware } from './middlewares'
+import { isGenerator } from './generator'
 
 const START = Symbol('START')
 
@@ -41,7 +42,7 @@ const CALL = Symbol('CALL')
 
 export interface Call {
   [CALL]: true
-  func: GeneratorFunction
+  func: any
   args?: any[]
   fork?: true
 }
@@ -50,12 +51,27 @@ export function isCall(operation: any): operation is Call {
   return Boolean(operation && operation[CALL])
 }
 
-export function call(func: GeneratorFunction, ...args: any[]): Call {
+export function call(func: any, ...args: any[]): Call {
   return { [CALL]: true, func, args }
 }
 
-export function fork(func: GeneratorFunction, ...args: any[]): Call {
+export function fork(func: any, ...args: any[]): Call {
   return { [CALL]: true, func, args, fork: true }
+}
+
+const EXECUTE = Symbol('EXECUTE')
+
+export interface Execute<R> {
+  [EXECUTE]: true
+  gen: Generator<R>
+}
+
+export function isExecute(operation: any): operation is Execute<any> {
+  return Boolean(operation && operation[EXECUTE])
+}
+
+export function execute<R>(gen: Generator<R>): Execute<R> {
+  return { [EXECUTE]: true, gen }
 }
 
 export interface OperationHandler {
@@ -65,7 +81,7 @@ export interface OperationHandler {
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
   start: OperationHandler
-  call: <Args extends any[], R>(func: GeneratorFunc<Args, R>, ...args: Args) => Promise<any>
+  call: (func: any, ...args: any[]) => Promise<any>
   execute: <R>(gen: Generator<R>) => Promise<any>
 }
 
@@ -77,32 +93,86 @@ type StackFrame = {
   err?: any
 }
 
-export default function cuillere(...middlewares: Middleware[]): Cuillere {
-  middlewares.forEach((mw, index) => {
+class Stack extends Array<StackFrame> {
+
+  private mws: Middleware[]
+  private ctx: any
+
+  constructor(mws: Middleware[], ctx: any) {
+    super()
+    this.mws = mws
+    this.ctx = ctx
+  }
+
+  handle(operation: any) {
+    this.unshift(this.stackFrameFor(operation))
+  }
+
+  private stackFrameFor(operation: any): StackFrame {
+    if (!isNext(operation)) {
+      if (this.mws.length === 0) return this.fallbackStackFrameFor(operation)
+      return {
+        gen: this.mws[0](operation, this.ctx, next),
+        mwIndex: 0,
+        hasThrown: false,
+      }
+    }
+
+    const nextMwIndex = this[0]?.mwIndex === undefined ? undefined : this[0].mwIndex + 1
+
+    if (nextMwIndex === undefined || nextMwIndex === this.mws.length)
+      return this.fallbackStackFrameFor(operation.operation)
+
+    return {
+      gen: this.mws[nextMwIndex](operation.operation, this.ctx, next),
+      mwIndex: nextMwIndex,
+      hasThrown: false,
+    }
+  }
+
+  private fallbackStackFrameFor(operation: any): StackFrame {
+    if (isStart(operation)) return this.stackFrameFor(operation.operation)
+
+    if (!isExecute(operation) && !isCall(operation)) throw unrecognizedOperation(operation)
+
+    let gen: any
+
+    if (isExecute(operation)) {
+      // FIXME improve error message
+      if (!isGenerator(operation.gen)) throw error('gen should be a generator')
+
+      gen = operation.gen
+    } else {
+      // FIXME improve error message
+      if (!operation.func) throw error('the call operation function is null or undefined')
+
+      gen = operation.func(...operation.args)
+
+      // FIXME improve error message
+      if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
+    }
+
+    return {
+      gen,
+      hasThrown: false,
+    }
+  }
+}
+
+export default function cuillere(...mws: Middleware[]): Cuillere {
+  mws.forEach((mw, index) => {
     if (typeof mw !== 'function') {
       throw TypeError(`middlewares[${index}] should be a function: ${mw}`)
     }
   })
 
-  const mws = [
-    ...middlewares,
-    concurrentMiddleware(),
-    executeMiddleware(),
-    contextMiddleware(),
-  ]
-
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
-
+    
     const run: OperationHandler = async operation => {
-      const stack: StackFrame[] = [
-        {
-          // FIXME check mws isn't empty
-          gen: mws[0](operation, ctx, next),
-          mwIndex: 0,
-          hasThrown: false,
-        }
-      ]
+      const stack = new Stack(mws, ctx)
+
+      stack.handle(operation)
 
       let current: IteratorResult<any>
 
@@ -112,6 +182,7 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
         try {
           current = await (curFrame.hasThrown ? curFrame.gen.throw(curFrame.err) : curFrame.gen.next(curFrame.res))
         } catch (e) {
+          if (!prevFrame) throw e
           prevFrame.err = e
           prevFrame.hasThrown = true
           stack.shift()
@@ -119,48 +190,14 @@ export default function cuillere(...middlewares: Middleware[]): Cuillere {
         }
 
         if (current.done) {
+          if (!prevFrame) return current.value
           prevFrame.res = current.value
           prevFrame.hasThrown = false
           stack.shift()
           continue
         }
 
-        if (!isNext(current.value)) {
-          stack.unshift({
-            gen: mws[0](current.value, ctx, next),
-            mwIndex: 0,
-            hasThrown: false,
-          })
-          continue
-        }
-
-        if (curFrame.mwIndex + 1 < mws.length) {
-          stack.unshift({
-            gen: mws[curFrame.mwIndex + 1](current.value.operation, ctx, next),
-            mwIndex: curFrame.mwIndex + 1,
-            hasThrown: false,
-          })
-          continue
-        }
-
-        if (isStart(current.value.operation)) {
-          stack.unshift({
-            gen: mws[0](current.value.operation.operation, ctx, next),
-            mwIndex: 0,
-            hasThrown: false,
-          })
-          continue
-        }
-
-        if (isCall(current.value.operation)) {
-          stack.unshift({
-            gen: current.value.operation.func(...current.value.operation.args),
-            hasThrown: false,
-          })
-          continue
-        }
-
-        throw unrecognizedOperation(operation)
+        stack.handle(current.value)
       }
     }
 

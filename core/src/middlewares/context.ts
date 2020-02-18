@@ -39,8 +39,8 @@ const isSet = (operation: ContextOperation): operation is Set => operation && op
 
 const isGet = (operation: ContextOperation): operation is Get => operation && operation[GET_SYMBOL]
 
-export const contextMiddleware = (): Middleware => (next, ctx) => operation => {
-  if (!isContextOperation(operation)) return next(operation)
+export const contextMiddleware = (): Middleware => function* contextMiddleware(operation, ctx, next) {
+  if (!isContextOperation(operation)) return yield next(operation)
 
   if (isGet(operation)) return ctx[operation.key]
   if (isSet(operation)) ctx[operation.key] = operation.value

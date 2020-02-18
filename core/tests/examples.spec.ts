@@ -5,9 +5,9 @@ import cuillere, { Middleware } from '../src'
 describe('examples', () => {
   it('promise middleware basic example', async () => {
     // A middleware which handles promises
-    const promiseMiddleware: Middleware = next => async operation => {
+    const promiseMiddleware: Middleware = function* promiseMiddleware(operation, _ctx, next) {
       if (Promise.resolve(operation) === operation) return operation
-      return next(operation)
+      return yield next(operation)
     }
 
     const cllr = cuillere(promiseMiddleware)
@@ -33,9 +33,9 @@ describe('examples', () => {
     const awaitFunc = (func, ...args) => ({ [AWAIT_SYMBOL]: true, func, args })
 
     // The promise middleware
-    const promiseMiddleware: Middleware = next => async operation => {
+    const promiseMiddleware: Middleware = function* promiseMiddleware(operation, _ctx, next) {
       if (operation[AWAIT_SYMBOL]) return operation.func(...operation.args)
-      return next(operation)
+      return yield next(operation)
     }
 
     const cllr = cuillere(promiseMiddleware)
