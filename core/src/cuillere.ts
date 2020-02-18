@@ -88,9 +88,6 @@ export interface Cuillere {
 type StackFrame = {
   gen: Generator | AsyncGenerator
   mwIndex?: number
-  hasThrown: boolean
-  res?: any
-  err?: any
 }
 
 class Stack extends Array<StackFrame> {
@@ -109,24 +106,23 @@ class Stack extends Array<StackFrame> {
   }
 
   private stackFrameFor(operation: any): StackFrame {
-    if (!isNext(operation)) {
-      if (this.mws.length === 0) return this.fallbackStackFrameFor(operation)
+    if (isNext(operation)) {
+      const nextMwIndex = this[0]?.mwIndex === undefined ? undefined : this[0].mwIndex + 1
+
+      if (nextMwIndex === undefined || nextMwIndex === this.mws.length)
+        return this.fallbackStackFrameFor(operation.operation)
+  
       return {
-        gen: this.mws[0](operation, this.ctx, next),
-        mwIndex: 0,
-        hasThrown: false,
+        gen: this.mws[nextMwIndex](operation.operation, this.ctx, next),
+        mwIndex: nextMwIndex,
       }
     }
 
-    const nextMwIndex = this[0]?.mwIndex === undefined ? undefined : this[0].mwIndex + 1
-
-    if (nextMwIndex === undefined || nextMwIndex === this.mws.length)
-      return this.fallbackStackFrameFor(operation.operation)
+    if (this.mws.length === 0) return this.fallbackStackFrameFor(operation)
 
     return {
-      gen: this.mws[nextMwIndex](operation.operation, this.ctx, next),
-      mwIndex: nextMwIndex,
-      hasThrown: false,
+      gen: this.mws[0](operation, this.ctx, next),
+      mwIndex: 0,
     }
   }
 
@@ -154,7 +150,6 @@ class Stack extends Array<StackFrame> {
 
     return {
       gen,
-      hasThrown: false,
     }
   }
 }
@@ -175,30 +170,34 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
       stack.handle(operation)
 
       let current: IteratorResult<any>
+      let hasThrown: boolean
+      let res: any, err: any
 
       while (stack.length !== 0) {
-        const [curFrame, prevFrame] = stack
+        const [curFrame] = stack
 
         try {
-          current = await (curFrame.hasThrown ? curFrame.gen.throw(curFrame.err) : curFrame.gen.next(curFrame.res))
+          current = await (hasThrown ? curFrame.gen.throw(err) : curFrame.gen.next(res))
         } catch (e) {
-          if (!prevFrame) throw e
-          prevFrame.err = e
-          prevFrame.hasThrown = true
+          hasThrown = true
+          err = e
           stack.shift()
           continue
         }
 
         if (current.done) {
-          if (!prevFrame) return current.value
-          prevFrame.res = current.value
-          prevFrame.hasThrown = false
+          hasThrown = false
+          res = current.value
           stack.shift()
           continue
         }
 
         stack.handle(current.value)
       }
+
+      if (hasThrown) throw err
+
+      return res
     }
 
     const cllr: Cuillere = {
