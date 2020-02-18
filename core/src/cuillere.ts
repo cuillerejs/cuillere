@@ -56,9 +56,16 @@ export function isFork(operation: any): operation is Fork {
   return operation && operation[FORK]
 }
 
+export const isCanceledError = (err: Error) => err.message === 'cancelled'
+
 export async function cancel(run: Run): Promise<any> {
   run.cancelled = true
-  return run.result
+
+  try {
+    await run.result
+  } catch(err) {
+    if(!isCanceledError(err)) throw err
+  }
 }
 
 const CALL = Symbol('CALL')
@@ -236,7 +243,7 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
         }
 
         if (isFork(current.value)) {
-          res = run(current.value.operation).id
+          res = run(current.value.operation)
           continue
         }
 
