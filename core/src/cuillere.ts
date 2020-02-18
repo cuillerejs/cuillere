@@ -56,6 +56,11 @@ export function isFork(operation: any): operation is Fork {
   return operation && operation[FORK]
 }
 
+export async function cancel(run: Run): Promise<any> {
+  run.cancelled = true
+  return run.result
+}
+
 const CALL = Symbol('CALL')
 
 export interface Call {
@@ -125,7 +130,7 @@ class Stack extends Array<StackFrame> {
 
       if (nextMwIndex === undefined || nextMwIndex === this.mws.length)
         return this.fallbackStackFrameFor(operation.operation)
-  
+
       return {
         gen: this.mws[nextMwIndex](operation.operation, this.ctx, next),
         mwIndex: nextMwIndex,
