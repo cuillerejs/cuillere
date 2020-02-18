@@ -38,6 +38,24 @@ function isNext(operation: any): operation is Next {
   return operation && operation[NEXT]
 }
 
+const FORK = Symbol('FORK')
+
+interface Fork {
+  [FORK]: true,
+  operation: any,
+}
+
+export function fork(operation: any): Fork {
+  return {
+    [FORK]: true,
+    operation,
+  }
+}
+
+export function isFork(operation: any): operation is Fork {
+  return operation && operation[FORK]
+}
+
 const CALL = Symbol('CALL')
 
 export interface Call {
@@ -45,7 +63,6 @@ export interface Call {
   func: any
   args?: any[]
   location: string
-  fork?: true
 }
 
 export function isCall(operation: any): operation is Call {
@@ -58,10 +75,6 @@ function getLocation(): string {
 
 export function call(func: any, ...args: any[]): Call {
   return { [CALL]: true, func, args, location: getLocation() }
-}
-
-export function fork(func: any, ...args: any[]): Call {
-  return { [CALL]: true, func, args, fork: true, location: getLocation() }
 }
 
 const EXECUTE = Symbol('EXECUTE')
@@ -79,13 +92,9 @@ export function execute<R>(gen: Generator<R>): Execute<R> {
   return { [EXECUTE]: true, gen }
 }
 
-export interface OperationHandler {
-  (operation: any): Promise<any>
-}
-
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
-  start: OperationHandler
+  start: (operation: any) => Promise<any>
   call: (func: any, ...args: any[]) => Promise<any>
   execute: <R>(gen: Generator<R>) => Promise<any>
 }
@@ -159,55 +168,86 @@ class Stack extends Array<StackFrame> {
   }
 }
 
+interface Run {
+  id: object
+  result?: Promise<any>
+  cancelled?: true
+}
+
 export default function cuillere(...mws: Middleware[]): Cuillere {
   mws.forEach((mw, index) => {
     if (typeof mw !== 'function') {
-      throw TypeError(`middlewares[${index}] should be a function: ${mw}`)
+      throw TypeError(`middlewares[${index}] should be a function*: ${mw}`)
     }
   })
 
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
-    
-    const run: OperationHandler = async operation => {
+
+    const runs = new WeakMap<object, Run>()
+
+    const nextRunId = 1
+
+    const run = (operation: any) => {
+      const id = new Number(nextRunId)
+
+      const run: Run = { id }
+      run.result = doRun(operation, () => run.cancelled)
+
+      runs.set(id, run)
+
+      return run
+    }
+
+    const doRun = async (operation: any, isCancelled: () => boolean) => {
       const stack = new Stack(mws, ctx)
 
       stack.handle(operation)
 
       let current: IteratorResult<any>
-      let hasThrown: boolean
-      let res: any, err: any
+      let res: any, isError: boolean
 
       while (stack.length !== 0) {
         const [curFrame] = stack
 
         try {
-          current = await (hasThrown ? curFrame.gen.throw(err) : curFrame.gen.next(res))
+          if (isCancelled()) {
+            await curFrame.gen.return(undefined)
+          } else {
+            current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
+          }
+          isError = false
         } catch (e) {
-          hasThrown = true
-          err = e
+          isError = true
+          res = e
           stack.shift()
           continue
         }
 
         if (current.done) {
-          hasThrown = false
           res = current.value
           stack.shift()
+          continue
+        }
+
+        if (isFork(current.value)) {
+          res = run(current.value.operation).id
           continue
         }
 
         stack.handle(current.value)
       }
 
-      if (hasThrown) throw err
+      if (isCancelled()) throw Error('cancelled') // FIXME
+
+      if (isError) throw res
 
       return res
     }
 
     const cllr: Cuillere = {
       ctx: make,
-      start: operation => run(start(operation)),
+      start: operation => run(start(operation)).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }
