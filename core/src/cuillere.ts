@@ -44,6 +44,7 @@ export interface Call {
   [CALL]: true
   func: any
   args?: any[]
+  location: string
   fork?: true
 }
 
@@ -51,12 +52,16 @@ export function isCall(operation: any): operation is Call {
   return Boolean(operation && operation[CALL])
 }
 
+function getLocation(): string {
+  return Error().stack.split('\n')[3].trim().slice(3)
+}
+
 export function call(func: any, ...args: any[]): Call {
-  return { [CALL]: true, func, args }
+  return { [CALL]: true, func, args, location: getLocation() }
 }
 
 export function fork(func: any, ...args: any[]): Call {
-  return { [CALL]: true, func, args, fork: true }
+  return { [CALL]: true, func, args, fork: true, location: getLocation() }
 }
 
 const EXECUTE = Symbol('EXECUTE')
