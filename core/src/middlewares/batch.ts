@@ -1,6 +1,5 @@
 import { Middleware } from "./middleware"
-import {getLocation, call, cancel, fork, Run} from '../cuillere'
-
+import {call, cancel, fork, Run, Call, isCall} from '../cuillere'
 
 export const batchMiddelware = ({ timeout = 10 } = {}): Middleware =>
   function* batchMiddelware(operation, ctx: Context, next) {
@@ -33,29 +32,21 @@ export const batchMiddelware = ({ timeout = 10 } = {}): Middleware =>
     return yield next(operation)
   }
 
-const BATCHED_CALL = Symbol('BATCHED_CALL')
+const IS_BATCHED = Symbol('IS_BATCHED')
 const BATCH_CTX = Symbol('BATCH_CTX')
 
 interface Context {
   [BATCH_CTX]?: Map<any, BatchEntry>
 }
 
-interface BatchedCall {
-  [BATCHED_CALL]: true,
-  func: any,
-  args: any[],
-  location: string,
+const isBatchedCall = (operation: any): operation is Call =>
+  isCall(operation) && operation[IS_BATCHED]
+
+export const batchedCall = (func: any, ...args: any[]): Call => {
+  const c = call(func, ...args)
+  c[IS_BATCHED] = true
+  return c
 }
-
-const isBatchedCall = (operation: any): operation is BatchedCall =>
-  operation && operation[BATCHED_CALL]
-
-export const batchedCall = (fn: any, ...args: any[]): BatchedCall => ({
-  [BATCHED_CALL]: true,
-  func: fn,
-  args,
-  location: getLocation()
-})
 
 const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
 
