@@ -48,7 +48,7 @@ const handlers = {
     try {
       return await Promise.all(forks.map(({ result }) => result))
     } catch (error) {
-      const results = await promiseAllSettled(forks.map(({ id }) => cancel(id)))
+      const results = await promiseAllSettled(forks.map(cancel))
       error.errors = results.map(({ reason }) => reason).filter(err => err)
       throw error
     }
