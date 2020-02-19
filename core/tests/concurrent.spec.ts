@@ -1,4 +1,5 @@
-/*eslint-en jest*/
+/* eslint-env jest */
+
 import cuillere, { call, Cuillere } from '../src'
 import { all , allSettled, chain, concurrentMiddleware } from '../src/middlewares/concurrent'
 

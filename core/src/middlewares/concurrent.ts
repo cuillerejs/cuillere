@@ -29,19 +29,19 @@ export const chain = (values: Iterable<(previousResult: any) => any>): Concurent
 })
 
 const handlers = {
-  async *[CHAIN](functions: Iterable<(previousResult) => any>) {
-    let result
+  async* [CHAIN](functions: Iterable<(previousResult) => any>) {
+    let result: any
     for (const f of functions) result = yield f(result)
     return result
   },
 
-  async *[ALL_SETTLED](operations: Iterable<any>) {
+  async* [ALL_SETTLED](operations: Iterable<any>) {
     const forks = []
     for (const op of operations) forks.push(yield fork(op))
     return promiseAllSettled(forks.map(({ result }) => result))
   },
 
-  async *[ALL](operations: Iterable<any>) {
+  async* [ALL](operations: Iterable<any>) {
     const forks = []
     for (const op of operations) forks.push(yield fork(op))
 
@@ -55,7 +55,8 @@ const handlers = {
   },
 }
 
-export const concurrentMiddleware = (): Middleware => async function* concurrentMiddleware(operation, _ctx, next) {
-  const handler = handlers[operation[TYPE]]
-  return yield handler ? call(handler, operation.values) : next(operation)
-}
+export const concurrentMiddleware = (): Middleware =>
+  async function* concurrentMiddleware(operation, _ctx, next) {
+    const handler = handlers[operation[TYPE]]
+    return yield handler ? call(handler, operation.values) : next(operation)
+  }

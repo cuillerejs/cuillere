@@ -1,5 +1,5 @@
-import { isStart, Middleware } from "@cuillere/core";
-import { PoolConfig, ClientProvider, createClientProvider, isClientProvider, getClient as getClientFn } from "../postgres";
+import { isStart, Middleware } from '@cuillere/core'
+import { PoolConfig, ClientProvider, createClientProvider, isClientProvider, getClient as getClientFn } from '../postgres'
 
 const GET_CLIENT = Symbol('GET_CLIENT')
 
@@ -27,7 +27,7 @@ export function poolMiddleware(...args: [ClientProvider] | PoolConfig[]): PoolMi
     provider = createClientProvider(...(args as PoolConfig[]))
   }
 
-  const mw: PoolMiddleware = (next, ctx) => async operation => {
+  const mw: PoolMiddleware = (next, ctx) => async (operation) => {
     if (isStart(operation)) return provider(ctx, () => next(operation))
 
     if (isGetClient(operation)) return getClientFn(ctx, operation.name)

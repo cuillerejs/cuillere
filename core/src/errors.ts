@@ -1,16 +1,14 @@
-const UNRECOGNIZED_ERROR = Symbol('UNRECOGNIZED_ERROR')
+const formatMessage = (message: string, ...args: any[]) => `cuillere: ${message}${args.map(arg => JSON.stringify(arg, null, 2)).join(' ')}`
 
-export function error(message: string, ...args): Error {
-  return new Error(
-    `[CUILLERE] Error: ${message}${args.map(arg => JSON.stringify(arg, null, 2)).join(' ')}`,
-  )
+export const error = (message: string, ...args: any[]) => new Error(formatMessage(message, ...args))
+
+class UnrecognizedOperationError extends TypeError {
+  operation: any
+
+  constructor(operation: any) {
+    super(formatMessage('operation could not be handled, misformed operation or missing middleware'))
+    this.operation = operation
+  }
 }
 
-// FIXME is this useful ?
-export const isUnrecognizedOperation = (err: Error) => err[UNRECOGNIZED_ERROR]
-export const unrecognizedOperation = (operation: any) => {
-  const err = error('operation could not be handled, misformed operation or missing middleware')
-  err[UNRECOGNIZED_ERROR] = true
-  err['operation'] = operation
-  return err
-}
+export const unrecognizedOperation = (operation: any) => new UnrecognizedOperationError(operation)

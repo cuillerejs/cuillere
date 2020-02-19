@@ -1,6 +1,6 @@
-import cuillere, { Middleware } from '../src'
+/* eslint-env jest */
 
-/*eslint-env jest*/
+import cuillere, { Middleware } from '../src'
 
 describe('examples', () => {
   it('promise middleware basic example', async () => {

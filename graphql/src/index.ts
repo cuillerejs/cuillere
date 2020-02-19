@@ -8,7 +8,7 @@ export const makeResolverFactory = (cllr: Cuillere) => fn => (obj, args, ctx, in
 export const makeResolversTreeFactory = (cllr: Cuillere) => {
   const fnToResolver = makeResolverFactory(cllr)
 
-  const treeToResolversTree = tree => {
+  const treeToResolversTree = (tree) => {
     const resolvers = {}
     Object.entries(tree).forEach(([key, value]) => {
       resolvers[key] = typeof value === 'function' ? fnToResolver(value) : treeToResolversTree(value)

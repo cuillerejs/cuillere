@@ -1,4 +1,6 @@
-/*eslint-en jest*/
+/* eslint-disable require-yield */
+/* eslint-env jest */
+
 import cuillere, { Cuillere, Middleware } from '../src'
 
 describe('middlewares', () => {
@@ -35,8 +37,8 @@ describe('middlewares', () => {
   })
 
   it('should call middlewares in right ordrer', async () => {
-    const middleware1: Middleware = function* middleware1(operation, _ctx, next) { return 'expected ' + (yield next(operation)) }
-    const middleware2: Middleware = function* middleware2(operation, _ctx, next) { return 'returned ' + (yield next(operation)) }
+    const middleware1: Middleware = function* middleware1(operation, _ctx, next) { return `expected ${yield next(operation)}` }
+    const middleware2: Middleware = function* middleware2(operation, _ctx, next) { return `returned ${yield next(operation)}` }
     const middleware3: Middleware = function* middleware3() { return 'value' }
 
     const cllr = cuillere(middleware1, middleware2, middleware3)
@@ -52,19 +54,19 @@ describe('middlewares', () => {
     async function* test() {
       try {
         yield throwOperation
-      } catch(err) {
-        expect(err).toEqual({error: 'test'})
+      } catch (err) {
+        expect(err).toEqual({ error: 'te st' })
       }
     }
 
     const middleware: Middleware = function* middleware(op, _ctx, next) {
-      if(op === throwOperation) throw error
+      if (op === throwOperation) throw error
       return yield next(op)
     }
 
     try {
       await cuillere(middleware).call(test)
-    } catch(err) {
+    } catch (err) {
       fail("middleware exception shouldn't be rethrown")
     }
   })

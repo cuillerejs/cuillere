@@ -22,7 +22,8 @@
   ],
   "scripts": {
     "clean": "rm -rf lib",
-    "prebuild": "yarn clean",
+    "lint": "yarn eslint --ext .ts src",
+    "prebuild": "yarn clean && yarn lint",
     "build": "yarn tsc",
     "example": "node lib/example",
     "nodeversion": "node --version"

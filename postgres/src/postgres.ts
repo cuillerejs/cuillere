@@ -1,5 +1,6 @@
 import { Pool, PoolConfig as PgPoolConfig, PoolClient } from 'pg'
 import { commit, rollback, release, UNSAFE_commit } from './transactions'
+
 const PROVIDER = Symbol('PROVIDER')
 const GET_CLIENT = Symbol('GET_CLIENT')
 const CREATE_CLIENT = Symbol('CREATE_CLIENT')
@@ -47,7 +48,7 @@ export function createClientProvider(...poolConfigs: PoolConfig[]): ClientProvid
   const pools = makePools(poolConfigs)
 
   const provider: ClientProvider = async (ctx, cb) => {
-    if (ctx[CLIENTS]) throw new Error("[CUILLERE] this context is already in use in another provider")
+    if (ctx[CLIENTS]) throw new Error('[CUILLERE] this context is already in use in another provider')
     ctx[CLIENTS] = {}
 
     ctx[CREATE_CLIENT] = (name: string) => pools[name].connect()
@@ -101,7 +102,7 @@ export const createTransactionManager = ({ prepared = true } = {}): Executor => 
       return result
     } catch (error) {
       const results = await rollback(await getClients(ctx))
-      results.filter(({status}) => status === 'rejected').forEach(({status, reason}) => console.error(reason))
+      results.filter(({ status }) => status === 'rejected').forEach(({ status, reason }) => console.error(reason))
       throw error
     }
   }

@@ -59,12 +59,12 @@ export function isFork(operation: any): operation is Fork {
 export const isCanceledError = (err: Error) => err.message === 'cancelled'
 
 export async function cancel(run: Run): Promise<any> {
-  run.cancelled = true
+  run.cancelled = true // eslint-disable-line no-param-reassign
 
   try {
     await run.result
-  } catch(err) {
-    if(!isCanceledError(err)) throw err
+  } catch (err) {
+    if (!isCanceledError(err)) throw err
   }
 }
 
@@ -117,8 +117,8 @@ type StackFrame = {
 }
 
 class Stack extends Array<StackFrame> {
-
   private mws: Middleware[]
+
   private ctx: any
 
   constructor(mws: Middleware[], ctx: any) {
@@ -135,8 +135,9 @@ class Stack extends Array<StackFrame> {
     if (isNext(operation)) {
       const nextMwIndex = this[0]?.mwIndex === undefined ? undefined : this[0].mwIndex + 1
 
-      if (nextMwIndex === undefined || nextMwIndex === this.mws.length)
+      if (nextMwIndex === undefined || nextMwIndex === this.mws.length) {
         return this.fallbackStackFrameFor(operation.operation)
+      }
 
       return {
         gen: this.mws[nextMwIndex](operation.operation, this.ctx, next),
@@ -217,7 +218,8 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
       stack.handle(operation)
 
       let current: IteratorResult<any>
-      let res: any, isError: boolean
+      let res: any; let
+        isError: boolean
 
       while (stack.length !== 0) {
         const [curFrame] = stack
