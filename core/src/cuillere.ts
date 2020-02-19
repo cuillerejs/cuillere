@@ -81,7 +81,7 @@ export function isCall(operation: any): operation is Call {
   return Boolean(operation && operation[CALL])
 }
 
-function getLocation(): string {
+export function getLocation(): string {
   return Error().stack.split('\n')[3].trim().slice(3)
 }
 
@@ -180,7 +180,7 @@ class Stack extends Array<StackFrame> {
   }
 }
 
-interface Run {
+export interface Run {
   id: object
   result?: Promise<any>
   cancelled?: true
@@ -222,12 +222,15 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
       while (stack.length !== 0) {
         const [curFrame] = stack
 
+
         try {
           if (isCancelled()) {
             await curFrame.gen.return(undefined)
-          } else {
-            current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
+            stack.shift()
+            continue
           }
+
+          current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
           isError = false
         } catch (e) {
           isError = true
