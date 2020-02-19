@@ -35,6 +35,7 @@ module.exports = {
         "import/prefer-default-export": "off",
         "no-await-in-loop": "off",
         "no-continue": "off",
+        "no-multiple-empty-lines": ["warn", { "max": 1 }],
         "no-new-wrappers": "off",
         'no-restricted-syntax': [
             'error',
@@ -58,6 +59,7 @@ module.exports = {
         ],
         "no-shadow": "off",
         "object-curly-newline": ["error", { "consistent": true }],
-        "semi": ["error", "never"]
+        "require-yield": "off",
+        "semi": ["error", "never"],
     }
 };

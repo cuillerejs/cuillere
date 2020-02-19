@@ -1,5 +1,4 @@
 /* eslint-env jest */
-/* eslint-disable require-yield */
 
 import cuillere, { Cuillere, call, fork, cancel } from '../src'
 
@@ -56,7 +55,7 @@ describe('run', () => {
       }
 
       async function* f2() {
-        try{
+        try {
           await delay(10)
           return
         } finally {
@@ -78,10 +77,10 @@ describe('run', () => {
       }
 
       async function* f2() {
-        try{
+        try {
           await delay(10)
           return
-        } catch(err) {
+        } catch (err) {
           called = true
         }
       }

@@ -1,5 +1,4 @@
 /* eslint-env jest */
-/* eslint-disable require-yield */
 
 import cuillere, { Cuillere, call } from '../src'
 

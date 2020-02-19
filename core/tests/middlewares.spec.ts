@@ -1,4 +1,3 @@
-/* eslint-disable require-yield */
 /* eslint-env jest */
 
 import cuillere, { Cuillere, Middleware } from '../src'

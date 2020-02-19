@@ -224,7 +224,6 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
       while (stack.length !== 0) {
         const [curFrame] = stack
 
-
         try {
           if (isCancelled()) {
             await curFrame.gen.return(undefined)
