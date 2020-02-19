@@ -43,4 +43,28 @@ describe('middlewares', () => {
 
     await test(cllr, 'expected returned value')
   })
+
+  it('should be able to catch exception from middleware', async () => {
+    const throwOperation = { op: 'throw' }
+    const error = { error: 'test' }
+
+    function* test() {
+      try {
+        yield throwOperation
+      } catch(err) {
+        expect(err).toEqual({error: 'test'})
+      }
+    }
+
+    const middleware: Middleware = function* middleware(op, _ctx, next) {
+      if(op === throwOperation) throw error
+      return yield next(op)
+    }
+
+    try {
+      await cuillere(middleware).call(test)
+    } catch(err) {
+      fail("middleware exception shouldn't be rethrown")
+    }
+  })
 })
