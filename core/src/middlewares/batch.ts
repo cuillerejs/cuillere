@@ -10,7 +10,7 @@ interface Context {
 
 interface BatchedCall {
   [BATCHED_CALL]: true,
-  fn: any,
+  func: any,
   args: any[],
   location: string,
 }
@@ -20,7 +20,7 @@ const isBatchedCall = (operation: any): operation is BatchedCall =>
 
 export const batchedCall = (fn: any, ...args: any[]): BatchedCall => ({
   [BATCHED_CALL]: true,
-  fn,
+  func: fn,
   args,
   location: getLocation()
 })
@@ -29,7 +29,7 @@ const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
 
 interface ExecuteBatch {
   [EXECUTE_BATCH]: true,
-  fn: any
+  func: any
 }
 
 const isExecuteBatch = (operation: any): operation is ExecuteBatch =>
@@ -37,7 +37,7 @@ const isExecuteBatch = (operation: any): operation is ExecuteBatch =>
 
 const executeBatch = (fn): ExecuteBatch => ({
   [EXECUTE_BATCH]: true,
-  fn
+  func: fn
 })
 
 interface BatchEntry {
@@ -56,15 +56,15 @@ export const batchMiddelware = ({ timeout = 10 } = {}): Middleware =>
     if(!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map<any, BatchEntry>()
 
     if(isBatchedCall(operation)) {
-      const newFork = yield fork(call(delayBatchExecution, timeout, operation.fn))
+      const newFork = yield fork(call(delayBatchExecution, timeout, operation.func))
 
       let entry: any
-      if(ctx[BATCH_CTX].has(operation.fn)) {
-        entry = ctx[BATCH_CTX].get(operation.fn)
+      if(ctx[BATCH_CTX].has(operation.func)) {
+        entry = ctx[BATCH_CTX].get(operation.func)
         cancel(entry.fork)
       } else {
         entry = { resolves: [], args: [], fork: newFork }
-        ctx[BATCH_CTX].set(operation.fn, entry)
+        ctx[BATCH_CTX].set(operation.func, entry)
       }
 
       entry.fork = newFork
@@ -73,8 +73,8 @@ export const batchMiddelware = ({ timeout = 10 } = {}): Middleware =>
     }
 
     if(isExecuteBatch(operation)) {
-      const entry = ctx[BATCH_CTX].get(operation.fn)
-      const result = yield call(operation.fn, ...entry.args)
+      const entry = ctx[BATCH_CTX].get(operation.func)
+      const result = yield call(operation.func, ...entry.args)
       entry.resolves.forEach((resolve, i) => resolve(result[i]))
       return
     }
