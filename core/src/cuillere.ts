@@ -81,7 +81,7 @@ export function isCall(operation: any): operation is Call {
   return Boolean(operation && operation[CALL])
 }
 
-export function getLocation(): string {
+function getLocation(): string {
   return Error().stack.split('\n')[3].trim().slice(3)
 }
 
