@@ -1,4 +1,3 @@
-/* eslint-env jest */
 /* eslint-disable no-throw-literal */
 
 import cuillere, { call, Cuillere } from '../src'

@@ -1,5 +1,3 @@
-/* eslint-env jest */
-
 import cuillere, { Middleware } from '../src'
 
 describe('examples', () => {

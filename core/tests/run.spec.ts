@@ -1,5 +1,3 @@
-/* eslint-env jest */
-
 import cuillere, { Cuillere, call, fork, cancel } from '../src'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))

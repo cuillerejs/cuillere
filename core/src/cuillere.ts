@@ -1,6 +1,6 @@
 import { error, unrecognizedOperation } from './errors'
 import { Middleware } from './middlewares'
-import { isGenerator } from './generator'
+import { GeneratorFunction, isGenerator } from './generator'
 
 const START = Symbol('START')
 
@@ -45,7 +45,12 @@ interface Fork {
   operation: any
 }
 
-export function fork(operation: any): Fork {
+export function fork(...args: any[]): Fork {
+  const [firstArg, ...rest] = args
+  let operation = firstArg
+  if (typeof firstArg === 'function') {
+    operation = call(firstArg, ...rest)
+  }
   return {
     [FORK]: true,
     operation,
@@ -72,7 +77,7 @@ const CALL = Symbol('CALL')
 
 export interface Call {
   [CALL]: true
-  func: any
+  func: GeneratorFunction
   args?: any[]
   location: string
 }
@@ -85,7 +90,7 @@ function getLocation(): string {
   return Error().stack.split('\n')[3].trim().slice(3)
 }
 
-export function call(func: any, ...args: any[]): Call {
+export function call(func: GeneratorFunction, ...args: any[]): Call {
   return { [CALL]: true, func, args, location: getLocation() }
 }
 
