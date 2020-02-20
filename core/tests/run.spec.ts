@@ -48,7 +48,7 @@ describe('run', () => {
       let called = false
 
       async function* f1() {
-        const task = yield fork(call(f2))
+        const task = yield fork(f2)
         await cancel(task)
       }
 
@@ -70,7 +70,7 @@ describe('run', () => {
       let called = false
 
       async function* f1() {
-        const task = yield fork(call(f2))
+        const task = yield fork(f2)
         await cancel(task)
       }
 

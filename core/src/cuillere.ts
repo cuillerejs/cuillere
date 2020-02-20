@@ -45,15 +45,10 @@ interface Fork {
   operation: any
 }
 
-export function fork(...args: any[]): Fork {
-  const [firstArg, ...rest] = args
-  let operation = firstArg
-  if (typeof firstArg === 'function') {
-    operation = call(firstArg, ...rest)
-  }
+export function fork(firstArg: any, ...args: any[]): Fork {
   return {
     [FORK]: true,
-    operation,
+    operation: typeof firstArg === 'function' ? call(firstArg, ...args) : firstArg,
   }
 }
 
