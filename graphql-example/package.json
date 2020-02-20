@@ -22,13 +22,16 @@
   "scripts": {
     "start": "node ."
   },
-  "dependencies": {
+  "peerDependencies": {
     "@cuillere/core": "^0.5.0",
     "@cuillere/graphql": "^0.5.0",
-    "@cuillere/postgres": "^0.5.0",
+    "@cuillere/postgres": "^0.5.1",
+    "koa": "^2.11.0",
+    "pg": "^7.18.1"
+  },
+  "dependencies": {
     "apollo-server-koa": "^2.10.1",
     "esm": "^3.2.25",
-    "graphql": "^14.6.0",
-    "pg": "^7.18.1"
+    "graphql": "^14.6.0"
   }
 }

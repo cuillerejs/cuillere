@@ -5,7 +5,8 @@ module.exports = {
         "node": true
     },
     "extends": [
-        "airbnb-base"
+        "airbnb-base",
+        "plugin:@typescript-eslint/recommended"
     ],
     "globals": {
         "Atomics": "readonly",
@@ -22,18 +23,46 @@ module.exports = {
     settings: {
         'import/resolver': {
             node: {
-                extensions: ['.ts'],
+                extensions: ['.ts', '.js'],
             },
         },
     },
+    "overrides": [
+        {
+            "files": ["**/*.spec.ts", "**/*.spec.js"],
+            "plugins": ["jest"],
+            "extends": ["plugin:jest/recommended"],
+            "env": {
+                "jest/globals": true,
+            },
+            "rules": {
+                "jest/expect-expect": "off",
+                "jest/no-disabled-tests": "off",
+            },
+        }
+    ],
     "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-use-before-define": "off",
+        "@typescript-eslint/member-delimiter-style": ["error", {
+            "multiline": {
+                "delimiter": "none",
+                "requireLast": false
+            },
+            "singleline": {
+                "delimiter": "semi",
+                "requireLast": false
+            }
+        }],
         "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
         "implicit-arrow-linebreak": "off",
         "import/extensions": ["error", {
-            "ts": "never" | "always" | "ignorePackages"
+            "ts": "never"
         }],
         "import/prefer-default-export": "off",
         "no-await-in-loop": "off",
+        "no-console": "off",
         "no-continue": "off",
         "no-multiple-empty-lines": ["warn", { "max": 1 }],
         "no-new-wrappers": "off",

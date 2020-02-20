@@ -10,7 +10,7 @@ const CHAIN = Symbol('CHAIN')
 
 export interface ConcurentOperation {
   [TYPE]: symbol
-  values: Iterable<any>,
+  values: Iterable<any>
 }
 
 export const all = (values: Iterable<any>): ConcurentOperation => ({
@@ -49,7 +49,10 @@ const handlers = {
       return await Promise.all(forks.map(({ result }) => result))
     } catch (error) {
       const results = await promiseAllSettled(forks.map(cancel))
-      error.errors = results.map(({ reason }) => reason).filter(err => err)
+      error.errors = results
+        .filter(({ status }) => status === 'rejected')
+        .map(({ reason }) => reason)
+        .filter(reason => reason !== error)
       throw error
     }
   },

@@ -5,8 +5,8 @@ import { isGenerator } from './generator'
 const START = Symbol('START')
 
 interface Start {
-  [START]: true,
-  operation: any,
+  [START]: true
+  operation: any
 }
 
 function start(operation: any): Start {
@@ -23,8 +23,8 @@ export function isStart(operation: any): operation is Start {
 const NEXT = Symbol('NEXT')
 
 interface Next {
-  [NEXT]: true,
-  operation: any,
+  [NEXT]: true
+  operation: any
 }
 
 function next(operation: any): Next {
@@ -41,8 +41,8 @@ function isNext(operation: any): operation is Next {
 const FORK = Symbol('FORK')
 
 interface Fork {
-  [FORK]: true,
-  operation: any,
+  [FORK]: true
+  operation: any
 }
 
 export function fork(operation: any): Fork {
@@ -91,16 +91,16 @@ export function call(func: any, ...args: any[]): Call {
 
 const EXECUTE = Symbol('EXECUTE')
 
-export interface Execute<R> {
+export interface Execute {
   [EXECUTE]: true
-  gen: Generator<R>
+  gen: Generator | AsyncGenerator
 }
 
-export function isExecute(operation: any): operation is Execute<any> {
+export function isExecute(operation: any): operation is Execute {
   return Boolean(operation && operation[EXECUTE])
 }
 
-export function execute<R>(gen: Generator<R>): Execute<R> {
+export function execute(gen: Generator | AsyncGenerator): Execute {
   return { [EXECUTE]: true, gen }
 }
 
@@ -108,7 +108,7 @@ export interface Cuillere {
   ctx: (ctx: any) => Cuillere
   start: (operation: any) => Promise<any>
   call: (func: any, ...args: any[]) => Promise<any>
-  execute: <R>(gen: Generator<R>) => Promise<any>
+  execute: (gen: Generator | AsyncGenerator) => Promise<any>
 }
 
 type StackFrame = {

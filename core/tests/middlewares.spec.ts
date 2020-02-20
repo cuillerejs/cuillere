@@ -1,5 +1,3 @@
-/* eslint-env jest */
-
 import cuillere, { Cuillere, Middleware } from '../src'
 
 describe('middlewares', () => {
@@ -31,8 +29,8 @@ describe('middlewares', () => {
     const cllr = cuillere(middleware1, middleware2)
 
     await test(cllr)
-    expect(middleware1Fn).toBeCalled
-    expect(middleware2Fn).toBeCalled
+    expect(middleware1Fn).toBeCalled()
+    expect(middleware2Fn).toBeCalled()
   })
 
   it('should call middlewares in right ordrer', async () => {
@@ -45,7 +43,7 @@ describe('middlewares', () => {
     await test(cllr, 'expected returned value')
   })
 
-  // SKIPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
+  // SKIPPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
   it.skip('should be able to catch exception from middleware', async () => {
     const throwOperation = { op: 'throw' }
     const error = { error: 'test' }
@@ -54,7 +52,7 @@ describe('middlewares', () => {
       try {
         yield throwOperation
       } catch (err) {
-        expect(err).toEqual({ error: 'te st' })
+        expect(err).toEqual({ error: 'test' }) // eslint-disable-line jest/no-try-expect
       }
     }
 
@@ -66,7 +64,7 @@ describe('middlewares', () => {
     try {
       await cuillere(middleware).call(test)
     } catch (err) {
-      fail("middleware exception shouldn't be rethrown")
+      throw new Error("middleware exception shouldn't be rethrown")
     }
   })
 })

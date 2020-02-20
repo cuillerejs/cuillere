@@ -8,7 +8,7 @@ const CLIENTS = Symbol('CLIENTS')
 const DEFAULT_POOL = 'DEFAULT POOL'
 
 export interface PoolConfig extends PgPoolConfig {
-  name?: string;
+  name?: string
 }
 
 export interface Context {
@@ -102,7 +102,7 @@ export const createTransactionManager = ({ prepared = true } = {}): Executor => 
       return result
     } catch (error) {
       const results = await rollback(await getClients(ctx))
-      results.filter(({ status }) => status === 'rejected').forEach(({ status, reason }) => console.error(reason))
+      results.filter(({ status }) => status === 'rejected').forEach(({ reason }) => console.error(reason))
       throw error
     }
   }

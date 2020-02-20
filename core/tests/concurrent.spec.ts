@@ -1,12 +1,15 @@
 /* eslint-env jest */
+/* eslint-disable no-throw-literal */
 
 import cuillere, { call, Cuillere } from '../src'
-import { all , allSettled, chain, concurrentMiddleware } from '../src/middlewares/concurrent'
+import { all, allSettled, chain, concurrentMiddleware } from '../src/middlewares/concurrent'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
 describe('concurrent', () => {
-  let cllr: Cuillere, executionOrder: number[]
+  let cllr: Cuillere
+  let executionOrder: number[]
+
   async function* f1() {
     await delay(30)
     executionOrder.push(1)
@@ -32,9 +35,11 @@ describe('concurrent', () => {
 
   describe('all', () => {
     it('should run all operations in parallele', async () => {
-      const result = await cllr.call(function*() {
+      function* test() {
         return yield all([call(f1), call(f2), call(f3)])
-      })
+      }
+
+      const result = await cllr.call(test)
 
       expect(result).toEqual([1, 2, 3])
       expect(executionOrder).toEqual([3, 2, 1])
@@ -56,31 +61,31 @@ describe('concurrent', () => {
         called = true
       }
 
-      try{
-        await cllr.start(all([call(f1), call(f2)]))
-      } catch(error) {
-        expect(error.error).toBe('test')
-        expect(called).toBe(false)
-      }
+      await expect(cllr.start(all([call(f1), call(f2)]))).rejects.toEqual({ error: 'test', errors: [] })
+      expect(called).toBe(false)
     })
   })
 
   describe('allSettled', () => {
     it('should run all operations in parallele and settle', async () => {
-      const result = await cllr.call(function*() {
+      function* test() {
         return yield allSettled([call(f1), call(f2), call(f3)])
-      })
+      }
 
-      expect(result).toEqual([{status: 'fulfilled', value: 1}, {status: 'fulfilled', value: 2}, {status: 'fulfilled', value: 3}])
+      const result = await cllr.call(test)
+
+      expect(result).toEqual([{ status: 'fulfilled', value: 1 }, { status: 'fulfilled', value: 2 }, { status: 'fulfilled', value: 3 }])
       expect(executionOrder).toEqual([3, 2, 1])
     })
   })
 
   describe('chain', () => {
     it('should run all operations one at a time', async () => {
-      const result = await cllr.call(function*() {
+      function* test() {
         return yield chain([() => call(f1), () => call(f2), () => call(f3)])
-      })
+      }
+
+      const result = await cllr.call(test)
 
       expect(result).toEqual(3)
       expect(executionOrder).toEqual([1, 2, 3])
@@ -95,10 +100,9 @@ describe('concurrent', () => {
         return prev
       }
 
-      const result = await cllr.start(chain([() => call(f1), (prev) => call(f2, prev)]))
+      const result = await cllr.start(chain([() => call(f1), prev => call(f2, prev)]))
 
       expect(result).toBe(1)
     })
   })
-
 })
