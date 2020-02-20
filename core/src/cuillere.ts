@@ -45,6 +45,8 @@ interface Fork {
   operation: any
 }
 
+export function fork(func: GeneratorFunction, ...args: any[]): Fork
+export function fork(operation: any): Fork
 export function fork(firstArg: any, ...args: any[]): Fork {
   return {
     [FORK]: true,
