@@ -1,8 +1,12 @@
-/* eslint-env jest */
 import cuillere, { Cuillere, call } from '../src'
 import { batched, batchMiddelware } from '../src/middlewares/batch'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
+
+const afterDelay = async (fn, d) => {
+  await delay(d)
+  return fn()
+}
 
 describe('middlewares', () => {
   describe('batch', () => {
@@ -29,7 +33,7 @@ describe('middlewares', () => {
       await Promise.all([
         cllr.start(call(fn)),
         cllr.start(call(fn)),
-        cllr.start(call(fn))
+        cllr.start(call(fn)),
       ])
 
       expect(mock).toBeCalledTimes(1)
@@ -39,7 +43,7 @@ describe('middlewares', () => {
       await Promise.all([
         cllr.start(call(fn, 1)),
         cllr.start(call(fn, 2)),
-        cllr.start(call(fn, 3))
+        cllr.start(call(fn, 3)),
       ])
 
       expect(mock.mock.calls[0].length).toBe(3)
@@ -59,26 +63,26 @@ describe('middlewares', () => {
       const result = await Promise.all([
         cllr.start(call(fn, 1)),
         cllr.start(call(fn, 2)),
-        cllr.start(call(fn, 3))
+        cllr.start(call(fn, 3)),
       ])
 
       expect(result).toEqual([1, 2, 3])
     })
 
-    it("shouldn't batch calls after timeout", async() => {
+    it("shouldn't batch calls after timeout", async () => {
       await cllr.call(fn)
       await delay(1)
       await cllr.call(fn)
       expect(mock).toBeCalledTimes(2)
     })
 
-    it('should not debounce batch calls', async() => {
+    it('should not debounce batch calls', async () => {
       cllr = cuillere(batchMiddelware({ timeout: 30 }))
 
       await Promise.all([
         cllr.call(fn, 1),
-        delay(30).then(() => cllr.call(fn, 2)),
-        delay(45).then(() => cllr.call(fn, 3)),
+        afterDelay(() => cllr.call(fn, 2), 30),
+        afterDelay(() => cllr.call(fn, 3), 45),
       ])
 
       expect(mock.mock.calls).toEqual([[[1], [2]], [[3]]])

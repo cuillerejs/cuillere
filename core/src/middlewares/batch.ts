@@ -1,6 +1,6 @@
-import { Middleware } from "./middleware"
-import { GeneratorFunction } from "../generator"
-import {call, execute, fork, Run, Call, isCall} from '../cuillere'
+import { Middleware } from './middleware'
+import { GeneratorFunction } from '../generator'
+import { call, execute, fork, Run, Call, isCall } from '../cuillere'
 
 interface BatchOptions {
   timeout?: number
@@ -8,15 +8,15 @@ interface BatchOptions {
 
 export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
   function* batchMiddelware(operation, ctx: Context, next) {
-    if(!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map<any, BatchEntry>()
+    if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map<any, BatchEntry>()
 
-    if(isBatchedCall(operation)) {
+    if (isBatchedCall(operation)) {
       let entry: any
-      if(ctx[BATCH_CTX].has(operation.func)) {
+      if (ctx[BATCH_CTX].has(operation.func)) {
         entry = ctx[BATCH_CTX].get(operation.func)
       } else {
         console.log('create fork')
-        entry = { resolves: [], args: [], }
+        entry = { resolves: [], args: [] }
         ctx[BATCH_CTX].set(operation.func, entry)
         entry.fork = yield fork(call(delayBatchExecution, operation.func, timeout))
       }
@@ -25,7 +25,7 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
       return new Promise(resolve => entry.resolves.push(resolve))
     }
 
-    if(isExecuteBatch(operation)) {
+    if (isExecuteBatch(operation)) {
       const entry = ctx[BATCH_CTX].get(operation.func)
       ctx[BATCH_CTX].delete(operation.func)
       const result = yield execute(operation.func(...entry.args))
@@ -46,15 +46,15 @@ interface Context {
 const isBatchedCall = (operation: any): operation is Call =>
   isCall(operation) && operation.func[IS_BATCHED]
 
-export const batched = <T extends GeneratorFunction>(func: T): T => {
-  func[IS_BATCHED] = true
+export function batched<T extends GeneratorFunction>(func: T): T {
+  func[IS_BATCHED] = true // eslint-disable-line no-param-reassign
   return func
 }
 
 const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
 
 interface ExecuteBatch {
-  [EXECUTE_BATCH]: true,
+  [EXECUTE_BATCH]: true
   func: any
 }
 
@@ -63,7 +63,7 @@ const isExecuteBatch = (operation: any): operation is ExecuteBatch =>
 
 const executeBatch = (fn): ExecuteBatch => ({
   [EXECUTE_BATCH]: true,
-  func: fn
+  func: fn,
 })
 
 interface BatchEntry {
@@ -73,6 +73,6 @@ interface BatchEntry {
 }
 
 async function* delayBatchExecution(func: GeneratorFunction, delay?: number) {
-  await new Promise(resolve =>  delay ? setTimeout(resolve, delay) : setImmediate(resolve))
+  await new Promise(resolve => (delay ? setTimeout(resolve, delay) : setImmediate(resolve)))
   yield executeBatch(func)
 }
