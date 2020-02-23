@@ -250,6 +250,11 @@ export class Run {
   async cancel() {
     if (this.#settled) return
 
+    if (this.#canceled) {
+      await this.#result
+      return
+    }
+
     this.#canceled = true
 
     try {
@@ -257,10 +262,6 @@ export class Run {
     } catch (e) {
       if (!CancellationError.isCancellationError(e)) console.error('fork did not cancel properly')
     }
-  }
-
-  get canceled() {
-    return this.#canceled
   }
 }
 
