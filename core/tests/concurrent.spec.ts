@@ -1,7 +1,7 @@
 /* eslint-disable no-throw-literal */
 
 import cuillere, { call, Cuillere } from '../src'
-import { all, allSettled, chain, concurrentMiddleware } from '../src/middlewares/concurrent'
+import { all, allSettled, chain } from '../src/middlewares/concurrent'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
@@ -29,7 +29,7 @@ describe('concurrent', () => {
 
   beforeEach(() => {
     executionOrder = []
-    cllr = cuillere(concurrentMiddleware())
+    cllr = cuillere()
   })
 
   describe('all', () => {

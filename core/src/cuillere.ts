@@ -1,5 +1,5 @@
 import { error, unrecognizedOperation, CancellationError } from './errors'
-import { Middleware } from './middlewares'
+import { Middleware, concurrentMiddleware, contextMiddleware } from './middlewares'
 import { GeneratorFunction, isGenerator } from './generator'
 
 const START = Symbol('START')
@@ -189,12 +189,17 @@ export interface Run {
   cancelled?: true
 }
 
-export default function cuillere(...mws: Middleware[]): Cuillere {
-  mws.forEach((mw, index) => {
+export default function cuillere(...pMws: Middleware[]): Cuillere {
+  pMws.forEach((mw, index) => {
     if (typeof mw !== 'function') {
       throw TypeError(`middlewares[${index}] should be a function*: ${mw}`)
     }
   })
+
+  const mws = pMws.concat([
+    concurrentMiddleware(),
+    contextMiddleware(),
+  ])
 
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}

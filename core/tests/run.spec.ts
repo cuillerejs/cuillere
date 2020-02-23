@@ -49,13 +49,14 @@ describe('run', () => {
 
       async function* f1() {
         const task = yield fork(f2)
+        await delay(10) // let some time for f2 to start
         await cancel(task)
       }
 
       async function* f2() {
         try {
-          await delay(10)
-          return
+          await delay(20)
+          yield 'anything...' // let cancellation happen
         } finally {
           called = true
         }
