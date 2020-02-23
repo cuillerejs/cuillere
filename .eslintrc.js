@@ -61,6 +61,7 @@ module.exports = {
             "ts": "never"
         }],
         "import/prefer-default-export": "off",
+        "max-classes-per-file": "off",
         "no-await-in-loop": "off",
         "no-console": "off",
         "no-continue": "off",

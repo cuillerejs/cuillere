@@ -12,3 +12,11 @@ class UnrecognizedOperationError extends TypeError {
 }
 
 export const unrecognizedOperation = (operation: any) => new UnrecognizedOperationError(operation)
+
+class CancellationError extends Error {
+  constructor() {
+    super('Canceled')
+  }
+}
+
+export const CanceledError = new CancellationError()

@@ -1,4 +1,4 @@
-import { error, unrecognizedOperation } from './errors'
+import { error, unrecognizedOperation, CanceledError } from './errors'
 import { Middleware } from './middlewares'
 import { GeneratorFunction, isGenerator } from './generator'
 
@@ -60,7 +60,12 @@ export function isFork(operation: any): operation is Fork {
 
 export async function cancel(run: Run): Promise<void> {
   run.cancelled = true // eslint-disable-line no-param-reassign
-  await run.result
+
+  try {
+    await run.result
+  } catch (e) {
+    if (e !== CanceledError) console.error('fork did not cancel properly')
+  }
 }
 
 const CALL = Symbol('CALL')
@@ -215,7 +220,7 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
           if (isCancelled()) {
             await curFrame.gen.return(undefined)
             stack.shift()
-            return undefined
+            continue
           }
 
           current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
@@ -240,6 +245,8 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
 
         stack.handle(current.value)
       }
+
+      if (isCancelled()) throw CanceledError
 
       if (isError) throw res
 
