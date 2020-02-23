@@ -1,5 +1,5 @@
 import { Middleware } from './middleware'
-import { fork, cancel, call } from '../cuillere'
+import { fork, call, Run } from '../cuillere'
 import { allSettled as promiseAllSettled } from '../utils/promise'
 
 const TYPE = Symbol('TYPE')
@@ -42,13 +42,13 @@ const handlers = {
   },
 
   async* [ALL](operations: Iterable<any>) {
-    const forks = []
+    const forks: Run[] = []
     for (const op of operations) forks.push(yield fork(op))
 
     try {
       return await Promise.all(forks.map(({ result }) => result))
     } catch (error) {
-      const results = await promiseAllSettled(forks.map(cancel))
+      const results = await promiseAllSettled(forks.map(fork => fork.cancel()))
       error.errors = results
         .filter(({ status }) => status === 'rejected')
         .map(({ reason }) => reason)

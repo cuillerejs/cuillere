@@ -58,18 +58,6 @@ export function isFork(operation: any): operation is Fork {
   return operation && operation[FORK]
 }
 
-export async function cancel(run: Run): Promise<void> {
-  if (run.settled) return
-
-  run.cancelled = true // eslint-disable-line no-param-reassign
-
-  try {
-    await run.result
-  } catch (e) {
-    if (!CancellationError.isCancellationError(e)) console.error('fork did not cancel properly')
-  }
-}
-
 const CALL = Symbol('CALL')
 
 export interface Call {
@@ -119,14 +107,14 @@ type StackFrame = {
 }
 
 class Stack extends Array<StackFrame> {
-  private mws: Middleware[]
+  #mws: Middleware[]
 
-  private ctx: any
+  #ctx: any
 
   constructor(mws: Middleware[], ctx: any) {
     super()
-    this.mws = mws
-    this.ctx = ctx
+    this.#mws = mws
+    this.#ctx = ctx
   }
 
   handle(operation: any) {
@@ -137,20 +125,20 @@ class Stack extends Array<StackFrame> {
     if (isNext(operation)) {
       const nextMwIndex = this[0]?.mwIndex === undefined ? undefined : this[0].mwIndex + 1
 
-      if (nextMwIndex === undefined || nextMwIndex === this.mws.length) {
+      if (nextMwIndex === undefined || nextMwIndex === this.#mws.length) {
         return this.fallbackStackFrameFor(operation.operation)
       }
 
       return {
-        gen: this.mws[nextMwIndex](operation.operation, this.ctx, next),
+        gen: this.#mws[nextMwIndex](operation.operation, this.#ctx, next),
         mwIndex: nextMwIndex,
       }
     }
 
-    if (this.mws.length === 0) return this.fallbackStackFrameFor(operation)
+    if (this.#mws.length === 0) return this.fallbackStackFrameFor(operation)
 
     return {
-      gen: this.mws[0](operation, this.ctx, next),
+      gen: this.#mws[0](operation, this.#ctx, next),
       mwIndex: 0,
     }
   }
@@ -183,10 +171,97 @@ class Stack extends Array<StackFrame> {
   }
 }
 
-export interface Run {
-  result?: Promise<any>
-  settled?: true
-  cancelled?: true
+export class Run {
+  #ctx: any
+
+  #mws: Middleware[]
+
+  #stack: Stack
+
+  #result: Promise<any>
+
+  #settled = false
+
+  #canceled = false
+
+  constructor(mws: Middleware[], ctx: any, operation: any) {
+    this.#mws = mws
+    this.#ctx = ctx
+
+    this.#stack = new Stack(mws, ctx)
+    this.#stack.handle(operation)
+
+    this.#result = this.doRun().finally(() => { this.#settled = true })
+  }
+
+  private async doRun(): Promise<any> {
+    let current: IteratorResult<any>
+    let res: any
+    let isError: boolean
+
+    while (this.#stack.length !== 0) {
+      const [curFrame] = this.#stack
+
+      try {
+        if (this.#canceled) {
+          await curFrame.gen.return(undefined)
+          this.#stack.shift()
+          continue
+        }
+
+        current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
+        isError = false
+      } catch (e) {
+        isError = true
+        res = e
+        this.#stack.shift()
+        continue
+      }
+
+      if (current.done) {
+        res = current.value
+        this.#stack.shift()
+        continue
+      }
+
+      if (isFork(current.value)) {
+        res = new Run(this.#mws, this.#ctx, current.value.operation)
+        continue
+      }
+
+      this.#stack.handle(current.value)
+    }
+
+    if (this.#canceled) throw new CancellationError()
+
+    if (isError) throw res
+
+    return res
+  }
+
+  get result() {
+    return this.#result
+  }
+
+  get settled() {
+    return this.#settled
+  }
+
+  async cancel() {
+    if (this.#settled) return
+
+    this.#canceled = true
+
+    try {
+      await this.#result
+    } catch (e) {
+      if (!CancellationError.isCancellationError(e)) console.error('fork did not cancel properly')
+    }
+  }
+
+  get canceled() {
+    return this.#canceled
+  }
 }
 
 export default function cuillere(...pMws: Middleware[]): Cuillere {
@@ -204,67 +279,9 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
 
-    const run = (operation: any) => {
-      const run: Run = {}
-
-      run.result = doRun(operation, () => run.cancelled)
-        .finally(() => { run.settled = true })
-
-      return run
-    }
-
-    const doRun = async (operation: any, isCancelled: () => boolean) => {
-      const stack = new Stack(mws, ctx)
-
-      stack.handle(operation)
-
-      let current: IteratorResult<any>
-      let res: any
-      let isError: boolean
-
-      while (stack.length !== 0) {
-        const [curFrame] = stack
-
-        try {
-          if (isCancelled()) {
-            await curFrame.gen.return(undefined)
-            stack.shift()
-            continue
-          }
-
-          current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
-          isError = false
-        } catch (e) {
-          isError = true
-          res = e
-          stack.shift()
-          continue
-        }
-
-        if (current.done) {
-          res = current.value
-          stack.shift()
-          continue
-        }
-
-        if (isFork(current.value)) {
-          res = run(current.value.operation)
-          continue
-        }
-
-        stack.handle(current.value)
-      }
-
-      if (isCancelled()) throw new CancellationError()
-
-      if (isError) throw res
-
-      return res
-    }
-
     const cllr: Cuillere = {
       ctx: make,
-      start: operation => run(start(operation)).result,
+      start: operation => new Run(mws, ctx, start(operation)).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }

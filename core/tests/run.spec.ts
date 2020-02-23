@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, call, fork, cancel } from '../src'
+import cuillere, { Cuillere, call, fork } from '../src'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
@@ -50,7 +50,7 @@ describe('run', () => {
       async function* f1() {
         const task = yield fork(f2)
         await delay(10) // let some time for f2 to start
-        await cancel(task)
+        await task.cancel()
       }
 
       async function* f2() {
@@ -77,7 +77,7 @@ describe('run', () => {
       async function* f1() {
         const task = yield fork(f2)
         await delay(10) // let some time for f2 to start
-        await cancel(task)
+        await task.cancel()
       }
 
       async function* f2() {
