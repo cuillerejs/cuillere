@@ -1,4 +1,4 @@
-import { error, unrecognizedOperation, CanceledError } from './errors'
+import { error, unrecognizedOperation, CancellationError } from './errors'
 import { Middleware } from './middlewares'
 import { GeneratorFunction, isGenerator } from './generator'
 
@@ -59,12 +59,14 @@ export function isFork(operation: any): operation is Fork {
 }
 
 export async function cancel(run: Run): Promise<void> {
+  if (run.settled) return
+
   run.cancelled = true // eslint-disable-line no-param-reassign
 
   try {
     await run.result
   } catch (e) {
-    if (e !== CanceledError) console.error('fork did not cancel properly')
+    if (!CancellationError.isCancellationError(e)) console.error('fork did not cancel properly')
   }
 }
 
@@ -183,6 +185,7 @@ class Stack extends Array<StackFrame> {
 
 export interface Run {
   result?: Promise<any>
+  settled?: true
   cancelled?: true
 }
 
@@ -200,6 +203,7 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
       const run: Run = {}
 
       run.result = doRun(operation, () => run.cancelled)
+        .finally(() => { run.settled = true })
 
       return run
     }
@@ -246,7 +250,7 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
         stack.handle(current.value)
       }
 
-      if (isCancelled()) throw CanceledError
+      if (isCancelled()) throw new CancellationError()
 
       if (isError) throw res
 

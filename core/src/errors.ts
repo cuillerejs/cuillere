@@ -13,10 +13,15 @@ class UnrecognizedOperationError extends TypeError {
 
 export const unrecognizedOperation = (operation: any) => new UnrecognizedOperationError(operation)
 
-class CancellationError extends Error {
+export class CancellationError extends Error {
   constructor() {
     super('Canceled')
+    this[CancellationError.CANCELED] = true
+  }
+
+  private static CANCELED = Symbol('CANCELED')
+
+  static isCancellationError(e: any): e is CancellationError {
+    return e[CancellationError.CANCELED]
   }
 }
-
-export const CanceledError = new CancellationError()
