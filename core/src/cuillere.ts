@@ -58,16 +58,9 @@ export function isFork(operation: any): operation is Fork {
   return operation && operation[FORK]
 }
 
-export const isCanceledError = (err: Error) => err.message === 'cancelled'
-
-export async function cancel(run: Run): Promise<any> {
+export async function cancel(run: Run): Promise<void> {
   run.cancelled = true // eslint-disable-line no-param-reassign
-
-  try {
-    await run.result
-  } catch (err) {
-    if (!isCanceledError(err)) throw err
-  }
+  await run.result
 }
 
 const CALL = Symbol('CALL')
@@ -222,7 +215,7 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
           if (isCancelled()) {
             await curFrame.gen.return(undefined)
             stack.shift()
-            continue
+            return undefined
           }
 
           current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
@@ -247,8 +240,6 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
 
         stack.handle(current.value)
       }
-
-      if (isCancelled()) throw Error('cancelled') // FIXME
 
       if (isError) throw res
 
