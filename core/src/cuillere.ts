@@ -184,7 +184,6 @@ class Stack extends Array<StackFrame> {
 }
 
 export interface Run {
-  id: object
   result?: Promise<any>
   cancelled?: true
 }
@@ -199,17 +198,10 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
 
-    const runs = new WeakMap<object, Run>()
-
-    const nextRunId = 1
-
     const run = (operation: any) => {
-      const id = new Number(nextRunId)
+      const run: Run = {}
 
-      const run: Run = { id }
       run.result = doRun(operation, () => run.cancelled)
-
-      runs.set(id, run)
 
       return run
     }
@@ -220,8 +212,8 @@ export default function cuillere(...mws: Middleware[]): Cuillere {
       stack.handle(operation)
 
       let current: IteratorResult<any>
-      let res: any; let
-        isError: boolean
+      let res: any
+      let isError: boolean
 
       while (stack.length !== 0) {
         const [curFrame] = stack
