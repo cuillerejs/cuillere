@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, call, fork } from '../src'
+import cuillere, { Cuillere, call, fork, defer } from '../src'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
@@ -92,6 +92,79 @@ describe('run', () => {
       await cllr.call(f1)
 
       expect(called).toBe(false)
+    })
+  })
+
+  describe('defer', () => {
+    let defers: number[]
+
+    beforeEach(() => {
+      defers = []
+    })
+
+    function* push(n: number) {
+      defers.push(n)
+    }
+
+    function* throwError(message: string) {
+      throw new Error(message)
+    }
+
+    it('should be called in reversed order', async () => {
+      function* test() {
+        yield defer(push, 3)
+        yield defer(push, 2)
+        yield defer(push, 1)
+        return 4
+      }
+
+      await expect(cllr.call(test)).resolves.toBe(4)
+      expect(defers).toEqual([1, 2, 3])
+    })
+
+    it('should be called on uncaught exception', async () => {
+      function* test() {
+        yield defer(push, 3)
+        yield defer(push, 2)
+        yield defer(push, 1)
+        throw new Error('foo')
+      }
+
+      const res = cllr.call(test)
+
+      await expect(res).rejects.toBeInstanceOf(Error)
+      await expect(res).rejects.toHaveProperty('message', 'foo')
+      expect(defers).toEqual([1, 2, 3])
+    })
+
+    it('should be called after uncaught exception in defer', async () => {
+      function* test() {
+        yield defer(push, 2)
+        yield defer(throwError, 'foo')
+        yield defer(push, 1)
+        return 4
+      }
+
+      const res = cllr.call(test)
+
+      await expect(res).rejects.toBeInstanceOf(Error)
+      await expect(res).rejects.toHaveProperty('message', 'foo')
+      expect(defers).toEqual([1, 2])
+    })
+
+    it('should be called throw error from main function', async () => {
+      function* test() {
+        yield defer(push, 2)
+        yield defer(throwError, 'bar')
+        yield defer(push, 1)
+        throw new Error('foo')
+      }
+
+      const res = cllr.call(test)
+
+      await expect(res).rejects.toBeInstanceOf(Error)
+      await expect(res).rejects.toHaveProperty('message', 'bar')
+      expect(defers).toEqual([1, 2])
     })
   })
 })
