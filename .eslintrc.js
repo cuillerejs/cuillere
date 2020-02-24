@@ -67,6 +67,7 @@ module.exports = {
         "no-continue": "off",
         "no-multiple-empty-lines": ["warn", { "max": 1 }],
         "no-new-wrappers": "off",
+        "no-param-reassign": ["error", { "props": false }],
         'no-restricted-syntax': [
             'error',
             {

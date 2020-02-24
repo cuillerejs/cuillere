@@ -24,7 +24,7 @@ const prepare = async (clients: Client[]) => {
     await chain(clients, async (client) => {
       const id = uuid()
       await client.query(`PREPARE TRANSACTION '${id}'`)
-      client[TRANSACTION_ID] = id // eslint-disable-line no-param-reassign
+      client[TRANSACTION_ID] = id
     })
   } catch (err) {
     throw error(`error durring transaction preparation phase: ${err.message}`)
@@ -36,7 +36,7 @@ const commitPrepared = async (clients: Client[]) => {
     await chain(clients, async (client, index) => {
       if (!client[TRANSACTION_ID]) throw new Error(`the client ${index} doesn't have a prepared transaction id`)
       await client.query(`COMMIT PREPARED '${client[TRANSACTION_ID]}'`)
-      client[TRANSACTION_ID] = undefined // eslint-disable-line no-param-reassign
+      client[TRANSACTION_ID] = undefined
     })
   } catch (err) {
     throw error(`error during commit ${err}`)

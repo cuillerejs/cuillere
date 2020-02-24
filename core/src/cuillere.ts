@@ -101,9 +101,15 @@ export interface Cuillere {
   execute: (gen: Generator | AsyncGenerator) => Promise<any>
 }
 
+enum Canceled {
+  ToDo = 1,
+  Done,
+}
+
 type StackFrame = {
   gen: Generator | AsyncGenerator
   mwIndex?: number
+  canceled?: Canceled
 }
 
 class Stack extends Array<StackFrame> {
@@ -203,13 +209,12 @@ export class Run {
       const [curFrame] = this.#stack
 
       try {
-        if (this.#canceled) {
-          await curFrame.gen.return(undefined)
-          this.#stack.shift()
-          continue
+        if (!curFrame.canceled || curFrame.canceled === Canceled.Done) {
+          current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
+        } else {
+          curFrame.canceled = Canceled.Done
+          current = await curFrame.gen.return(undefined)
         }
-
-        current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
         isError = false
       } catch (e) {
         isError = true
@@ -223,6 +228,8 @@ export class Run {
         this.#stack.shift()
         continue
       }
+
+      if (curFrame.canceled === Canceled.ToDo) continue
 
       if (isFork(current.value)) {
         res = new Run(this.#mws, this.#ctx, current.value.operation)
@@ -256,6 +263,7 @@ export class Run {
     }
 
     this.#canceled = true
+    this.#stack.forEach((sf) => { sf.canceled = Canceled.ToDo })
 
     try {
       await this.#result
