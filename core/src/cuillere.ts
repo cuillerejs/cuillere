@@ -84,7 +84,7 @@ export function isFork(operation: any): operation is Fork {
 
 const CALL = Symbol('CALL')
 
-export interface Call {
+interface Call {
   [CALL]: true
   func: GeneratorFunction
   args?: any[]
@@ -105,7 +105,7 @@ export function call(func: GeneratorFunction, ...args: any[]): Call {
 
 const EXECUTE = Symbol('EXECUTE')
 
-export interface Execute {
+interface Execute {
   [EXECUTE]: true
   gen: Generator | AsyncGenerator
 }
@@ -116,6 +116,28 @@ export function isExecute(operation: any): operation is Execute {
 
 export function execute(gen: Generator | AsyncGenerator): Execute {
   return { [EXECUTE]: true, gen }
+}
+
+const DEFER = Symbol('DEFER')
+
+interface Defer {
+  [DEFER]: true
+  operation: any
+}
+
+function isDefer(operation: any): operation is Defer {
+  return Boolean(operation?.[DEFER])
+}
+
+export function deferOperation(operation: any): Defer {
+  return {
+    [DEFER]: true,
+    operation,
+  }
+}
+
+export function defer(func: GeneratorFunction, ...args: any[]) {
+  return deferOperation(call(func, ...args))
 }
 
 export interface Cuillere {
@@ -130,11 +152,12 @@ enum Canceled {
   Done,
 }
 
-type StackFrame = {
+interface StackFrame {
   gen: Generator | AsyncGenerator
   isMiddleware: boolean
   mwIndex?: number
   canceled?: Canceled
+  defers: any[]
 }
 
 class Stack extends Array<StackFrame> {
@@ -170,6 +193,7 @@ class Stack extends Array<StackFrame> {
         gen: this.#mws[nextMwIndex](operation.operation, this.#ctx),
         isMiddleware: true,
         mwIndex: nextMwIndex,
+        defers: [],
       }
     }
 
@@ -179,6 +203,7 @@ class Stack extends Array<StackFrame> {
       gen: this.#mws[0](operation, this.#ctx),
       isMiddleware: true,
       mwIndex: 0,
+      defers: [],
     }
   }
 
@@ -207,6 +232,7 @@ class Stack extends Array<StackFrame> {
     return {
       gen,
       isMiddleware: false,
+      defers: [],
     }
   }
 }
