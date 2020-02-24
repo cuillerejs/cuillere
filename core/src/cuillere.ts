@@ -45,16 +45,19 @@ interface Next {
   operation: any
 }
 
-function next(operation: any, terminal = false): Next | Terminate {
-  const next: Next = {
+export function next(operation: any): Next {
+  return {
     [NEXT]: true,
     operation,
   }
-  return terminal ? terminate(next) : next
 }
 
 function isNext(operation: any): operation is Next {
   return Boolean(operation?.[NEXT])
+}
+
+export function delegate(operation: any) {
+  return terminate(next(operation))
 }
 
 const FORK = Symbol('FORK')
@@ -129,6 +132,7 @@ enum Canceled {
 
 type StackFrame = {
   gen: Generator | AsyncGenerator
+  isMiddleware: boolean
   mwIndex?: number
   canceled?: Canceled
 }
@@ -154,6 +158,8 @@ class Stack extends Array<StackFrame> {
 
   private stackFrameFor(operation: any): StackFrame {
     if (isNext(operation)) {
+      if (!this[0]?.isMiddleware) throw error('next yielded outside of middleware')
+
       const nextMwIndex = this[0]?.mwIndex === undefined ? undefined : this[0].mwIndex + 1
 
       if (nextMwIndex === undefined || nextMwIndex === this.#mws.length) {
@@ -161,7 +167,8 @@ class Stack extends Array<StackFrame> {
       }
 
       return {
-        gen: this.#mws[nextMwIndex](operation.operation, this.#ctx, next),
+        gen: this.#mws[nextMwIndex](operation.operation, this.#ctx),
+        isMiddleware: true,
         mwIndex: nextMwIndex,
       }
     }
@@ -169,7 +176,8 @@ class Stack extends Array<StackFrame> {
     if (this.#mws.length === 0) return this.fallbackStackFrameFor(operation)
 
     return {
-      gen: this.#mws[0](operation, this.#ctx, next),
+      gen: this.#mws[0](operation, this.#ctx),
+      isMiddleware: true,
       mwIndex: 0,
     }
   }
@@ -198,11 +206,12 @@ class Stack extends Array<StackFrame> {
 
     return {
       gen,
+      isMiddleware: false,
     }
   }
 }
 
-export class Run {
+export class Task {
   #ctx: any
 
   #mws: Middleware[]
@@ -222,10 +231,10 @@ export class Run {
     this.#stack = new Stack(mws, ctx)
     this.#stack.handle(operation)
 
-    this.#result = this.doRun().finally(() => { this.#settled = true })
+    this.#result = this.execute().finally(() => { this.#settled = true })
   }
 
-  private async doRun(): Promise<any> {
+  private async execute(): Promise<any> {
     let current: IteratorResult<any>
     let res: any
     let isError: boolean
@@ -257,13 +266,13 @@ export class Run {
       if (curFrame.canceled === Canceled.ToDo) continue
 
       if (isTerminate(current.value)) {
-        let done: boolean
+        if (!curFrame.isMiddleware) throw error('terminal operation yielded outside of middleware')
+
         try {
-          done = (await curFrame.gen.return(undefined)).done
+          if (!(await curFrame.gen.return(undefined)).done) throw new Error("don't use terminal next inside a try...finally")
         } catch (e) {
-          done = false
+          throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
-        if (!done) console.error('generator did not terminate properly (don\'t use terminal next inside a try...finally)')
 
         this.#stack.replace(current.value.operation)
 
@@ -271,7 +280,7 @@ export class Run {
       }
 
       if (isFork(current.value)) {
-        res = new Run(this.#mws, this.#ctx, current.value.operation)
+        res = new Task(this.#mws, this.#ctx, current.value.operation)
         continue
       }
 
@@ -296,18 +305,16 @@ export class Run {
   async cancel() {
     if (this.#settled) return
 
-    if (this.#canceled) {
-      await this.#result
-      return
+    if (!this.#canceled) {
+      this.#canceled = true
+      this.#stack.forEach((sf) => { sf.canceled = Canceled.ToDo })
     }
-
-    this.#canceled = true
-    this.#stack.forEach((sf) => { sf.canceled = Canceled.ToDo })
 
     try {
       await this.#result
     } catch (e) {
-      if (!CancellationError.isCancellationError(e)) console.error('fork did not cancel properly')
+      if (CancellationError.isCancellationError(e)) return
+      throw error('fork did not cancel properly. Caused by: ', e.stack)
     }
   }
 }
@@ -329,7 +336,7 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
 
     const cllr: Cuillere = {
       ctx: make,
-      start: operation => new Run(mws, ctx, start(operation)).result,
+      start: operation => new Task(mws, ctx, start(operation)).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }

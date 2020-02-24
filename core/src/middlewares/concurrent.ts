@@ -1,5 +1,5 @@
 import { Middleware } from './middleware'
-import { forkOperation, call, Run } from '../cuillere'
+import { forkOperation, delegate, Task } from '../cuillere'
 import { allSettled as promiseAllSettled } from '../utils/promise'
 
 const TYPE = Symbol('TYPE')
@@ -36,19 +36,19 @@ const handlers = {
   },
 
   async* [ALL_SETTLED](operations: Iterable<any>) {
-    const forks = []
-    for (const op of operations) forks.push(yield forkOperation(op))
-    return promiseAllSettled(forks.map(({ result }) => result))
+    const tasks = []
+    for (const op of operations) tasks.push(yield forkOperation(op))
+    return promiseAllSettled(tasks.map(({ result }) => result))
   },
 
   async* [ALL](operations: Iterable<any>) {
-    const forks: Run[] = []
-    for (const op of operations) forks.push(yield forkOperation(op))
+    const tasks: Task[] = []
+    for (const op of operations) tasks.push(yield forkOperation(op))
 
     try {
-      return await Promise.all(forks.map(({ result }) => result))
+      return await Promise.all(tasks.map(({ result }) => result))
     } catch (error) {
-      const results = await promiseAllSettled(forks.map(fork => fork.cancel()))
+      const results = await promiseAllSettled(tasks.map(fork => fork.cancel()))
       error.errors = results
         .filter(({ status }) => status === 'rejected')
         .map(({ reason }) => reason)
@@ -59,8 +59,8 @@ const handlers = {
 }
 
 export const concurrentMiddleware = (): Middleware =>
-  async function* concurrentMiddleware(operation, _ctx, next) {
+  async function* concurrentMiddleware(operation) {
     const handler = handlers[operation[TYPE]]
-    if (!handler) yield next(operation, true)
+    if (!handler) yield delegate(operation)
     return yield* handler(operation.values)
   }
