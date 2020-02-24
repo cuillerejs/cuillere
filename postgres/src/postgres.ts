@@ -26,7 +26,6 @@ export interface ClientProvider extends Executor {
   end(): Promise<void>
 }
 
-export const getClient = async (ctx: Context, name?: string) => ctx[GET_CLIENT](name)
 const getClients = async (ctx: Context) => Promise.all(Object.values(ctx[CLIENTS]))
 
 const makePools = (poolConfigs: PoolConfig[]): Record<string, Pool> => {

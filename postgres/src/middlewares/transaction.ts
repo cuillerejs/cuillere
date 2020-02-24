@@ -1,15 +1,28 @@
-import { Middleware, isStart } from '@cuillere/core'
-import { createTransactionManager } from '../postgres'
+import { Middleware, isStart, delegate, next } from '@cuillere/core'
 
-export const transactionMiddleware = (config: { prepared?: boolean }): Middleware => {
-  const executor = createTransactionManager(config)
+export const transactionMiddleware = (config: { prepared?: boolean }): Middleware =>
+  function* transactionMiddleware(operation) {
+    if (!isStart(operation)) yield delegate(operation)
 
-  return function* transactionMiddleware(operation, ctx, next) {
-    if (isStart(operation)) {
-      // FIXME this won't work, next is an operation builder...
-      return executor(ctx, () => next(operation))
+    setupTransactionManager(ctx)
+
+    if (isGetClient(operation)) {
+      const client = yield next(operation)
+
+      if (!isTransactionStarted(client)) {
+        yield query('BEGIN', { name: operation.name })
+      }
+
+      return client
     }
 
-    return yield next(operation)
+    try {
+      yield next(operation)
+      commit()
+    } catch (err) {
+      console.error(err)
+      rollback()
+    } finally {
+      release()
+    }
   }
-}

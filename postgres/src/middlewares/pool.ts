@@ -1,5 +1,5 @@
 import { isStart, Middleware } from '@cuillere/core'
-import { PoolConfig, ClientProvider, createClientProvider, isClientProvider, getClient as getClientFn } from '../postgres'
+import { PoolConfig, ClientProvider, createClientProvider, isClientProvider } from '../postgres'
 
 const GET_CLIENT = Symbol('GET_CLIENT')
 

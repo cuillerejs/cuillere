@@ -1,6 +1,5 @@
-import { Middleware } from '@cuillere/core'
+import { Middleware, delegate } from '@cuillere/core'
 import { QueryConfig as PgQueryConfig } from 'pg'
-import { getClient } from '../postgres'
 
 interface QueryConfig extends PgQueryConfig {
   pool?: string
@@ -23,8 +22,8 @@ function isQuery(operation: any): operation is Query {
 }
 
 export const queryMiddleware = (): Middleware =>
-  async function* queryMiddleware(operation, ctx, next) {
-    if (!isQuery(operation)) return yield next(operation)
+  async function* queryMiddleware(operation, ctx) {
+    if (!isQuery(operation)) yield delegate(operation)
 
     const { pool, ...config } = operation.config
 
