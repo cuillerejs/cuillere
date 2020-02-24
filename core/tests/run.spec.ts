@@ -71,7 +71,7 @@ describe('run', () => {
       expect(called).toBe(true)
     })
 
-    it("shouldn't allow to use catch to stop cancelation", async () => {
+    it("shouldn't allow to use catch to stop cancellation", async () => {
       let called = false
 
       async function* f1() {
