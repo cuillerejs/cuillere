@@ -300,6 +300,9 @@ export class Task {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
 
+        if (isFork(current.value.operation)) throw error("don't terminate with a fork")
+        if (isDefer(current.value.operation)) throw error("don't terminate with a defer")
+
         this.#stack.replace(current.value.operation)
 
         continue
@@ -307,6 +310,12 @@ export class Task {
 
       if (isFork(current.value)) {
         res = new Task(this.#mws, this.#ctx, current.value.operation)
+        continue
+      }
+
+      if (isDefer(current.value)) {
+        curFrame.defers.push(current.value.operation)
+        res = undefined
         continue
       }
 
