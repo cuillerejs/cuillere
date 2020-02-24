@@ -40,12 +40,5 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
-  },
-  "dependencies": {
-    "eslint-plugin-jest": "^23.7.0",
-    "pg": "^7.18.1"
-  },
-  "devDependencies": {
-    "typescript": "^3.7.5"
   }
 }
