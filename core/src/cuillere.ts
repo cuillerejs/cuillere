@@ -25,12 +25,14 @@ const NEXT = Symbol('NEXT')
 interface Next {
   [NEXT]: true
   operation: any
+  terminal: boolean
 }
 
-function next(operation: any): Next {
+function next(operation: any, terminal = false): Next {
   return {
     [NEXT]: true,
     operation,
+    terminal,
   }
 }
 
@@ -211,11 +213,11 @@ export class Run {
       const [curFrame] = this.#stack
 
       try {
-        if (!curFrame.canceled || curFrame.canceled === Canceled.Done) {
-          current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
-        } else {
+        if (curFrame.canceled && curFrame.canceled === Canceled.ToDo) {
           curFrame.canceled = Canceled.Done
           current = await curFrame.gen.return(undefined)
+        } else {
+          current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
         }
         isError = false
       } catch (e) {
