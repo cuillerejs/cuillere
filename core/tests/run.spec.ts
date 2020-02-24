@@ -152,7 +152,7 @@ describe('run', () => {
       expect(defers).toEqual([1, 2])
     })
 
-    it('should be called throw error from main function', async () => {
+    it('should throw error from defer', async () => {
       function* test() {
         yield defer(push, 2)
         yield defer(throwError, 'bar')

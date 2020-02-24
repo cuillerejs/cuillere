@@ -250,6 +250,12 @@ export class Task {
 
   #canceled = false
 
+  #current: IteratorResult<any>
+
+  #res: any
+
+  #isError: boolean
+
   constructor(mws: Middleware[], ctx: any, operation: any) {
     this.#mws = mws
     this.#ctx = ctx
@@ -261,37 +267,35 @@ export class Task {
   }
 
   private async execute(): Promise<any> {
-    let current: IteratorResult<any>
-    let res: any
-    let isError: boolean
-
     while (this.#stack.length !== 0) {
       const [curFrame] = this.#stack
 
       try {
         if (curFrame.canceled && curFrame.canceled === Canceled.ToDo) {
           curFrame.canceled = Canceled.Done
-          current = await curFrame.gen.return(undefined)
+          this.#current = await curFrame.gen.return(undefined)
         } else {
-          current = await (isError ? curFrame.gen.throw(res) : curFrame.gen.next(res))
+          this.#current = await (
+            this.#isError ? curFrame.gen.throw(this.#res) : curFrame.gen.next(this.#res)
+          )
         }
-        isError = false
+        this.#isError = false
       } catch (e) {
-        isError = true
-        res = e
-        this.#stack.shift()
+        this.#isError = true
+        this.#res = e
+        await this.shift()
         continue
       }
 
-      if (current.done) {
-        res = current.value
-        this.#stack.shift()
+      if (this.#current.done) {
+        this.#res = this.#current.value
+        await this.shift()
         continue
       }
 
       if (curFrame.canceled === Canceled.ToDo) continue
 
-      if (isTerminate(current.value)) {
+      if (isTerminate(this.#current.value)) {
         if (!curFrame.isMiddleware) throw error('terminal operation yielded outside of middleware')
 
         try {
@@ -300,33 +304,48 @@ export class Task {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
 
-        if (isFork(current.value.operation)) throw error("don't terminate with a fork")
-        if (isDefer(current.value.operation)) throw error("don't terminate with a defer")
+        if (isFork(this.#current.value.operation)) throw error("don't terminate with a fork")
+        if (isDefer(this.#current.value.operation)) throw error("don't terminate with a defer")
 
-        this.#stack.replace(current.value.operation)
+        this.#stack.replace(this.#current.value.operation)
 
         continue
       }
 
-      if (isFork(current.value)) {
-        res = new Task(this.#mws, this.#ctx, current.value.operation)
+      if (isFork(this.#current.value)) {
+        this.#res = new Task(this.#mws, this.#ctx, this.#current.value.operation)
         continue
       }
 
-      if (isDefer(current.value)) {
-        curFrame.defers.push(current.value.operation)
-        res = undefined
+      if (isDefer(this.#current.value)) {
+        curFrame.defers.unshift(this.#current.value.operation)
+        this.#res = undefined
         continue
       }
 
-      this.#stack.handle(current.value)
+      this.#stack.handle(this.#current.value)
     }
 
     if (this.#canceled) throw new CancellationError()
 
-    if (isError) throw res
+    if (this.#isError) throw this.#res
 
-    return res
+    return this.#res
+  }
+
+  private async shift() {
+    const [{ defers }] = this.#stack
+
+    for (const operation of defers) {
+      try {
+        await new Task(this.#mws, this.#ctx, operation).result
+      } catch (e) {
+        this.#isError = true
+        this.#res = e
+      }
+    }
+
+    this.#stack.shift()
   }
 
   get result() {
