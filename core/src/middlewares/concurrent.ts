@@ -1,5 +1,5 @@
 import { Middleware } from './middleware'
-import { fork, call, Run } from '../cuillere'
+import { forkOperation, call, Run } from '../cuillere'
 import { allSettled as promiseAllSettled } from '../utils/promise'
 
 const TYPE = Symbol('TYPE')
@@ -37,13 +37,13 @@ const handlers = {
 
   async* [ALL_SETTLED](operations: Iterable<any>) {
     const forks = []
-    for (const op of operations) forks.push(yield fork(op))
+    for (const op of operations) forks.push(yield forkOperation(op))
     return promiseAllSettled(forks.map(({ result }) => result))
   },
 
   async* [ALL](operations: Iterable<any>) {
     const forks: Run[] = []
-    for (const op of operations) forks.push(yield fork(op))
+    for (const op of operations) forks.push(yield forkOperation(op))
 
     try {
       return await Promise.all(forks.map(({ result }) => result))

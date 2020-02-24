@@ -1,4 +1,4 @@
-import cuillere, { fork, call } from '../src'
+import cuillere, { fork, forkOperation, call } from '../src'
 
 describe('fork', () => {
   const cllr = cuillere()
@@ -9,7 +9,7 @@ describe('fork', () => {
 
   it('should fork an operation', async () => {
     async function* test() {
-      const { result } = yield fork(call(identity, 'foo'))
+      const { result } = yield forkOperation(call(identity, 'foo'))
       return result
     }
 

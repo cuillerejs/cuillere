@@ -33,7 +33,7 @@ describe('concurrent', () => {
   })
 
   describe('all', () => {
-    it('should run all operations in parallele', async () => {
+    it('should run all operations in parallel', async () => {
       function* test() {
         return yield all([call(f1), call(f2), call(f3)])
       }

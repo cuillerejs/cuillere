@@ -45,12 +45,14 @@ interface Fork {
   operation: any
 }
 
-export function fork(func: GeneratorFunction, ...args: any[]): Fork
-export function fork(operation: any): Fork
-export function fork(firstArg: any, ...args: any[]): Fork {
+export function fork(func: GeneratorFunction, ...args: any[]): Fork {
+  return forkOperation(call(func, ...args))
+}
+
+export function forkOperation(operation: any): Fork {
   return {
     [FORK]: true,
-    operation: typeof firstArg === 'function' ? call(firstArg, ...args) : firstArg,
+    operation,
   }
 }
 
