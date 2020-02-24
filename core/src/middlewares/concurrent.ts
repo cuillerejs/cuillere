@@ -61,5 +61,6 @@ const handlers = {
 export const concurrentMiddleware = (): Middleware =>
   async function* concurrentMiddleware(operation, _ctx, next) {
     const handler = handlers[operation[TYPE]]
-    return yield handler ? call(handler, operation.values) : next(operation)
+    if (!handler) yield next(operation, true)
+    return yield* handler(operation.values)
   }

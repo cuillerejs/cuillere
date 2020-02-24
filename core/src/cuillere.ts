@@ -17,7 +17,25 @@ function start(operation: any): Start {
 }
 
 export function isStart(operation: any): operation is Start {
-  return operation && operation[START]
+  return Boolean(operation?.[START])
+}
+
+const TERMINATE = Symbol('TERMINATE')
+
+interface Terminate {
+  [TERMINATE]: true
+  operation: any
+}
+
+function terminate(operation: any): Terminate {
+  return {
+    [TERMINATE]: true,
+    operation,
+  }
+}
+
+function isTerminate(operation: any): operation is Terminate {
+  return Boolean(operation?.[TERMINATE])
 }
 
 const NEXT = Symbol('NEXT')
@@ -25,19 +43,18 @@ const NEXT = Symbol('NEXT')
 interface Next {
   [NEXT]: true
   operation: any
-  terminal: boolean
 }
 
-function next(operation: any, terminal = false): Next {
-  return {
+function next(operation: any, terminal = false): Next | Terminate {
+  const next: Next = {
     [NEXT]: true,
     operation,
-    terminal,
   }
+  return terminal ? terminate(next) : next
 }
 
 function isNext(operation: any): operation is Next {
-  return operation && operation[NEXT]
+  return Boolean(operation?.[NEXT])
 }
 
 const FORK = Symbol('FORK')
@@ -59,7 +76,7 @@ export function forkOperation(operation: any): Fork {
 }
 
 export function isFork(operation: any): operation is Fork {
-  return operation && operation[FORK]
+  return Boolean(operation?.[FORK])
 }
 
 const CALL = Symbol('CALL')
@@ -72,7 +89,7 @@ export interface Call {
 }
 
 export function isCall(operation: any): operation is Call {
-  return Boolean(operation && operation[CALL])
+  return Boolean(operation?.[CALL])
 }
 
 function getLocation(): string {
@@ -91,7 +108,7 @@ export interface Execute {
 }
 
 export function isExecute(operation: any): operation is Execute {
-  return Boolean(operation && operation[EXECUTE])
+  return Boolean(operation?.[EXECUTE])
 }
 
 export function execute(gen: Generator | AsyncGenerator): Execute {
@@ -129,6 +146,10 @@ class Stack extends Array<StackFrame> {
 
   handle(operation: any) {
     this.unshift(this.stackFrameFor(operation))
+  }
+
+  replace(operation: any) {
+    this[0] = this.stackFrameFor(operation)
   }
 
   private stackFrameFor(operation: any): StackFrame {
@@ -234,6 +255,20 @@ export class Run {
       }
 
       if (curFrame.canceled === Canceled.ToDo) continue
+
+      if (isTerminate(current.value)) {
+        let done: boolean
+        try {
+          done = (await curFrame.gen.return(undefined)).done
+        } catch (e) {
+          done = false
+        }
+        if (!done) console.error('generator did not terminate properly (don\'t use terminal next inside a try...finally)')
+
+        this.#stack.replace(current.value.operation)
+
+        continue
+      }
 
       if (isFork(current.value)) {
         res = new Run(this.#mws, this.#ctx, current.value.operation)

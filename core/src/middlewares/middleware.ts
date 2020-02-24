@@ -1,3 +1,7 @@
 export interface Middleware {
-  (operation: any, ctx: any, next: (operation: any) => any): Generator | AsyncGenerator
+  (
+    operation: any,
+    ctx: any,
+    next: (operation: any, terminal?: boolean) => any,
+  ): Generator | AsyncGenerator
 }

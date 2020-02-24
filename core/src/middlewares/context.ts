@@ -41,7 +41,7 @@ const isGet = (operation: ContextOperation): operation is Get => operation && op
 
 export const contextMiddleware = (): Middleware =>
   function* contextMiddleware(operation, ctx, next) { // eslint-disable-line consistent-return
-    if (!isContextOperation(operation)) return yield next(operation)
+    if (!isContextOperation(operation)) yield next(operation, true)
 
     if (isGet(operation)) return ctx[operation.key]
     if (isSet(operation)) ctx[operation.key] = operation.value
