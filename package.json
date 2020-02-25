@@ -6,7 +6,8 @@
     "koa",
     "graphql",
     "graphql-example",
-    "postgres"
+    "postgres",
+    "postgres-apollo-plugin"
   ],
   "devDependencies": {
     "@types/jest": "^25.1.3",

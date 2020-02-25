@@ -1,0 +1,44 @@
+{
+  "name": "@cuillere/postgres-apollo-plugin",
+  "version": "0.5.1",
+  "main": "lib/index.js",
+  "repository": "https://github.com/EmrysMyrddin/cuillere",
+  "author": {
+    "name": "Valentin COCAUD",
+    "email": "v.cocaud@gmail.com",
+    "url": "https://github.com/EmrysMyrddin"
+  },
+  "contributors": [
+    {
+      "name": "Nicolas LEPAGE",
+      "url": "https://github.com/nlepage"
+    }
+  ],
+  "license": "Apache-2.0",
+  "files": [
+    "src",
+    "lib",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf lib",
+    "lint": "yarn eslint --ext .ts src",
+    "prebuild": "yarn clean && yarn lint",
+    "build": "yarn tsc",
+    "example": "node lib/example",
+    "nodeversion": "node --version"
+  },
+  "peerDependencies": {
+    "@cuillere/core": "^0.5.0",
+    "@cuillere/postgres": "^0.5.0",
+    "pg": "^7.0"
+  },
+  "devDependencies": {
+    "@cuillere/core": "^0.5.0",
+    "@cuillere/postgres": "^0.5.0",
+    "@types/pg": "^7.14.1",
+    "apollo-server-plugin-base": "^0.6.10",
+    "pg": "^7.18.1",
+    "typescript": "^3.8"
+  }
+}

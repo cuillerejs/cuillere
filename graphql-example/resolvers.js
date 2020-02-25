@@ -17,6 +17,10 @@ export const resolvers = makeResolversTree({
       } = res
       return `Hello ${name} (${now})`
     },
+    * all() {
+      const res = yield query({ text: 'SELECT name from names', pool: 'foo' })
+      return res.rows.map(({ name }) => name)
+    },
   },
 
   Mutation: {

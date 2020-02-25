@@ -18,7 +18,7 @@ export interface ProviderMiddlewareOptions {
   poolConfigs?: PoolConfig[]
 }
 
-interface TransactionMiddlewareOptions extends ProviderMiddlewareOptions{
+export interface TransactionMiddlewareOptions extends ProviderMiddlewareOptions{
   prepared?: boolean
 }
 
