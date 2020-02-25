@@ -1,4 +1,4 @@
-import { Middleware, delegate, isStart } from '@cuillere/core'
+import { Middleware, delegate } from '@cuillere/core'
 import { QueryResult } from 'pg'
 import { QueryConfig } from '../client-manager'
 

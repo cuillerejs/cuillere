@@ -40,12 +40,18 @@ export class TransactionManager extends ClientManager {
   }
 
   async commit() {
-    await this.doCommit(await this.getClients())
-    await this.release()
+    try {
+      await this.doCommit(await this.getClients())
+    } finally {
+      await this.release()
+    }
   }
 
   async rollback() {
-    await rollback(await this.getClients())
-    await this.release(true)
+    try {
+      await rollback(await this.getClients())
+    } finally {
+      await this.release(true)
+    }
   }
 }
