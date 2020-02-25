@@ -56,6 +56,7 @@ module.exports = {
             }
         }],
         "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
+        "consistent-return": "off",
         "implicit-arrow-linebreak": "off",
         "import/extensions": ["error", {
             "ts": "never"
@@ -92,5 +93,7 @@ module.exports = {
         "object-curly-newline": ["error", { "consistent": true }],
         "require-yield": "off",
         "semi": ["error", "never"],
+        "no-dupe-class-members": "off",
+        "import/no-extraneous-dependencies": "off"
     }
 };

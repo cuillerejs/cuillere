@@ -1,33 +1,42 @@
-import { Middleware, delegate } from '@cuillere/core'
-import { QueryConfig as PgQueryConfig } from 'pg'
+import { Middleware, delegate, isStart } from '@cuillere/core'
+import { QueryResult } from 'pg'
+import { QueryConfig } from '../client-manager'
 
-interface QueryConfig extends PgQueryConfig {
-  pool?: string
+export function queryMiddleware(): Middleware {
+  return async function* queryMiddleware(operation, ctx: Context) {
+    if (!isQuery(operation)) return yield delegate(operation)
+
+    const queryHandler = ctx[QUERY_HANDLER]
+    if (!queryHandler) throw new Error('no query handler in context. You probably forgotten to setup a client manager')
+
+    return queryHandler(operation.config)
+  }
+}
+
+export function setQueryHandler(ctx: any, queryHandler: QueryHandler) {
+  ctx[QUERY_HANDLER] = queryHandler
 }
 
 const QUERY = Symbol('QUERY')
+const QUERY_HANDLER = Symbol('QUERY_FN')
 
 interface Query {
   [QUERY]: true
   config: QueryConfig
 }
 
-export const query = (config: QueryConfig): Query => ({
-  [QUERY]: true,
-  config,
-})
-
-function isQuery(operation: any): operation is Query {
-  return operation && operation[QUERY]
+export function query(config: QueryConfig): Query {
+  return { [QUERY]: true, config }
 }
 
-export const queryMiddleware = (): Middleware =>
-  async function* queryMiddleware(operation, ctx) {
-    if (!isQuery(operation)) yield delegate(operation)
+function isQuery(operation: any): operation is Query {
+  return operation?.[QUERY]
+}
 
-    const { pool, ...config } = operation.config
+export interface QueryHandler {
+  <T>(query: QueryConfig): Promise<QueryResult<T>>
+}
 
-    const client = await getClient(ctx, pool)
-
-    return client.query(config)
-  }
+interface Context {
+  [QUERY_HANDLER]: QueryHandler
+}

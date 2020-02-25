@@ -60,5 +60,5 @@ export const UNSAFE_commit = async (clients: Client[]) => {
   }
 }
 
-export const release = (clients: Client[], err?: Error) =>
+export const release = (clients: Client[], err?: Error | boolean) =>
   chain(clients, async client => client.release(err))
