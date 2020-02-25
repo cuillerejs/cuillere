@@ -18,7 +18,7 @@ export function setQueryHandler(ctx: any, queryHandler: QueryHandler) {
 }
 
 const QUERY = Symbol('QUERY')
-const QUERY_HANDLER = Symbol('QUERY_FN')
+const QUERY_HANDLER = Symbol('QUERY_HANDLER')
 
 interface Query {
   [QUERY]: true

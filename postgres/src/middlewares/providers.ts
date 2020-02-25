@@ -2,24 +2,23 @@ import { Middleware, isStart, delegate, next } from '@cuillere/core'
 import { PoolProvider, PoolConfig } from '../pool-provider'
 import { setQueryHandler } from './query'
 import { ClientManager } from '../client-manager'
-import { TransactionManager } from '../transaction-manager'
+import { TransactionManager, TransactionManagerOptions } from '../transaction-manager'
 
 export function poolMiddleware(options: ProviderMiddlewareOptions): Middleware {
   return makeProviderMiddleware(options, provider => new ClientManager(provider))
 }
 
-export function transactionMiddleware(options: TransactionMiddlewareOptions): Middleware {
-  const prepared = options.prepared ?? true
-  return makeProviderMiddleware(options, provider => new TransactionManager(provider, { prepared }))
+export function transactionMiddleware(
+  options: ProviderMiddlewareOptions,
+  transactionOptions?: TransactionManagerOptions,
+): Middleware {
+  return makeProviderMiddleware(options, provider =>
+    new TransactionManager(provider, transactionOptions))
 }
 
-export interface ProviderMiddlewareOptions {
+interface ProviderMiddlewareOptions {
   poolProvider?: PoolProvider
   poolConfigs?: PoolConfig[]
-}
-
-export interface TransactionMiddlewareOptions extends ProviderMiddlewareOptions{
-  prepared?: boolean
 }
 
 function makeProviderMiddleware(
@@ -31,7 +30,7 @@ function makeProviderMiddleware(
     return clientManagerFactory(provider)
   }
 
-  return async function* transactionMiddleware(operation, ctx: any) {
+  return async function* provideriddleware(operation, ctx: any) {
     console.log('transaction')
     if (!isStart(operation)) return yield delegate(operation)
 

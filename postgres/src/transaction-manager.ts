@@ -3,12 +3,16 @@ import { ClientManager } from './client-manager'
 import { rollback, commit, UNSAFE_commit } from './transactions'
 import { PoolProvider } from './pool-provider'
 
-export class TransactionManager extends ClientManager {
-  doCommit: typeof commit
+export interface TransactionManagerOptions {
+  prepared?: boolean
+}
 
-  constructor(provider: PoolProvider, options = { prepared: true }) {
+export class TransactionManager extends ClientManager {
+  #doCommit: typeof commit
+
+  constructor(provider: PoolProvider, options: TransactionManagerOptions = {}) {
     super(provider)
-    this.doCommit = options.prepared ? commit : UNSAFE_commit
+    this.#doCommit = (options.prepared ?? true) ? commit : UNSAFE_commit
   }
 
   protected async createClient(name: string): Promise<PoolClient> {
@@ -41,7 +45,7 @@ export class TransactionManager extends ClientManager {
 
   async commit() {
     try {
-      await this.doCommit(await this.getClients())
+      await this.#doCommit(await this.getClients())
     } finally {
       await this.release()
     }

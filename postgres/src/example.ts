@@ -27,17 +27,12 @@ const cllr = cuillere(
 
 (async () => {
   try {
-    console.log('test')
     await cllr.call(function* client1() {
-      console.log('client 1 - query 1')
       yield query({ text: 'SELECT NOW()', pool: 'foo' })
-      console.log('client 1 - query 2')
       yield query({ text: 'SELECT NOW()', pool: 'bar' })
     })
     await cllr.call(function* client2() {
-      console.log('client 2 - query 1')
       yield query({ text: 'SELECT NOW()', pool: 'foo' })
-      console.log('client 2 - query 2')
       yield query({ text: 'SELECT NOW()', pool: 'bar' })
     })
   } catch (err) {
