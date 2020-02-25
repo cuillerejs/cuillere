@@ -16,7 +16,7 @@
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.20.1",
     "ts-jest": "^25.2.1",
-    "typescript": "^3.7.5"
+    "typescript": "^3.8"
   },
   "dependencies": {
     "eslint-plugin-jest": "^23.7.0",
