@@ -1,5 +1,6 @@
-export type Generator<R> = Iterator<R> | AsyncIterator<R>
+export interface GeneratorFunction {
+  (...args: any[]): Generator | AsyncGenerator
+}
 
-export type GeneratorFunc<Args extends any[], R> = (...args: Args) => Generator<R>
-
-export const isGenerator = (value: any): value is Generator<any> => Boolean(value.next && value.throw && value.return)
+export const isGenerator = (value: any): value is Generator | AsyncGenerator =>
+  Boolean(value.next && value.throw && value.return)

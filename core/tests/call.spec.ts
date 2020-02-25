@@ -1,5 +1,4 @@
-/* eslint-env jest */
-/* eslint-disable require-yield */
+/* eslint-disable consistent-return, no-throw-literal */
 
 import cuillere, { Cuillere, call } from '../src'
 
@@ -19,12 +18,7 @@ describe('call', () => {
       throw 'testError'
     }
 
-    try {
-      await cllr.call(test)
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
+    await expect(cllr.call(test)).rejects.toBe('testError')
   })
 
   it('should throw uncaught exception (async)', async () => {
@@ -32,12 +26,7 @@ describe('call', () => {
       throw 'testError'
     }
 
-    try {
-      await cllr.call(test)
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
+    await expect(cllr.call(test)).rejects.toBe('testError')
   })
 
   it('should throw uncaught exception from nested call', async () => {
@@ -49,12 +38,7 @@ describe('call', () => {
       yield call(throwValue, 'testError')
     }
 
-    try {
-      await cllr.call(test)
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
+    await expect(cllr.call(test)).rejects.toBe('testError')
   })
 
   it('should throw uncaught exception from nested call (async)', async () => {
@@ -66,12 +50,7 @@ describe('call', () => {
       yield call(throwValue, 'testError')
     }
 
-    try {
-      await cllr.call(test)
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
+    await expect(cllr.call(test)).rejects.toBe('testError')
   })
 
   it('should catch and return exception from nested call', async () => {
@@ -107,12 +86,7 @@ describe('call', () => {
       }
     }
 
-    try {
-      await cllr.call(test)
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
+    await expect(cllr.call(test)).rejects.toBe('testError')
   })
 
   it('should catch and recall nested call (async)', async () => {
@@ -124,12 +98,7 @@ describe('call', () => {
       }
     }
 
-    try {
-      await cllr.call(test)
-      fail('did not throw')
-    } catch (e) {
-      expect(e).toBe('testError')
-    }
+    await expect(cllr.call(test)).rejects.toBe('testError')
   })
 
   it('should accept generator as first parameter', async () => {

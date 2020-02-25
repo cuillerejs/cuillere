@@ -1,3 +1,4 @@
+import { delegate } from '../cuillere'
 import { Middleware } from './middleware'
 
 const CONTEXT_SYMBOL = Symbol('CONTEXT')
@@ -39,9 +40,10 @@ const isSet = (operation: ContextOperation): operation is Set => operation && op
 
 const isGet = (operation: ContextOperation): operation is Get => operation && operation[GET_SYMBOL]
 
-export const contextMiddleware = (): Middleware => (next, ctx) => operation => {
-  if (!isContextOperation(operation)) return next(operation)
+export const contextMiddleware = (): Middleware =>
+  function* contextMiddleware(operation, ctx) { // eslint-disable-line consistent-return
+    if (!isContextOperation(operation)) yield delegate(operation)
 
-  if (isGet(operation)) return ctx[operation.key]
-  if (isSet(operation)) ctx[operation.key] = operation.value
-}
+    if (isGet(operation)) return ctx[operation.key]
+    if (isSet(operation)) ctx[operation.key] = operation.value
+  }

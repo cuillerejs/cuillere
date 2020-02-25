@@ -10,7 +10,7 @@ interface Client extends PoolClient {
 
 const error = (message: string) => new Error(`[CUILLERE] ${message}`)
 
-export const rollback = (clients: Client[]) => allSettled(clients.map(async client => {
+export const rollback = (clients: Client[]) => allSettled(clients.map(async (client) => {
   try {
     if (!client[TRANSACTION_ID]) await client.query('ROLLBACK')
     else await client.query(`ROLLBACK PREPARED '${client[TRANSACTION_ID]}'`)
@@ -19,9 +19,9 @@ export const rollback = (clients: Client[]) => allSettled(clients.map(async clie
   }
 }))
 
-const prepare = async (clients: Client[])=> {
+const prepare = async (clients: Client[]) => {
   try {
-    await chain(clients, async client => {
+    await chain(clients, async (client) => {
       const id = uuid()
       await client.query(`PREPARE TRANSACTION '${id}'`)
       client[TRANSACTION_ID] = id
@@ -54,10 +54,11 @@ export const commit = async (clients: Client[]): Promise<void> => {
 
 export const UNSAFE_commit = async (clients: Client[]) => {
   try {
-    await chain(clients, (client) => client.query(`COMMIT`))
+    await chain(clients, client => client.query('COMMIT'))
   } catch (err) {
     throw error(`error during unsafe commit ${err}`)
   }
 }
 
-export const release = (clients: Client[], err?: Error) => chain(clients, async client => client.release(err))
+export const release = (clients: Client[], err?: Error | boolean) =>
+  chain(clients, async client => client.release(err))

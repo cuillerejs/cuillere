@@ -1,52 +1,66 @@
-import { allSettled as promiseAllSettled, chain as promiseChain } from '../utils/promise'
-import { Middleware } from './middleware';
+import { Middleware } from './middleware'
+import { forkOperation, delegate, Task } from '../cuillere'
+import { allSettled as promiseAllSettled } from '../utils/promise'
+
+const TYPE = Symbol('TYPE')
 
 const ALL = Symbol('ALL')
-
-export interface All {
-  [ALL]: true
-  values: Iterable<any>
-}
-
-export const all = (values: Iterable<any>): All => ({
-  [ALL]: true,
-  values,
-})
-
-export const isAll = (operation: any): operation is All => operation && operation[ALL]
-
 const ALL_SETTLED = Symbol('ALL_SETTLED')
-
-export interface AllSettled {
-  [ALL_SETTLED]: true
-  values: Iterable<any>
-}
-
-export const allSettled = (values: Iterable<any>): AllSettled => ({
-  [ALL_SETTLED]: true,
-  values,
-})
-
-export const isAllSettled = (operation: any): operation is AllSettled => operation && operation[ALL_SETTLED]
-
 const CHAIN = Symbol('CHAIN')
 
-export interface Chain {
-  [CHAIN]: true
+export interface ConcurentOperation {
+  [TYPE]: symbol
   values: Iterable<any>
 }
 
-export const isChain = (operation): operation is Chain => operation && operation[CHAIN]
-
-export const chain = (values: Iterable<any>): Chain => ({
-  [CHAIN]: true,
+export const all = (values: Iterable<any>): ConcurentOperation => ({
+  [TYPE]: ALL,
   values,
 })
 
-export const concurrentMiddleware = (): Middleware => (next, _ctx, run) => operation => {
-  if (isAll(operation)) return Promise.all(Array.from(operation.values, run))
-  if (isAllSettled(operation)) return promiseAllSettled(Array.from(operation.values, run))
-  if (isChain(operation)) return promiseChain(Array.from(operation.values), run)
+export const allSettled = (values: Iterable<any>): ConcurentOperation => ({
+  [TYPE]: ALL_SETTLED,
+  values,
+})
 
-  return next(operation)
+export const chain = (values: Iterable<(previousResult: any) => any>): ConcurentOperation => ({
+  [TYPE]: CHAIN,
+  values,
+})
+
+const handlers = {
+  async* [CHAIN](functions: Iterable<(previousResult) => any>) {
+    let result: any
+    for (const f of functions) result = yield f(result)
+    return result
+  },
+
+  async* [ALL_SETTLED](operations: Iterable<any>) {
+    const tasks = []
+    for (const op of operations) tasks.push(yield forkOperation(op))
+    return promiseAllSettled(tasks.map(({ result }) => result))
+  },
+
+  async* [ALL](operations: Iterable<any>) {
+    const tasks: Task[] = []
+    for (const op of operations) tasks.push(yield forkOperation(op))
+
+    try {
+      return await Promise.all(tasks.map(({ result }) => result))
+    } catch (error) {
+      const results = await promiseAllSettled(tasks.map(fork => fork.cancel()))
+      error.errors = results
+        .filter(({ status }) => status === 'rejected')
+        .map(({ reason }) => reason)
+        .filter(reason => reason !== error)
+      throw error
+    }
+  },
 }
+
+export const concurrentMiddleware = (): Middleware =>
+  async function* concurrentMiddleware(operation) {
+    const handler = handlers[operation[TYPE]]
+    if (!handler) yield delegate(operation)
+    return yield* handler(operation.values)
+  }

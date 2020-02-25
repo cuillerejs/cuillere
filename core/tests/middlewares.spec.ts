@@ -1,5 +1,4 @@
-/*eslint-en jest*/
-import cuillere, { Cuillere, Middleware } from '../src'
+import cuillere, { Cuillere, Middleware, next } from '../src'
 
 describe('middlewares', () => {
   const test = async (cllr: Cuillere, expected = 'test') => {
@@ -15,22 +14,57 @@ describe('middlewares', () => {
   })
 
   it('should call all middlewares', async () => {
-    const middleware1 = jest.fn().mockImplementation(next => operation => next(operation))
-    const middleware2 = jest.fn().mockImplementation(next => operation => next(operation))
+    const middleware1Fn = jest.fn()
+    const middleware1: Middleware = function* middleware1(operation) {
+      middleware1Fn()
+      return yield next(operation)
+    }
+
+    const middleware2Fn = jest.fn()
+    const middleware2: Middleware = function* middleware2(operation) {
+      middleware2Fn()
+      return yield next(operation)
+    }
+
     const cllr = cuillere(middleware1, middleware2)
 
     await test(cllr)
-    await expect(middleware1).toBeCalled
-    await expect(middleware2).toBeCalled
+    expect(middleware1Fn).toBeCalled()
+    expect(middleware2Fn).toBeCalled()
   })
 
   it('should call middlewares in right ordrer', async () => {
-    const middleware1: Middleware = next => async operation => 'expected ' + (await next(operation))
-    const middleware2: Middleware = next => async operation => 'returned ' + (await next(operation))
-    const middleware3: Middleware = () => async () => 'value'
+    const middleware1: Middleware = function* middleware1(operation) { return `expected ${yield next(operation)}` }
+    const middleware2: Middleware = function* middleware2(operation) { return `returned ${yield next(operation)}` }
+    const middleware3: Middleware = function* middleware3() { return 'value' }
 
     const cllr = cuillere(middleware1, middleware2, middleware3)
 
     await test(cllr, 'expected returned value')
+  })
+
+  // SKIPPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
+  it.skip('should be able to catch exception from middleware', async () => {
+    const throwOperation = { op: 'throw' }
+    const error = { error: 'test' }
+
+    async function* test() {
+      try {
+        yield throwOperation
+      } catch (err) {
+        expect(err).toEqual({ error: 'test' }) // eslint-disable-line jest/no-try-expect
+      }
+    }
+
+    const middleware: Middleware = function* middleware(op) {
+      if (op === throwOperation) throw error
+      return yield next(op)
+    }
+
+    try {
+      await cuillere(middleware).call(test)
+    } catch (err) {
+      throw new Error("middleware exception shouldn't be rethrown")
+    }
   })
 })

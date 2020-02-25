@@ -1,13 +1,11 @@
-import cuillere, { Middleware } from '../src'
-
-/*eslint-env jest*/
+import cuillere, { Middleware, delegate } from '../src'
 
 describe('examples', () => {
   it('promise middleware basic example', async () => {
     // A middleware which handles promises
-    const promiseMiddleware: Middleware = next => async operation => {
-      if (Promise.resolve(operation) === operation) return operation
-      return next(operation)
+    const promiseMiddleware: Middleware = function* promiseMiddleware(operation) {
+      if (Promise.resolve(operation) !== operation) yield delegate(operation)
+      return operation
     }
 
     const cllr = cuillere(promiseMiddleware)
@@ -33,9 +31,9 @@ describe('examples', () => {
     const awaitFunc = (func, ...args) => ({ [AWAIT_SYMBOL]: true, func, args })
 
     // The promise middleware
-    const promiseMiddleware: Middleware = next => async operation => {
-      if (operation[AWAIT_SYMBOL]) return operation.func(...operation.args)
-      return next(operation)
+    const promiseMiddleware: Middleware = function* promiseMiddleware(operation) {
+      if (!operation[AWAIT_SYMBOL]) yield delegate(operation)
+      return operation.func(...operation.args)
     }
 
     const cllr = cuillere(promiseMiddleware)
