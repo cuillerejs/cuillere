@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, call } from '../src'
+import cuillere, { Cuillere, call, GeneratorFunction } from '../src'
 import { batched, batchMiddelware } from '../src/middlewares/batch'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
@@ -12,15 +12,15 @@ describe('middlewares', () => {
   describe('batch', () => {
     let cllr: Cuillere
     const mock = jest.fn()
-
-    const fn = batched(function* fn(...args: any[]) {
-      mock(...args)
-      return [].concat(...args)
-    })
+    let fn: GeneratorFunction
 
     beforeEach(() => {
       cllr = cuillere(batchMiddelware({ timeout: 0 }))
       mock.mockClear()
+      fn = batched(function* fn(...args: any[]) {
+        mock(...args)
+        return [].concat(...args)
+      })
     })
 
     it('should call a given operation', async () => {
@@ -86,6 +86,37 @@ describe('middlewares', () => {
       ])
 
       expect(mock.mock.calls).toEqual([[[1], [2]], [[3]]])
+    })
+
+    it('should not batch if batch key is falsy', async () => {
+      const notBatched = batched(function* notBatched(...args: any[]) {
+        mock(...args)
+        return [].concat(...args)
+      }, () => false)
+
+      await Promise.all([
+        cllr.start(call(notBatched)),
+        cllr.start(call(notBatched)),
+        cllr.start(call(notBatched)),
+      ])
+
+      expect(mock).toBeCalledTimes(3)
+    })
+
+    it('should batch together calls with the same batch key', async () => {
+      const fn = batched(function* fn(...args: any[]) {
+        mock(...args)
+        return [].concat(...args)
+      }, arg => arg)
+
+      await Promise.all([
+        cllr.start(call(fn, 1)),
+        cllr.start(call(fn, 1)),
+        cllr.start(call(fn, 2)),
+        cllr.start(call(fn, 2)),
+      ])
+
+      expect(mock.mock.calls).toEqual([[[1], [1]], [[2], [2]]])
     })
   })
 })

@@ -1,24 +1,36 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { call, execute, fork, Run, Call, isCall } from '../cuillere'
+import { execute, fork, isCall, Task, delegate, Call } from '../cuillere'
 
 interface BatchOptions {
   timeout?: number
 }
 
+export function batched<T extends GeneratorFunction>(
+  func: T,
+  batchKey: (...args: any[]) => any = () => func,
+): T {
+  func[IS_BATCHED] = true // eslint-disable-line no-param-reassign
+  func[BATCH_KEY] = batchKey
+  return func
+}
+
 export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
-  function* batchMiddelware(operation, ctx: Context, next) {
+  function* batchMiddelware(operation, ctx: Context) {
     if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map<any, BatchEntry>()
 
     if (isBatchedCall(operation)) {
+      const batchKey = operation.func[BATCH_KEY](...operation.args)
+
+      if (!batchKey) return yield delegate(operation)
+
       let entry: any
-      if (ctx[BATCH_CTX].has(operation.func)) {
-        entry = ctx[BATCH_CTX].get(operation.func)
+      if (ctx[BATCH_CTX].has(batchKey)) {
+        entry = ctx[BATCH_CTX].get(batchKey)
       } else {
-        console.log('create fork')
-        entry = { resolves: [], args: [] }
-        ctx[BATCH_CTX].set(operation.func, entry)
-        entry.fork = yield fork(call(delayBatchExecution, operation.func, timeout))
+        entry = { resolves: [], args: [], func: operation.func }
+        ctx[BATCH_CTX].set(batchKey, entry)
+        entry.fork = yield fork(delayBatchExecution, batchKey, timeout)
       }
 
       entry.args.push(operation.args)
@@ -26,18 +38,27 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
     }
 
     if (isExecuteBatch(operation)) {
-      const entry = ctx[BATCH_CTX].get(operation.func)
-      ctx[BATCH_CTX].delete(operation.func)
-      const result = yield execute(operation.func(...entry.args))
+      const entry = ctx[BATCH_CTX].get(operation.batchKey)
+      ctx[BATCH_CTX].delete(operation.batchKey)
+      const result = yield execute(entry.func(...entry.args))
       entry.resolves.forEach((resolve, i) => resolve(result[i]))
       return
     }
 
-    return yield next(operation)
+    return yield delegate(operation)
   }
 
 const IS_BATCHED = Symbol('IS_BATCHED')
 const BATCH_CTX = Symbol('BATCH_CTX')
+const BATCH_KEY = Symbol('BATCH_KEY')
+const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
+
+interface BatchEntry {
+  fork: Task
+  resolves: ((res: any) => void)[]
+  func: GeneratorFunction
+  args: any[][]
+}
 
 interface Context {
   [BATCH_CTX]?: Map<any, BatchEntry>
@@ -46,33 +67,19 @@ interface Context {
 const isBatchedCall = (operation: any): operation is Call =>
   isCall(operation) && operation.func[IS_BATCHED]
 
-export function batched<T extends GeneratorFunction>(func: T): T {
-  func[IS_BATCHED] = true // eslint-disable-line no-param-reassign
-  return func
-}
-
-const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
-
 interface ExecuteBatch {
   [EXECUTE_BATCH]: true
-  func: any
+  batchKey: any
 }
 
-const isExecuteBatch = (operation: any): operation is ExecuteBatch =>
-  operation && operation[EXECUTE_BATCH]
+const isExecuteBatch = (operation: any): operation is ExecuteBatch => operation?.[EXECUTE_BATCH]
 
-const executeBatch = (fn): ExecuteBatch => ({
+const executeBatch = (fn: GeneratorFunction): ExecuteBatch => ({
   [EXECUTE_BATCH]: true,
-  func: fn,
+  batchKey: fn,
 })
 
-interface BatchEntry {
-  fork: Run
-  resolves: ((res: any) => void)[]
-  args: any[][]
-}
-
-async function* delayBatchExecution(func: GeneratorFunction, delay?: number) {
+async function* delayBatchExecution(batchKey: any, delay?: number) {
   await new Promise(resolve => (delay ? setTimeout(resolve, delay) : setImmediate(resolve)))
-  yield executeBatch(func)
+  yield executeBatch(batchKey)
 }
