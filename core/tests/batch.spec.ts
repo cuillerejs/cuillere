@@ -3,7 +3,7 @@ import { batched, batchMiddelware } from '../src/middlewares/batch'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
-const afterDelay = async (fn, d) => {
+const afterDelay = async (fn: () => void, d: number) => {
   await delay(d)
   return fn()
 }
@@ -85,7 +85,11 @@ describe('middlewares', () => {
         afterDelay(() => cllr.call(fn, 3), 45),
       ])
 
-      expect(mock.mock.calls).toEqual([[[1], [2]], [[3]]])
+      expect(mock).toBeCalledTimes(2)
+      expect(mock.mock.calls).toEqual([
+        [[1], [2]],
+        [[3]],
+      ])
     })
 
     it('should not batch if batch key is falsy', async () => {
@@ -116,7 +120,11 @@ describe('middlewares', () => {
         cllr.start(call(fn, 2)),
       ])
 
-      expect(mock.mock.calls).toEqual([[[1], [1]], [[2], [2]]])
+      expect(mock).toBeCalledTimes(2)
+      expect(mock.mock.calls).toEqual([
+        [[1], [1]],
+        [[2], [2]],
+      ])
     })
   })
 })
