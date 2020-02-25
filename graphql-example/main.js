@@ -1,6 +1,6 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
-import { PostgresCuillereApolloPlugin } from '@cuillere/postgres-apollo-plugin'
+import { CuillerePostgresApolloPlugin } from '@cuillere/postgres-apollo-plugin'
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 
@@ -17,7 +17,7 @@ const server = new ApolloServer({
   resolvers,
   context: ({ ctx }) => ctx,
   plugins: [
-    PostgresCuillereApolloPlugin({ poolConfigs: [
+    CuillerePostgresApolloPlugin({ poolConfigs: [
       { ...basePoolConfig, name: 'foo', port: 54321 },
       { ...basePoolConfig, name: 'bar', port: 54322 },
     ] }),
