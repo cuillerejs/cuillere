@@ -23,7 +23,7 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
     if (isBatchedCall(operation)) {
       const batchKey = operation.func[BATCH_KEY](...operation.args)
 
-      if (!batchKey) return yield delegate(operation)
+      if (!batchKey) return yield delegate(execute(operation.func(operation.args)))
 
       let entry: any
       if (ctx[BATCH_CTX].has(batchKey)) {
