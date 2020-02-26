@@ -7,4 +7,4 @@ export interface GeneratorFunction<Args extends any[] = any[], R = any> {
 export type Generator<R = any> = TSGenerator<R> | TSAsyncGenerator<R>
 
 export const isGenerator = (value: any): value is Generator | AsyncGenerator =>
-  Boolean(value.next && value.throw && value.return)
+  Boolean(value && value.next && value.throw && value.return)
