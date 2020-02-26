@@ -1,3 +1,3 @@
 export interface Middleware {
-  (operation: any, ctx: any): Generator | AsyncGenerator
+  (operation: any, ctx: any): Generator<any> | AsyncGenerator<any>
 }

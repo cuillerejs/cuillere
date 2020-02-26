@@ -1,13 +1,13 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { execute, fork, isCall, delegate, Call } from '../operations'
+import { execute, fork, isCall, delegate, Call, next } from '../operations'
 import { Task } from '../task'
 
 interface BatchOptions {
   timeout?: number
 }
 
-export function batched<Args extends any[], R>(
+export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R>,
   batchKey: (...args: Args) => any = () => func,
 ): BatchedGeneratorFunction<Args, R> {
@@ -23,7 +23,10 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
     if (isBatchedCall(operation)) {
       const batchKey = operation.func[BATCH_KEY](...operation.args)
 
-      if (!batchKey) return yield delegate(execute(operation.func(operation.args)))
+      if (!batchKey) {
+        const [result] = (yield next(execute(operation.func(operation.args)))) as any[]
+        return result
+      }
 
       let entry: any
       if (ctx[BATCH_CTX].has(batchKey)) {

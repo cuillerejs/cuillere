@@ -126,5 +126,17 @@ describe('middlewares', () => {
         [[2], [2]],
       ])
     })
+
+    it('should return the right result for not batched calls', async () => {
+      const notBatched = batched<[number]>(function* notBatched(...calls: [number][]) {
+        mock(...calls)
+        return [].concat(...calls)
+      }, () => false)
+
+      const result = await cllr.call(notBatched, 1)
+
+      expect(mock).toBeCalledWith([1])
+      expect(result).toEqual(1)
+    })
   })
 })
