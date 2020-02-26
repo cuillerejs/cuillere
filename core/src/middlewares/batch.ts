@@ -7,13 +7,13 @@ interface BatchOptions {
   timeout?: number
 }
 
-export function batched<T extends GeneratorFunction>(
-  func: T,
-  batchKey: (...args: any[]) => any = () => func,
-): T {
+export function batched<Args extends any[], R>(
+  func: GeneratorFunction<Args[], R>,
+  batchKey: (...args: Args) => any = () => func,
+): BatchedGeneratorFunction<Args, R> {
   func[IS_BATCHED] = true
   func[BATCH_KEY] = batchKey
-  return func
+  return func as BatchedGeneratorFunction<Args, R>
 }
 
 export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
@@ -53,6 +53,12 @@ const IS_BATCHED = Symbol('IS_BATCHED')
 const BATCH_CTX = Symbol('BATCH_CTX')
 const BATCH_KEY = Symbol('BATCH_KEY')
 const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
+
+interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
+  extends GeneratorFunction<Args[], R> {
+  [IS_BATCHED]: true
+  [BATCH_KEY]: (...args: Args) => any
+}
 
 interface BatchEntry {
   fork: Task

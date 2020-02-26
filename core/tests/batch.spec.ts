@@ -108,7 +108,7 @@ describe('middlewares', () => {
     })
 
     it('should batch together calls with the same batch key', async () => {
-      const fn = batched(function* fn(...args: any[]) {
+      const fn = batched(function* fn(...args: [number][]) {
         mock(...args)
         return [].concat(...args)
       }, arg => arg)
