@@ -1,9 +1,8 @@
-import { GeneratorFunction } from '../generator'
 import { makeWrapperOperation } from './operation'
-import { call } from './call'
+import { call, CallFunction } from './call'
 
 export const [deferOperation, isDefer] = makeWrapperOperation(Symbol('DEFER'))
 
-export function defer(func: GeneratorFunction, ...args: any[]) {
+export function defer<Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args) {
   return deferOperation(call(func, ...args))
 }

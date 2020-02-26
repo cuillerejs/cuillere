@@ -11,7 +11,7 @@ export function batched<Args extends any[], R>(
   func: GeneratorFunction<Args[], R>,
   batchKey: (...args: Args) => any = () => func,
 ): BatchedGeneratorFunction<Args, R> {
-  func[IS_BATCHED] = true
+  func[BATCHED] = true
   func[BATCH_KEY] = batchKey
   return func as BatchedGeneratorFunction<Args, R>
 }
@@ -49,14 +49,14 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
     return yield delegate(operation)
   }
 
-const IS_BATCHED = Symbol('IS_BATCHED')
+const BATCHED = Symbol('BATCHED')
 const BATCH_CTX = Symbol('BATCH_CTX')
 const BATCH_KEY = Symbol('BATCH_KEY')
 const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
 
-interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
-  extends GeneratorFunction<Args[], R> {
-  [IS_BATCHED]: true
+export interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
+  extends GeneratorFunction<Args[], R[]> {
+  [BATCHED]: true
   [BATCH_KEY]: (...args: Args) => any
 }
 
@@ -72,7 +72,7 @@ interface Context {
 }
 
 const isBatchedCall = (operation: any): operation is Call =>
-  isCall(operation) && operation.func[IS_BATCHED]
+  isCall(operation) && operation.func[BATCHED]
 
 interface ExecuteBatch {
   [EXECUTE_BATCH]: true

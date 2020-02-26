@@ -1,13 +1,13 @@
 import { error, unrecognizedOperation, CancellationError } from './errors'
 import { Middleware, concurrentMiddleware, contextMiddleware } from './middlewares'
-import { isGenerator } from './generator'
-import { call, execute, start, isCall, isDefer, isExecute, isFork, isNext, isStart, isTerminal } from './operations'
+import { isGenerator, Generator } from './generator'
+import { call, execute, start, isCall, isDefer, isExecute, isFork, isNext, isStart, isTerminal, CallFunction } from './operations'
 
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
   start: (operation: any) => Promise<any>
-  call: (func: any, ...args: any[]) => Promise<any>
-  execute: (gen: Generator | AsyncGenerator) => Promise<any>
+  call: <Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args) => Promise<R>
+  execute: <R>(gen: Generator<R>) => Promise<R>
 }
 
 enum Canceled {
