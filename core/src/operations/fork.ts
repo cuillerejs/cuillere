@@ -1,3 +1,4 @@
+import { GeneratorFunction } from '../generator'
 import { WrapperOperation, makeWrapperOperation } from './operation'
 import { call } from './call'
 
