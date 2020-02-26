@@ -1,4 +1,4 @@
-import { delegate } from '../cuillere'
+import { delegate } from '../operations'
 import { Middleware } from './middleware'
 
 const CONTEXT_SYMBOL = Symbol('CONTEXT')

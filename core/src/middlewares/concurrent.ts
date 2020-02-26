@@ -1,5 +1,6 @@
 import { Middleware } from './middleware'
-import { forkOperation, delegate, Task } from '../cuillere'
+import { Task } from '../cuillere'
+import { forkOperation, delegate } from '../operations'
 import { allSettled as promiseAllSettled } from '../utils/promise'
 
 const TYPE = Symbol('TYPE')
