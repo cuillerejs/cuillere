@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/core",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "main": "lib/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {
