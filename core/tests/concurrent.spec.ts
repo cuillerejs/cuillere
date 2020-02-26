@@ -1,7 +1,7 @@
 /* eslint-disable no-throw-literal */
 
 import cuillere, { call, Cuillere } from '../src'
-import { all, allSettled, chain } from '../src/middlewares/concurrent'
+import { all, allSettled } from '../src/middlewares/concurrent'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
@@ -75,33 +75,6 @@ describe('concurrent', () => {
 
       expect(result).toEqual([{ status: 'fulfilled', value: 1 }, { status: 'fulfilled', value: 2 }, { status: 'fulfilled', value: 3 }])
       expect(executionOrder).toEqual([3, 2, 1])
-    })
-  })
-
-  describe('chain', () => {
-    it('should run all operations one at a time', async () => {
-      function* test() {
-        return yield chain([() => call(f1), () => call(f2), () => call(f3)])
-      }
-
-      const result = await cllr.call(test)
-
-      expect(result).toEqual(3)
-      expect(executionOrder).toEqual([1, 2, 3])
-    })
-
-    it('should pass the result of the previous function to each function in chain', async () => {
-      function* f1() {
-        return 1
-      }
-
-      function* f2(prev) {
-        return prev
-      }
-
-      const result = await cllr.start(chain([() => call(f1), prev => call(f2, prev)]))
-
-      expect(result).toBe(1)
     })
   })
 })
