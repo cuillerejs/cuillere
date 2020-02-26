@@ -16,7 +16,7 @@ export function transactionMiddleware(
     new TransactionManager(provider, transactionOptions))
 }
 
-interface ProviderMiddlewareOptions {
+export interface ProviderMiddlewareOptions {
   poolProvider?: PoolProvider
   poolConfigs?: PoolConfig[]
 }
