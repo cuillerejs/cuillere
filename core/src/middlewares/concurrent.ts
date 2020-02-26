@@ -1,5 +1,5 @@
 import { Middleware } from './middleware'
-import { Task } from '../cuillere'
+import { Task } from '../task'
 import { forkOperation, delegate } from '../operations'
 import { allSettled as promiseAllSettled } from '../utils/promise'
 
