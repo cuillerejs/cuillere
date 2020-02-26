@@ -1,13 +1,9 @@
 import { GeneratorFunction } from '../generator'
-import { WrapperOperation, makeWrapperOperation } from './operation'
+import { makeWrapperOperation } from './operation'
 import { call } from './call'
 
-const FORK = Symbol('FORK')
+export const [forkOperation, isFork] = makeWrapperOperation(Symbol('FORK'))
 
-export type Fork = WrapperOperation<typeof FORK>
-
-export const [forkOperation, isFork] = makeWrapperOperation<typeof FORK, Fork, []>(FORK)
-
-export function fork(func: GeneratorFunction, ...args: any[]): Fork {
+export function fork(func: GeneratorFunction, ...args: any[]) {
   return forkOperation(call(func, ...args))
 }

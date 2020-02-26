@@ -1,23 +1,19 @@
 import { GeneratorFunction } from '../generator'
+import { makeOperation, Operation } from './operation'
 
-const CALL = Symbol('CALL')
-
-export interface Call {
-  [CALL]: true
+export interface Call extends Operation {
   func: GeneratorFunction
   args?: any[]
   location: string
 }
 
-export function call(func: GeneratorFunction, ...args: any[]): Call {
-  return { [CALL]: true, func, args, location: getLocation() }
-}
-
-export function isCall(operation: any): operation is Call {
-  return Boolean(operation?.[CALL])
-}
+export const [call, isCall] = makeOperation(
+  Symbol('CALL'),
+  (operation, func: GeneratorFunction, ...args: any[]): Call => ({
+    ...operation, func, args, location: getLocation(),
+  }),
+)
 
 function getLocation(): string {
   return Error().stack.split('\n')[3].trim().slice(3)
 }
-

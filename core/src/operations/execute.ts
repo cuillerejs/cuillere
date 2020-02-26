@@ -1,14 +1,12 @@
-const EXECUTE = Symbol('EXECUTE')
+import { Operation, makeOperation } from './operation'
 
-interface Execute {
-  [EXECUTE]: true
+interface Execute extends Operation {
   gen: Generator | AsyncGenerator
 }
 
-export function isExecute(operation: any): operation is Execute {
-  return Boolean(operation?.[EXECUTE])
-}
-
-export function execute(gen: Generator | AsyncGenerator): Execute {
-  return { [EXECUTE]: true, gen }
-}
+export const [execute, isExecute] = makeOperation(
+  Symbol('EXECUTE'),
+  (operation, gen: Generator | AsyncGenerator): Execute => ({
+    ...operation, gen,
+  }),
+)

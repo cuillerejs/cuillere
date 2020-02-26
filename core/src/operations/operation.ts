@@ -1,45 +1,39 @@
 const KIND = Symbol('KIND')
 
-export interface Operation<S> {
-  readonly [KIND]: S
-}
+export type Operation = object
 
-export function makeOperation<S, T extends Operation<S>, Args extends any[]>(
-  kind: S,
-  extender?: (...args: Args) => Omit<T, typeof KIND>,
+export function makeOperation<T extends Operation, Args extends any[] = []>(
+  kind: symbol,
+  extender?: (operation: Operation, ...args: Args) => T,
 ): [
   (...args: Args) => T,
   (operation: any) => operation is T
 ] {
   return [
-    function wrapper(...args) {
-      return {
-        [KIND]: kind,
-        ...extender && extender(...args),
-      } as T
+    (...args) => {
+      const operation = { [KIND]: kind }
+      return extender ? extender(operation, ...args) : operation as T
     },
-    function isWrapper(operation): operation is T {
-      return operation?.[KIND] === kind
-    },
+    (operation): operation is T => operation?.[KIND] === kind,
   ]
 }
 
-export interface WrapperOperation<S> extends Operation<S> {
+export interface WrapperOperation extends Operation {
   readonly operation: any
 }
 
-export function makeWrapperOperation<S, T extends WrapperOperation<S>, Args extends any[]>(
-  kind: S,
-  extender?: (...args: Args) => Omit<T, typeof KIND | 'operation'>,
+export function makeWrapperOperation<T extends WrapperOperation, Args extends any[] = []>(
+  kind: symbol,
+  extender?: (operation: Operation, ...args: Args) => T,
 ): [
   (operation: any, ...args: Args) => T,
   (operation: any) => operation is T
 ] {
   return makeOperation(
     kind,
-    (operation, ...args: Args) => ({
-      operation,
-      ...extender && extender(...args),
-    } as Omit<T, typeof KIND>),
+    (operation, wrapped: Operation, ...args: Args): T => {
+      const base = { ...operation, operation: wrapped }
+      return extender ? extender(base, ...args) : base as T
+    },
   )
 }
