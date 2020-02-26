@@ -11,7 +11,7 @@ export function batched<T extends GeneratorFunction>(
   func: T,
   batchKey: (...args: any[]) => any = () => func,
 ): T {
-  func[IS_BATCHED] = true // eslint-disable-line no-param-reassign
+  func[IS_BATCHED] = true
   func[BATCH_KEY] = batchKey
   return func
 }
