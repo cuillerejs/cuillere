@@ -1,4 +1,4 @@
-import { Middleware, isStart, delegate, next } from '@cuillere/core'
+import { Middleware, isStart, delegate, next, makeOperation, Operation } from '@cuillere/core'
 import { PoolProvider, PoolConfig } from '../pool-provider'
 import { setQueryHandler } from './query'
 import { ClientManager } from '../client-manager'
@@ -30,15 +30,32 @@ function makeProviderMiddleware(
     return clientManagerFactory(provider)
   }
 
-  return async function* provideriddleware(operation, ctx: any) {
-    console.log('transaction')
-    if (!isStart(operation)) return yield delegate(operation)
+  return async function* provideriddleware(operation, ctx: ProviderContext) {
+    if (isStart(operation)) {
+      const clientManager = ctx[MANAGER] = createClientManager()
+      setQueryHandler(ctx, query => clientManager.query(query))
 
-    console.log('transaction - start')
+      return yield* clientManager.transactionalYield(next(operation))
+    }
 
-    const clientManager = createClientManager()
-    setQueryHandler(ctx, query => clientManager.query(query))
+    if (isGetClient(operation)) {
+      return ctx[MANAGER].getClient(operation.name)
+    }
 
-    return yield* clientManager.transactionalYield(next(operation))
+    return yield delegate(operation)
   }
+}
+
+export const [getClient, isGetClient] = makeOperation(
+  Symbol('GET_CLIENT'),
+  (operation, name?: string): GetClient => ({ ...operation, name }),
+)
+
+interface GetClient extends Operation {
+  name?: string
+}
+
+const MANAGER = Symbol('MANAGER')
+interface ProviderContext {
+  [MANAGER]: ClientManager
 }

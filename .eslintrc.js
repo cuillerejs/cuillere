@@ -94,6 +94,7 @@ module.exports = {
         "require-yield": "off",
         "semi": ["error", "never"],
         "no-dupe-class-members": "off",
-        "import/no-extraneous-dependencies": "off"
+        "import/no-extraneous-dependencies": "off",
+        "no-multi-assign": "off",
     }
 };
