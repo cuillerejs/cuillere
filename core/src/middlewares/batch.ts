@@ -1,6 +1,7 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { execute, fork, isCall, Task, delegate, Call } from '../cuillere'
+import { execute, fork, isCall, delegate, Call } from '../operations'
+import { Task } from '../cuillere'
 
 interface BatchOptions {
   timeout?: number
