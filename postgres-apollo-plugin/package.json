@@ -34,11 +34,8 @@
     "pg": "^7.0"
   },
   "devDependencies": {
-    "@cuillere/core": "^0.5.0",
-    "@cuillere/postgres": "^0.5.0",
     "@types/pg": "^7.14.1",
     "apollo-server-plugin-base": "^0.6.10",
-    "pg": "^7.18.1",
-    "typescript": "^3.8"
+    "graphql": "^14.6.0"
   }
 }
