@@ -31,7 +31,10 @@ export interface WrapperOperation<S> extends Operation<S> {
 export function makeWrapperOperation<S, T extends WrapperOperation<S>, Args extends any[]>(
   kind: S,
   extender?: (...args: Args) => Omit<T, typeof KIND | 'operation'>,
-) {
+): [
+  (operation: any, ...args: Args) => T,
+  (operation: any) => operation is T
+] {
   return makeOperation(
     kind,
     (operation, ...args: Args) => ({
