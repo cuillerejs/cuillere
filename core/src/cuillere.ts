@@ -20,22 +20,22 @@ export function isStart(operation: any): operation is Start {
   return Boolean(operation?.[START])
 }
 
-const TERMINATE = Symbol('TERMINATE')
+const TERMINAL = Symbol('TERMINAL')
 
-interface Terminate {
-  [TERMINATE]: true
+interface Terminal {
+  [TERMINAL]: true
   operation: any
 }
 
-function terminate(operation: any): Terminate {
+function terminal(operation: any): Terminal {
   return {
-    [TERMINATE]: true,
+    [TERMINAL]: true,
     operation,
   }
 }
 
-function isTerminate(operation: any): operation is Terminate {
-  return Boolean(operation?.[TERMINATE])
+function isTerminal(operation: any): operation is Terminal {
+  return Boolean(operation?.[TERMINAL])
 }
 
 const NEXT = Symbol('NEXT')
@@ -57,7 +57,7 @@ function isNext(operation: any): operation is Next {
 }
 
 export function delegate(operation: any) {
-  return terminate(next(operation))
+  return terminal(next(operation))
 }
 
 const FORK = Symbol('FORK')
@@ -172,11 +172,11 @@ class Stack extends Array<StackFrame> {
   }
 
   handle(operation: any) {
-    this.unshift(this.stackFrameFor(operation))
-  }
-
-  replace(operation: any) {
-    this[0] = this.stackFrameFor(operation)
+    if (isTerminal(operation)) {
+      this[0] = this.stackFrameFor(operation.operation)
+    } else {
+      this.unshift(this.stackFrameFor(operation))
+    }
   }
 
   private stackFrameFor(operation: any): StackFrame {
@@ -295,21 +295,15 @@ export class Task {
 
       if (curFrame.canceled === Canceled.ToDo) continue
 
-      if (isTerminate(this.#current.value)) {
-        if (!curFrame.isMiddleware) throw error('terminal operation yielded outside of middleware')
-
+      if (isTerminal(this.#current.value)) {
         try {
-          if (!(await curFrame.gen.return(undefined)).done) throw new Error("don't use terminal next inside a try...finally")
+          if (!(await curFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
         } catch (e) {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
 
-        if (isFork(this.#current.value.operation)) throw error("don't terminate with a fork")
-        if (isDefer(this.#current.value.operation)) throw error("don't terminate with a defer")
-
-        this.#stack.replace(this.#current.value.operation)
-
-        continue
+        if (isFork(this.#current.value.operation)) throw error('terminal forks are forbidden')
+        if (isDefer(this.#current.value.operation)) throw error('terminal defers are forbidden')
       }
 
       if (isFork(this.#current.value)) {
