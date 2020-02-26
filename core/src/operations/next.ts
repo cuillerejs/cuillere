@@ -1,7 +1,7 @@
-import { Wrapper, makeWrapper } from './wrapper'
+import { WrapperOperation, makeWrapperOperation } from './operation'
 
 const NEXT = Symbol('NEXT')
 
-export type Next = Wrapper<typeof NEXT>
+export type Next = WrapperOperation<typeof NEXT>
 
-export const [next, isNext] = makeWrapper<typeof NEXT, Next, []>(NEXT)
+export const [next, isNext] = makeWrapperOperation<typeof NEXT, Next, []>(NEXT)
