@@ -1,7 +1,7 @@
 /* eslint-disable no-throw-literal */
 
-import cuillere, { call, Cuillere } from '../src'
-import { all, allSettled } from '../src/middlewares/concurrent'
+import cuillere, { call, Cuillere } from '../../src'
+import { all, allSettled } from '../../src/middlewares/concurrent'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
