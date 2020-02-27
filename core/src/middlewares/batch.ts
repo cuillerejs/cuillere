@@ -32,20 +32,27 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
       if (ctx[BATCH_CTX].has(batchKey)) {
         entry = ctx[BATCH_CTX].get(batchKey)
       } else {
-        entry = { resolves: [], args: [], func: operation.func }
+        entry = { resolves: [], rejects: [], args: [], func: operation.func }
         ctx[BATCH_CTX].set(batchKey, entry)
         entry.fork = yield fork(delayBatchExecution, batchKey, timeout)
       }
 
       entry.args.push(operation.args)
-      return new Promise(resolve => entry.resolves.push(resolve))
+      return new Promise((resolve, reject) => {
+        entry.resolves.push(resolve)
+        entry.rejects.push(reject)
+      })
     }
 
     if (isExecuteBatch(operation)) {
       const entry = ctx[BATCH_CTX].get(operation.batchKey)
       ctx[BATCH_CTX].delete(operation.batchKey)
-      const result = yield execute(entry.func(...entry.args))
-      entry.resolves.forEach((resolve, i) => resolve(result[i]))
+      try {
+        const result = yield execute(entry.func(...entry.args))
+        entry.resolves.forEach((resolve, i) => resolve(result[i]))
+      } catch (err) {
+        entry.rejects.forEach((reject => reject(err)))
+      }
       return
     }
 
@@ -66,6 +73,7 @@ export interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
 interface BatchEntry {
   fork: Task
   resolves: ((res: any) => void)[]
+  rejects: ((err: any) => void)[]
   func: GeneratorFunction
   args: any[][]
 }

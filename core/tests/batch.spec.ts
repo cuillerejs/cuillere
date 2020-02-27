@@ -138,5 +138,20 @@ describe('middlewares', () => {
       expect(mock).toBeCalledWith([1])
       expect(result).toEqual(1)
     })
+
+    it('should propagate promise rejection to all batched calls', async () => {
+      const testError = 'testError'
+      const throwing = batched(function* throwing() {
+        throw testError
+      })
+
+      const result = Promise.all([
+        cllr.start(call(throwing)),
+        cllr.start(call(throwing)),
+        cllr.start(call(throwing)),
+      ])
+
+      await expect(result).rejects.toBe(testError)
+    })
   })
 })
