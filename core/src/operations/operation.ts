@@ -24,7 +24,7 @@ export interface WrapperOperation extends Operation {
 
 export function makeWrapperOperation<T extends WrapperOperation, Args extends any[] = []>(
   kind: symbol,
-  extender?: (operation: Operation, ...args: Args) => T,
+  extender?: (operation: WrapperOperation, ...args: Args) => T,
 ): [
   (operation: any, ...args: Args) => T,
   (operation: any) => operation is T
