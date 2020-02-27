@@ -1,49 +1,39 @@
-import { delegate } from '../operations'
+import { delegate, makeOperation } from '../operations'
 import { Middleware } from './middleware'
 
-const CONTEXT_SYMBOL = Symbol('CONTEXT')
-const GET_SYMBOL = Symbol('GET')
-const SET_SYMBOL = Symbol('SET')
+export const contextMiddleware = (): Middleware =>
+  function* contextMiddleware(operation, ctx) {
+    if (isGet(operation)) {
+      checkKey(operation.key)
+      return ctx[operation.key]
+    }
+    if (isSet(operation)) {
+      checkKey(operation.key)
+      ctx[operation.key] = operation.value
+      return
+    }
 
-interface ContextOperation {
-  [CONTEXT_SYMBOL]: true
-}
+    return yield delegate(operation)
+  }
 
-interface Set extends ContextOperation {
-  [SET_SYMBOL]: true
-  key: string
+type ContextKey = string | number | symbol
+
+interface Set {
+  key: ContextKey
   value: any
 }
 
-interface Get extends ContextOperation {
-  [GET_SYMBOL]: true
-  key: string
+interface Get {
+  key: ContextKey
 }
 
-export const get = (key: string): Get => ({
-  [CONTEXT_SYMBOL]: true,
-  [GET_SYMBOL]: true,
-  key,
-})
+export const [get, isGet] = makeOperation(Symbol('GET'), (op, key: ContextKey): Get => ({ ...op, key }))
 
-export const set = (key: string, value: any): Set => ({
-  [CONTEXT_SYMBOL]: true,
-  [SET_SYMBOL]: true,
-  key,
-  value,
-})
+export const [set, isSet] = makeOperation(Symbol('SET'), (op, key: ContextKey, value: any): Set => ({ ...op, key, value }))
 
-const isContextOperation = (operation: any): operation is ContextOperation =>
-  operation && operation[CONTEXT_SYMBOL]
-
-const isSet = (operation: ContextOperation): operation is Set => operation && operation[SET_SYMBOL]
-
-const isGet = (operation: ContextOperation): operation is Get => operation && operation[GET_SYMBOL]
-
-export const contextMiddleware = (): Middleware =>
-  function* contextMiddleware(operation, ctx) { // eslint-disable-line consistent-return
-    if (!isContextOperation(operation)) yield delegate(operation)
-
-    if (isGet(operation)) return ctx[operation.key]
-    if (isSet(operation)) ctx[operation.key] = operation.value
+function checkKey(key: any) {
+  const keyType = typeof key
+  if (keyType !== 'string' && keyType !== 'number' && keyType !== 'symbol') {
+    throw new Error('context keys should be string, number or symbol')
   }
+}
