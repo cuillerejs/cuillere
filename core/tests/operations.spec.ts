@@ -17,6 +17,11 @@ describe('operations', () => {
     expect(operation()).toMatchObject({ test: 'test' })
   })
 
+  it('should return matching factory and checker for wrapper operation', () => {
+    const [operation, isOperation] = makeOperation(Symbol('test'))
+    expect(isOperation(operation())).toBeTruthy()
+  })
+
   it('should create an operation wrapping another operation', () => {
     const [operation] = makeWrapperOperation(Symbol('test'))
     expect(operation('test')).toMatchObject({ operation: 'test' })
