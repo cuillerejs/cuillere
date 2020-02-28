@@ -1,4 +1,4 @@
-import cuillere, { fork, forkOperation, call } from '../src'
+import cuillere, { fork, forkOperation, call } from '../../src'
 
 describe('fork', () => {
   const cllr = cuillere()
