@@ -24,16 +24,16 @@ describe('middlewares', () => {
     })
 
     it('should call a given operation', async () => {
-      await cllr.start(call(fn))
+      await cllr.call(fn)
 
       expect(mock).toBeCalled()
     })
 
     it('should call only once for multiple batched calls', async () => {
       await Promise.all([
-        cllr.start(call(fn)),
-        cllr.start(call(fn)),
-        cllr.start(call(fn)),
+        cllr.call(fn),
+        cllr.call(fn),
+        cllr.call(fn),
       ])
 
       expect(mock).toBeCalledTimes(1)
@@ -41,9 +41,9 @@ describe('middlewares', () => {
 
     it('should call with an array of calls with the right length', async () => {
       await Promise.all([
-        cllr.start(call(fn, 1)),
-        cllr.start(call(fn, 2)),
-        cllr.start(call(fn, 3)),
+        cllr.call(fn, 1),
+        cllr.call(fn, 2),
+        cllr.call(fn, 3),
       ])
 
       expect(mock.mock.calls[0].length).toBe(3)
@@ -51,8 +51,8 @@ describe('middlewares', () => {
 
     it('should call with all given arguments', async () => {
       await Promise.all([
-        cllr.start(call(fn, 1)),
-        cllr.start(call(fn, 2)),
+        cllr.call(fn, 1),
+        cllr.call(fn, 2),
       ])
 
       expect(mock.mock.calls[0]).toContainEqual([1])
@@ -61,9 +61,9 @@ describe('middlewares', () => {
 
     it('should return the right result for each btached call', async () => {
       const result = await Promise.all([
-        cllr.start(call(fn, 1)),
-        cllr.start(call(fn, 2)),
-        cllr.start(call(fn, 3)),
+        cllr.call(fn, 1),
+        cllr.call(fn, 2),
+        cllr.call(fn, 3),
       ])
 
       expect(result).toEqual([1, 2, 3])
@@ -99,9 +99,9 @@ describe('middlewares', () => {
       }, () => false)
 
       await Promise.all([
-        cllr.start(call(notBatched)),
-        cllr.start(call(notBatched)),
-        cllr.start(call(notBatched)),
+        cllr.call(notBatched),
+        cllr.call(notBatched),
+        cllr.call(notBatched),
       ])
 
       expect(mock).toBeCalledTimes(3)
@@ -114,10 +114,10 @@ describe('middlewares', () => {
       }, arg => arg)
 
       await Promise.all([
-        cllr.start(call(fn, 1)),
-        cllr.start(call(fn, 1)),
-        cllr.start(call(fn, 2)),
-        cllr.start(call(fn, 2)),
+        cllr.call(fn, 1),
+        cllr.call(fn, 1),
+        cllr.call(fn, 2),
+        cllr.call(fn, 2),
       ])
 
       expect(mock).toBeCalledTimes(2)
@@ -146,9 +146,9 @@ describe('middlewares', () => {
       })
 
       const result = Promise.all([
-        cllr.start(call(throwing)),
-        cllr.start(call(throwing)),
-        cllr.start(call(throwing)),
+        cllr.call(throwing),
+        cllr.call(throwing),
+        cllr.call(throwing),
       ])
 
       await expect(result).rejects.toBe(testError)
