@@ -153,5 +153,21 @@ describe('middlewares', () => {
 
       await expect(result).rejects.toBe(testError)
     })
+
+    it('should works in nested called', async () => {
+      let nestedResult: any
+      const batchedFn = batched(function* batchedFn(...calls) {
+        mock.call(calls)
+        return [].concat(calls)
+      })
+
+      function* handler() {
+        nestedResult = yield call(batchedFn)
+      }
+
+      await cllr.call(handler)
+
+      expect(nestedResult).toEqual([])
+    })
   })
 })

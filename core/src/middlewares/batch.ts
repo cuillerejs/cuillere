@@ -17,7 +17,7 @@ export function batched<Args extends any[] = any[], R = any>(
 }
 
 export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
-  function* batchMiddelware(operation, ctx: Context) {
+  async function* batchMiddelware(operation, ctx: Context) {
     if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map<any, BatchEntry>()
 
     if (isBatchedCall(operation)) {
