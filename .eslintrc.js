@@ -96,5 +96,6 @@ module.exports = {
         "no-dupe-class-members": "off",
         "import/no-extraneous-dependencies": "off",
         "no-multi-assign": "off",
+        "no-plusplus": "off"
     }
 };
