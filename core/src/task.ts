@@ -33,8 +33,8 @@ export class Task {
   }
 
   private async execute(): Promise<any> {
-    while (this.#stack.length !== 0) {
-      const [curFrame] = this.#stack
+    while (this.#stack.currentFrame) {
+      const curFrame = this.#stack.currentFrame
 
       try {
         if (curFrame.canceled && curFrame.canceled === Canceled.ToDo) {
@@ -82,7 +82,6 @@ export class Task {
         this.#res = undefined
         continue
       }
-
       this.#stack.handle(this.#current.value)
     }
 
@@ -94,7 +93,7 @@ export class Task {
   }
 
   private async shift() {
-    const [{ defers }] = this.#stack
+    const { defers } = this.#stack.currentFrame
 
     for (const operation of defers) {
       try {
@@ -121,7 +120,7 @@ export class Task {
 
     if (!this.#canceled) {
       this.#canceled = true
-      this.#stack.forEach((sf) => { sf.canceled = Canceled.ToDo })
+      this.#stack.cancel()
     }
 
     try {
