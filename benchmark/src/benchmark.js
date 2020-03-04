@@ -37,4 +37,11 @@ async function benchmark(name, cuillereImplementation) {
   return mean
 }
 
-main().catch(err => console.error(err))
+// eslint-disable-next-line spaced-comment
+//*
+main()
+// eslint-disable-next-line spaced-comment
+/*/
+benchmark('current local', require('../../core/lib'))
+// */
+  .catch(err => console.error(err))
