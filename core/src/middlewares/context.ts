@@ -1,39 +1,38 @@
-import { delegate, makeOperation } from '../operations'
 import { Middleware } from './middleware'
+import { Operation } from '../operations'
 
-export const contextMiddleware = (): Middleware =>
-  function* contextMiddleware(operation, ctx) {
-    if (isGet(operation)) {
-      checkKey(operation.key)
-      return ctx[operation.key]
-    }
-    if (isSet(operation)) {
-      checkKey(operation.key)
-      ctx[operation.key] = operation.value
-      return
-    }
+export const contextMiddleware = (): Middleware => ({
+  * get({ key }: Get, ctx) {
+    return ctx[key]
+  },
 
-    return yield delegate(operation)
+  * set({ key, value }: Set, ctx) {
+    ctx[key] = value
+  },
+})
+
+export function get(key: ContextKey): Get {
+  return {
+    kind: 'get',
+    key,
   }
+}
 
-type ContextKey = string | number | symbol
+export function set(key: ContextKey, value: any): Set {
+  return {
+    kind: 'set',
+    key,
+    value,
+  }
+}
 
-interface Set {
+export interface Get extends Operation {
+  key: ContextKey
+}
+
+export interface Set extends Operation {
   key: ContextKey
   value: any
 }
 
-interface Get {
-  key: ContextKey
-}
-
-export const [get, isGet] = makeOperation(Symbol('GET'), (op, key: ContextKey): Get => ({ ...op, key }))
-
-export const [set, isSet] = makeOperation(Symbol('SET'), (op, key: ContextKey, value: any): Set => ({ ...op, key, value }))
-
-function checkKey(key: any) {
-  const keyType = typeof key
-  if (keyType !== 'string' && keyType !== 'number' && keyType !== 'symbol') {
-    throw new Error('context keys should be string, number or symbol')
-  }
-}
+export type ContextKey = string | number | symbol

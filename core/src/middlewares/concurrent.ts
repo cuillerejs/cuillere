@@ -1,47 +1,46 @@
-import { Middleware } from './middleware'
+import { forkOperation, Operation } from '../operations'
 import { Task } from '../task'
-import { forkOperation, delegate, makeOperation } from '../operations'
 import { allSettled as promiseAllSettled } from '../utils/promise'
+import { Middleware } from './middleware'
 
-export interface ConcurrentOperation {
-  operations: Iterable<any>
+export interface Concurrent extends Operation {
+  operations: Iterable<Operation>
 }
 
-const makeConcurrentOperation = (kind: symbol) => makeOperation(
-  kind,
-  (operation, operations: Iterable<any>): ConcurrentOperation => ({
-    ...operation, operations,
-  }),
-)
+export const concurrentMiddleware = (): Middleware => ({
+  async* all({ operations }: Concurrent) {
+    const tasks: Task[] = []
+    for (const op of operations) tasks.push(yield forkOperation(op))
 
-export const [all, isAll] = makeConcurrentOperation(Symbol('ALL'))
-export const [allSettled, isAllSettled] = makeConcurrentOperation(Symbol('ALL_SETTLED'))
+    try {
+      return await Promise.all(tasks.map(({ result }) => result))
+    } catch (error) {
+      const results = await promiseAllSettled(tasks.map(fork => fork.cancel()))
+      error.errors = results
+        .filter(({ status }) => status === 'rejected')
+        .map(({ reason }) => reason)
+        .filter(reason => reason !== error)
+      throw error
+    }
+  },
 
-async function* handleAll(operations: Iterable<any>) {
-  const tasks: Task[] = []
-  for (const op of operations) tasks.push(yield forkOperation(op))
+  async* allSettled({ operations }: Concurrent) {
+    const tasks = []
+    for (const op of operations) tasks.push(yield forkOperation(op))
+    return promiseAllSettled(tasks.map(({ result }) => result))
+  },
+})
 
-  try {
-    return await Promise.all(tasks.map(({ result }) => result))
-  } catch (error) {
-    const results = await promiseAllSettled(tasks.map(fork => fork.cancel()))
-    error.errors = results
-      .filter(({ status }) => status === 'rejected')
-      .map(({ reason }) => reason)
-      .filter(reason => reason !== error)
-    throw error
+function concurrent(kind: string) {
+  const fn = function (operations: Iterable<Operation>): Concurrent {
+    return {
+      kind,
+      operations,
+    }
   }
+  fn.name = kind
+  return fn
 }
 
-async function* handleAllSettled(operations: Iterable<any>) {
-  const tasks = []
-  for (const op of operations) tasks.push(yield forkOperation(op))
-  return promiseAllSettled(tasks.map(({ result }) => result))
-}
-
-export const concurrentMiddleware = (): Middleware =>
-  async function* concurrentMiddleware(operation) {
-    if (isAll(operation)) return yield* handleAll(operation.operations)
-    if (isAllSettled(operation)) return yield* handleAllSettled(operation.operations)
-    return yield delegate(operation)
-  }
+export const all = concurrent('all')
+export const allSettled = concurrent('allSettled')

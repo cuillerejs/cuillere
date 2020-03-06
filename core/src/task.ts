@@ -1,4 +1,4 @@
-import { Middleware } from './middlewares'
+import { Middleware, FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
 import { isTerminal, isFork, isDefer } from './operations'
 import { error, CancellationError } from './errors'
@@ -6,7 +6,7 @@ import { error, CancellationError } from './errors'
 export class Task {
   #ctx: any
 
-  #mws: Middleware[]
+  #mws: Record<string, FilteredHandler[]>
 
   #stack: Stack
 
@@ -22,7 +22,7 @@ export class Task {
 
   #isError: boolean
 
-  constructor(mws: Middleware[], ctx: any, operation: any) {
+  constructor(mws: Record<string, FilteredHandler[]>, ctx: any, operation: any) {
     this.#mws = mws
     this.#ctx = ctx
 

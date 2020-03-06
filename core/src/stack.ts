@@ -1,17 +1,17 @@
-import { Middleware } from './middlewares'
-import { isTerminal, isNext, isStart, isExecute, isCall } from './operations'
+import { Middleware, FilteredHandler, Handler } from './middlewares'
+import { Operation, Wrapper, Execute, Call, isNext, isTerminal } from './operations'
 import { error, unrecognizedOperation } from './errors'
 import { isGenerator } from './generator'
 
 export class Stack {
-  #mws: Middleware[]
+  #handlers: Record<string, FilteredHandler[]>
 
   #ctx: any
 
   currentFrame: StackFrame
 
-  constructor(mws: Middleware[], ctx: any) {
-    this.#mws = mws
+  constructor(handlers: Record<string, FilteredHandler[]>, ctx: any) {
+    this.#handlers = handlers
     this.#ctx = ctx
   }
 
@@ -25,7 +25,7 @@ export class Stack {
     }
   }
 
-  handle(operation: any) {
+  handle(operation: Operation) {
     if (isTerminal(operation)) {
       this.currentFrame = this.stackFrameFor(operation.operation, this.currentFrame.previous)
     } else {
@@ -33,75 +33,101 @@ export class Stack {
     }
   }
 
-  private stackFrameFor(operation: any, previous: StackFrame): StackFrame {
+  private stackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
     if (isNext(operation)) {
-      if (!this.currentFrame?.isMiddleware) throw error('next yielded outside of middleware')
+      if (!this.currentFrame?.isHandler) throw error('next yielded outside of middleware')
 
-      const mwIndex = this.currentFrame?.mwIndex
-      const nextMwIndex = mwIndex === undefined ? undefined : mwIndex + 1
+      const handlerIndex = this.currentFrame?.handlerIndex
+      let nextHandlerIndex = handlerIndex === undefined ? undefined : handlerIndex + 1
 
-      if (nextMwIndex === undefined || nextMwIndex === this.#mws.length) {
+      if (nextHandlerIndex === undefined) {
         return this.fallbackStackFrameFor(operation.operation, previous)
       }
 
+      for (; nextHandlerIndex < this.currentFrame.handlers.length; nextHandlerIndex++) {
+        if (this.currentFrame.handlers[nextHandlerIndex].filter(operation, this.#ctx)) break
+      }
+
+      if (nextHandlerIndex === this.currentFrame.handlers.length) return this.fallbackStackFrameFor(operation, previous)
+
       return {
-        gen: this.#mws[nextMwIndex](operation.operation, this.#ctx),
-        isMiddleware: true,
-        mwIndex: nextMwIndex,
+        isHandler: true,
+        gen: this.currentFrame.handlers[nextHandlerIndex].handle(operation.operation, this.#ctx),
+        handlers: this.currentFrame.handlers,
+        handlerIndex: nextHandlerIndex,
         defers: [],
         previous,
       }
     }
 
-    if (this.#mws.length === 0) return this.fallbackStackFrameFor(operation, previous)
+    const handlers = this.#handlers[operation.kind]
+    if (!handlers) return this.fallbackStackFrameFor(operation, previous)
 
     return {
-      gen: this.#mws[0](operation, this.#ctx),
-      isMiddleware: true,
-      mwIndex: 0,
+      isHandler: true,
+      handlers,
+      handlerIndex: 0,
+      gen: handlers[0].handle(operation, this.#ctx),
       defers: [],
       previous,
     }
   }
 
-  private fallbackStackFrameFor(operation: any, previous: StackFrame): StackFrame {
-    if (isStart(operation)) return this.stackFrameFor(operation.operation, previous)
+  private fallbackStackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
+    const stackFrame: StackFrame = this[`fallback_${operation.kind}`]?.(operation, previous)
 
-    if (!isExecute(operation) && !isCall(operation)) throw unrecognizedOperation(operation)
+    if (!stackFrame) throw unrecognizedOperation(operation)
 
-    let gen: any
+    return stackFrame
+  }
 
-    if (isExecute(operation)) {
+  #fallback_call() {
+
+  }
+
+  #fallbackHandlers = {
+    call({ func, args }: Call, previous: StackFrame): OperationStackFrame {
       // FIXME improve error message
-      if (!isGenerator(operation.gen)) throw error('gen should be a generator')
+      if (!func) throw error('the call operation function is null or undefined')
 
-      gen = operation.gen
-    } else {
-      // FIXME improve error message
-      if (!operation.func) throw error('the call operation function is null or undefined')
-
-      gen = operation.func(...operation.args)
+      const gen = func(...args)
 
       // FIXME improve error message
       if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
-    }
 
-    return {
-      gen,
-      isMiddleware: false,
-      defers: [],
-      previous,
-    }
+      return { gen, isHandler: false, defers: [], previous }
+    },
+
+    execute({ gen }: Execute, previous: StackFrame): OperationStackFrame {
+      // FIXME improve error message
+      if (!isGenerator(gen)) throw error('gen should be a generator')
+      return { gen, isHandler: false, defers: [], previous }
+    },
+
+    start(operation: Wrapper, previous: StackFrame): StackFrame {
+      return this.stackFrameFor(operation.operation, previous)
+    },
   }
 }
 
-export interface StackFrame {
+export type StackFrame = OperationStackFrame | HandlerStackFrame
+
+export interface OperationStackFrame {
+  isHandler: false
   gen: Generator | AsyncGenerator
-  isMiddleware: boolean
-  mwIndex?: number
   canceled?: Canceled
   defers: any[]
-  previous: StackFrame
+  previous?: StackFrame
+}
+
+export interface HandlerStackFrame {
+  isHandler: true
+  gen: Generator | AsyncGenerator
+  canceled?: Canceled
+  defers: any[]
+  previous?: StackFrame
+  handlers: FilteredHandler[]
+  handlerIndex: number
 }
 
 export enum Canceled {

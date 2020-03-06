@@ -9,7 +9,8 @@
     "benny": "^3.6.14"
   },
   "scripts": {
-    "start": "node --harmony .",
-    "prof": "node --harmony --prof . && node --prof-process --preprocess -j isolate*.log | flamebearer"
+    "start": "node --harmony --expose-gc .",
+    "prof": "node --harmony --expose-gc --prof . && node --prof-process --preprocess -j isolate*.log | flamebearer",
+    "debug": "node --harmony --expose-gc --inspect-brk ."
   }
 }

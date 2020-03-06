@@ -1,4 +1,5 @@
-import { Middleware, concurrentMiddleware, contextMiddleware } from './middlewares'
+/* eslint-disable no-param-reassign */
+import { Middleware, concurrentMiddleware, contextMiddleware, FilteredHandler, Handler } from './middlewares'
 import { Generator } from './generator'
 import { call, execute, start, CallFunction } from './operations'
 import { Task } from './task'
@@ -11,23 +12,31 @@ export interface Cuillere {
 }
 
 export default function cuillere(...pMws: Middleware[]): Cuillere {
-  pMws.forEach((mw, index) => {
-    if (typeof mw !== 'function') {
-      throw TypeError(`middlewares[${index}] should be a function*: ${mw}`)
-    }
-  })
-
   const mws = pMws.concat([
     concurrentMiddleware(),
     contextMiddleware(),
   ])
+
+  const handlers: Record<string, FilteredHandler[]> = {}
+
+  const pushHandler = (kind: string) => (handler: Handler) => {
+    if (!handlers[kind]) handlers[kind] = []
+    handlers[kind].push(typeof handler === 'function' ? { handle: handler, filter: () => true } : handler)
+  }
+
+  for (const mw of mws) {
+    Object.entries(mw).forEach(([kind, handler]) => {
+      if (Array.isArray(handler)) handler.forEach(pushHandler(kind))
+      else pushHandler(kind)(handler)
+    })
+  }
 
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
 
     const cllr: Cuillere = {
       ctx: make,
-      start: operation => new Task(mws, ctx, start(operation)).result,
+      start: operation => new Task(handlers, ctx, start(operation)).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }

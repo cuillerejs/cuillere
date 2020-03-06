@@ -1,12 +1,13 @@
-import { Operation, makeOperation } from './operation'
+import { Operation } from './operation'
+import { Generator } from '../generator'
 
-interface Execute extends Operation {
-  gen: Generator | AsyncGenerator
+export interface Execute extends Operation {
+  gen: Generator
 }
 
-export const [execute, isExecute] = makeOperation(
-  Symbol('EXECUTE'),
-  (operation, gen: Generator | AsyncGenerator): Execute => ({
-    ...operation, gen,
-  }),
-)
+export function execute(gen: Generator): Execute {
+  return {
+    kind: 'execute',
+    gen,
+  }
+}

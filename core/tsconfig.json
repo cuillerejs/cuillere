@@ -2,7 +2,7 @@
   "compileOnSave": true,
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es2018",
+    "target": "esNext",
     "declaration": true,
     "sourceMap": true,
     "outDir": "./lib"

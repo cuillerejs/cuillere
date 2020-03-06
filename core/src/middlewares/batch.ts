@@ -1,6 +1,6 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { execute, fork, isCall, delegate, Call, next } from '../operations'
+import { execute, fork, Call, Operation } from '../operations'
 import { Task } from '../task'
 
 interface BatchOptions {
@@ -16,15 +16,14 @@ export function batched<Args extends any[] = any[], R = any>(
   return func as BatchedGeneratorFunction<Args, R>
 }
 
-export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
-  async function* batchMiddelware(operation, ctx: Context) {
-    if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map<any, BatchEntry>()
-
-    if (isBatchedCall(operation)) {
+export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => ({
+  call: {
+    filter: isBatchedCall,
+    async* handle(operation: any, ctx: Context) {
       const batchKey = operation.func[BATCH_KEY](...operation.args)
 
       if (!batchKey) {
-        const [result] = (yield next(execute(operation.func(operation.args)))) as any[]
+        const [result] = (yield execute(operation.func(operation.args))) as any[]
         return result
       }
 
@@ -42,27 +41,24 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware =>
         entry.resolves.push(resolve)
         entry.rejects.push(reject)
       })
-    }
+    },
+  },
 
-    if (isExecuteBatch(operation)) {
-      const entry = ctx[BATCH_CTX].get(operation.batchKey)
-      ctx[BATCH_CTX].delete(operation.batchKey)
-      try {
-        const result = yield execute(entry.func(...entry.args))
-        entry.resolves.forEach((resolve, i) => resolve(result[i]))
-      } catch (err) {
-        entry.rejects.forEach((reject => reject(err)))
-      }
-      return
+  async* executeBatch(operation: any, ctx: Context) {
+    const entry = ctx[BATCH_CTX].get(operation.batchKey)
+    ctx[BATCH_CTX].delete(operation.batchKey)
+    try {
+      const result = yield execute(entry.func(...entry.args))
+      entry.resolves.forEach((resolve, i) => resolve(result[i]))
+    } catch (err) {
+      entry.rejects.forEach((reject => reject(err)))
     }
-
-    return yield delegate(operation)
-  }
+  },
+})
 
 const BATCHED = Symbol('BATCHED')
 const BATCH_CTX = Symbol('BATCH_CTX')
 const BATCH_KEY = Symbol('BATCH_KEY')
-const EXECUTE_BATCH = Symbol('EXECUTE_BATCH')
 
 export interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
   extends GeneratorFunction<Args[], R[]> {
@@ -83,19 +79,18 @@ interface Context {
 }
 
 const isBatchedCall = (operation: any): operation is Call =>
-  isCall(operation) && operation.func[BATCHED]
+  operation.type === 'call' && operation.func[BATCHED]
 
-interface ExecuteBatch {
-  [EXECUTE_BATCH]: true
+interface ExecuteBatch extends Operation {
   batchKey: any
 }
 
-const isExecuteBatch = (operation: any): operation is ExecuteBatch => operation?.[EXECUTE_BATCH]
-
-const executeBatch = (fn: GeneratorFunction): ExecuteBatch => ({
-  [EXECUTE_BATCH]: true,
-  batchKey: fn,
-})
+function executeBatch(fn: GeneratorFunction): ExecuteBatch {
+  return {
+    kind: 'executeBatch',
+    batchKey: fn,
+  }
+}
 
 async function* delayBatchExecution(batchKey: any, delay?: number) {
   await new Promise(resolve => (delay ? setTimeout(resolve, delay) : setImmediate(resolve)))
