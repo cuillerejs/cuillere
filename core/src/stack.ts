@@ -3,33 +3,45 @@ import { isTerminal, isNext, isStart, isExecute, isCall } from './operations'
 import { error, unrecognizedOperation } from './errors'
 import { isGenerator } from './generator'
 
-export class Stack extends Array<StackFrame> {
+export class Stack {
   #mws: Middleware[]
 
   #ctx: any
 
+  currentFrame: StackFrame
+
   constructor(mws: Middleware[], ctx: any) {
-    super()
     this.#mws = mws
     this.#ctx = ctx
   }
 
-  handle(operation: any) {
-    if (isTerminal(operation)) {
-      this[0] = this.stackFrameFor(operation.operation)
-    } else {
-      this.unshift(this.stackFrameFor(operation))
+  shift() {
+    this.currentFrame = this.currentFrame.previous
+  }
+
+  cancel() {
+    for (let frame = this.currentFrame; frame; frame = frame.previous) {
+      frame.canceled = Canceled.ToDo
     }
   }
 
-  private stackFrameFor(operation: any): StackFrame {
-    if (isNext(operation)) {
-      if (!this[0]?.isMiddleware) throw error('next yielded outside of middleware')
+  handle(operation: any) {
+    if (isTerminal(operation)) {
+      this.currentFrame = this.stackFrameFor(operation.operation, this.currentFrame.previous)
+    } else {
+      this.currentFrame = this.stackFrameFor(operation, this.currentFrame)
+    }
+  }
 
-      const nextMwIndex = this[0]?.mwIndex === undefined ? undefined : this[0].mwIndex + 1
+  private stackFrameFor(operation: any, previous: StackFrame): StackFrame {
+    if (isNext(operation)) {
+      if (!this.currentFrame?.isMiddleware) throw error('next yielded outside of middleware')
+
+      const mwIndex = this.currentFrame?.mwIndex
+      const nextMwIndex = mwIndex === undefined ? undefined : mwIndex + 1
 
       if (nextMwIndex === undefined || nextMwIndex === this.#mws.length) {
-        return this.fallbackStackFrameFor(operation.operation)
+        return this.fallbackStackFrameFor(operation.operation, previous)
       }
 
       return {
@@ -37,21 +49,23 @@ export class Stack extends Array<StackFrame> {
         isMiddleware: true,
         mwIndex: nextMwIndex,
         defers: [],
+        previous,
       }
     }
 
-    if (this.#mws.length === 0) return this.fallbackStackFrameFor(operation)
+    if (this.#mws.length === 0) return this.fallbackStackFrameFor(operation, previous)
 
     return {
       gen: this.#mws[0](operation, this.#ctx),
       isMiddleware: true,
       mwIndex: 0,
       defers: [],
+      previous,
     }
   }
 
-  private fallbackStackFrameFor(operation: any): StackFrame {
-    if (isStart(operation)) return this.stackFrameFor(operation.operation)
+  private fallbackStackFrameFor(operation: any, previous: StackFrame): StackFrame {
+    if (isStart(operation)) return this.stackFrameFor(operation.operation, previous)
 
     if (!isExecute(operation) && !isCall(operation)) throw unrecognizedOperation(operation)
 
@@ -76,6 +90,7 @@ export class Stack extends Array<StackFrame> {
       gen,
       isMiddleware: false,
       defers: [],
+      previous,
     }
   }
 }
@@ -86,6 +101,7 @@ export interface StackFrame {
   mwIndex?: number
   canceled?: Canceled
   defers: any[]
+  previous: StackFrame
 }
 
 export enum Canceled {
