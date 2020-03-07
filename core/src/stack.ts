@@ -48,7 +48,7 @@ export class Stack {
         if (this.currentFrame.handlers[nextHandlerIndex].filter(operation, this.#ctx)) break
       }
 
-      if (nextHandlerIndex === this.currentFrame.handlers.length) return this.fallbackStackFrameFor(operation, previous)
+      if (nextHandlerIndex === this.currentFrame.handlers.length) return this.fallbackStackFrameFor(operation.operation, previous)
 
       return {
         isHandler: true,
