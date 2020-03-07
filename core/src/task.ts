@@ -1,6 +1,6 @@
-import { Middleware, FilteredHandler } from './middlewares'
+import { FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
-import { isTerminal, isFork, isDefer } from './operations'
+import { isTerminal } from './operations'
 import { error, CancellationError } from './errors'
 
 export class Task {
@@ -68,20 +68,21 @@ export class Task {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
 
-        if (isFork(this.#current.value.operation)) throw error('terminal forks are forbidden')
-        if (isDefer(this.#current.value.operation)) throw error('terminal defers are forbidden')
+        if (this.#current.value.operation.kind === 'fork') throw error('terminal forks are forbidden')
+        if (this.#current.value.operation.kind === 'defer') throw error('terminal defers are forbidden')
       }
 
-      if (isFork(this.#current.value)) {
+      if (this.#current.value.kind === 'fork') {
         this.#res = new Task(this.#mws, this.#ctx, this.#current.value.operation)
         continue
       }
 
-      if (isDefer(this.#current.value)) {
+      if (this.#current.value.kind === 'defer') {
         curFrame.defers.unshift(this.#current.value.operation)
         this.#res = undefined
         continue
       }
+
       this.#stack.handle(this.#current.value)
     }
 

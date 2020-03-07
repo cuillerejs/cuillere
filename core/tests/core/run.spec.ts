@@ -75,7 +75,9 @@ describe('run', () => {
       let called = false
 
       async function* f1() {
+        console.log('start')
         const task = yield fork(f2)
+        console.log('fork')
         await delay(10) // let some time for f2 to start
         await task.cancel()
       }
@@ -84,6 +86,7 @@ describe('run', () => {
         try {
           await delay(10)
           yield 'anything...' // let cancellation happen
+          console.log('anything')
         } catch (err) {
           called = true
         }

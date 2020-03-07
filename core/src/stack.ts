@@ -1,4 +1,4 @@
-import { Middleware, FilteredHandler, Handler } from './middlewares'
+import { FilteredHandler } from './middlewares'
 import { Operation, Wrapper, Execute, Call, isNext, isTerminal } from './operations'
 import { error, unrecognizedOperation } from './errors'
 import { isGenerator } from './generator'
@@ -33,7 +33,7 @@ export class Stack {
     }
   }
 
-  private stackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
+  stackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
     if (isNext(operation)) {
       if (!this.currentFrame?.isHandler) throw error('next yielded outside of middleware')
 
@@ -73,41 +73,37 @@ export class Stack {
     }
   }
 
-  private fallbackStackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
-    const stackFrame: StackFrame = this[`fallback_${operation.kind}`]?.(operation, previous)
+  fallbackStackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
+    const stackFrame: StackFrame = internalHandlers[operation.kind]?.call(this, operation, previous)
 
     if (!stackFrame) throw unrecognizedOperation(operation)
 
     return stackFrame
   }
+}
 
-  #fallback_call() {
+const internalHandlers = {
+  call({ func, args }: Call, previous: StackFrame): OperationStackFrame {
+    // FIXME improve error message
+    if (!func) throw error('the call operation function is null or undefined')
 
-  }
+    const gen = func(...args)
 
-  #fallbackHandlers = {
-    call({ func, args }: Call, previous: StackFrame): OperationStackFrame {
-      // FIXME improve error message
-      if (!func) throw error('the call operation function is null or undefined')
+    // FIXME improve error message
+    if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
 
-      const gen = func(...args)
+    return { gen, isHandler: false, defers: [], previous }
+  },
 
-      // FIXME improve error message
-      if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
+  execute({ gen }: Execute, previous: StackFrame): OperationStackFrame {
+    // FIXME improve error message
+    if (!isGenerator(gen)) throw error('gen should be a generator')
+    return { gen, isHandler: false, defers: [], previous }
+  },
 
-      return { gen, isHandler: false, defers: [], previous }
-    },
-
-    execute({ gen }: Execute, previous: StackFrame): OperationStackFrame {
-      // FIXME improve error message
-      if (!isGenerator(gen)) throw error('gen should be a generator')
-      return { gen, isHandler: false, defers: [], previous }
-    },
-
-    start(operation: Wrapper, previous: StackFrame): StackFrame {
-      return this.stackFrameFor(operation.operation, previous)
-    },
-  }
+  start(operation: Wrapper, previous: StackFrame): StackFrame {
+    return this.stackFrameFor(operation.operation, previous)
+  },
 }
 
 export type StackFrame = OperationStackFrame | HandlerStackFrame
