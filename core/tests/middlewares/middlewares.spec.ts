@@ -18,7 +18,6 @@ describe('middlewares', () => {
     const middleware1: Middleware = {
       async* call(operation) {
         middleware1Fn()
-        console.log('middleware 1')
         return yield next(operation)
       },
     }
@@ -27,7 +26,6 @@ describe('middlewares', () => {
     const middleware2: Middleware = {
       async* call(operation) {
         middleware2Fn()
-        console.log('middleware 2')
         return yield next(operation)
       },
     }

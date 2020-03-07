@@ -33,48 +33,35 @@ export class Stack {
     }
   }
 
-  stackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
+  stackFrameFor(pOperation: Operation, previous: StackFrame): StackFrame {
+    let handlers: FilteredHandler[]
+    let handlerIndex = 0
+    let operation = pOperation
+
     if (isNext(operation)) {
       if (!this.currentFrame?.isHandler) throw error('next yielded outside of middleware')
-
-      const handlerIndex = this.currentFrame?.handlerIndex
-      let nextHandlerIndex = handlerIndex === undefined ? undefined : handlerIndex + 1
-
-      if (nextHandlerIndex === undefined) {
-        return this.fallbackStackFrameFor(operation.operation, previous)
-      }
-
-      for (; nextHandlerIndex < this.currentFrame.handlers.length; nextHandlerIndex++) {
-        if (this.currentFrame.handlers[nextHandlerIndex].filter(operation, this.#ctx)) break
-      }
-
-      if (nextHandlerIndex === this.currentFrame.handlers.length) return this.fallbackStackFrameFor(operation.operation, previous)
-
-      return {
-        isHandler: true,
-        gen: this.currentFrame.handlers[nextHandlerIndex].handle(operation.operation, this.#ctx),
-        handlers: this.currentFrame.handlers,
-        handlerIndex: nextHandlerIndex,
-        defers: [],
-        previous,
-      }
+      handlerIndex = this.currentFrame.handlerIndex + 1
+      handlers = this.currentFrame.handlers
+      operation = operation.operation
+    } else {
+      handlers = this.#handlers[operation.kind]
+      // There is no middleware for this kind of operation
+      if (!handlers) return this.stackFrameForCore(operation, previous)
     }
 
-    const handlers = this.#handlers[operation.kind]
-    if (!handlers) return this.fallbackStackFrameFor(operation, previous)
-
-    return {
-      isHandler: true,
-      handlers,
-      handlerIndex: 0,
-      gen: handlers[0].handle(operation, this.#ctx),
-      defers: [],
-      previous,
+    for (; handlerIndex < handlers.length; handlerIndex++) {
+      if (handlers[handlerIndex].filter(operation, this.#ctx)) break
     }
+
+    // There is no middleware left for this kind of operation
+    if (handlerIndex === handlers.length) return this.stackFrameForCore(operation, previous)
+
+    const gen = handlers[handlerIndex].handle(operation, this.#ctx)
+    return { isHandler: true, gen, handlers, handlerIndex, defers: [], previous }
   }
 
-  fallbackStackFrameFor(operation: Operation, previous: StackFrame): StackFrame {
-    const stackFrame: StackFrame = internalHandlers[operation.kind]?.call(this, operation, previous)
+  stackFrameForCore(operation: Operation, previous: StackFrame): StackFrame {
+    const stackFrame: StackFrame = coreHandlers[operation.kind]?.call(this, operation, previous)
 
     if (!stackFrame) throw unrecognizedOperation(operation)
 
@@ -82,7 +69,7 @@ export class Stack {
   }
 }
 
-const internalHandlers = {
+const coreHandlers = {
   call({ func, args }: Call, previous: StackFrame): OperationStackFrame {
     // FIXME improve error message
     if (!func) throw error('the call operation function is null or undefined')

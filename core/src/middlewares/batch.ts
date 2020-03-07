@@ -1,6 +1,6 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { execute, fork, Call, Operation } from '../operations'
+import { execute, fork, Call, Operation, next } from '../operations'
 import { Task } from '../task'
 
 interface BatchOptions {
@@ -19,8 +19,9 @@ export function batched<Args extends any[] = any[], R = any>(
 export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => ({
   start: {
     filter: (_operation, ctx) => !ctx[BATCH_CTX],
-    async* handle(_operation, ctx) {
+    async* handle(operation, ctx) {
       ctx[BATCH_CTX] = new Map()
+      return yield next(operation)
     },
   },
   call: {
@@ -84,8 +85,7 @@ interface Context {
   [BATCH_CTX]?: Map<any, BatchEntry>
 }
 
-const isBatchedCall = (operation: any): operation is Call =>
-  operation.type === 'call' && operation.func[BATCHED]
+const isBatchedCall = (operation: any): operation is Call => operation.func[BATCHED]
 
 interface ExecuteBatch extends Operation {
   batchKey: any
