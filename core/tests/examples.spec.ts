@@ -1,4 +1,4 @@
-import cuillere, { Middleware, delegate, Operation } from '../src'
+import cuillere, { Middleware } from '../src'
 
 describe('examples', () => {
   it('promise middleware with custom operations', async () => {
@@ -7,7 +7,7 @@ describe('examples', () => {
     // The promise middleware
     const promiseMiddleware: Middleware = {
       async* await(operation: any) {
-        operation.func(...operation.args)
+        return operation.func(...operation.args)
       },
     }
 
