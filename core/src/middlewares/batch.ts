@@ -1,6 +1,7 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
 import { execute, fork, Call, Operation, next } from '../operations'
+import { resolvablePromise } from '../utils/promise'
 import { Task } from '../task'
 
 interface BatchOptions {
@@ -34,32 +35,31 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => (
         return result
       }
 
-      let entry: any
+      let entry: BatchEntry
       if (ctx[BATCH_CTX].has(batchKey)) {
         entry = ctx[BATCH_CTX].get(batchKey)
       } else {
         entry = { resolves: [], rejects: [], args: [], func: operation.func }
         ctx[BATCH_CTX].set(batchKey, entry)
-        entry.fork = yield fork(delayBatchExecution, batchKey, timeout)
+
+        const [resultPromise, resolve] = resolvablePromise<any[]>()
+        entry.result = resultPromise
+        const { result } = yield fork(async function* delayBatchExecution() {
+          await delay(timeout)
+          return yield executeBatch(batchKey)
+        })
+        resolve(result)
       }
 
-      entry.args.push(operation.args)
-      return new Promise((resolve, reject) => {
-        entry.resolves.push(resolve)
-        entry.rejects.push(reject)
-      })
+      const index = entry.args.push(operation.args) - 1
+      return (await entry.result)[index]
     },
   },
 
   async* executeBatch(operation: any, ctx: Context) {
     const entry = ctx[BATCH_CTX].get(operation.batchKey)
     ctx[BATCH_CTX].delete(operation.batchKey)
-    try {
-      const result = yield execute(entry.func(...entry.args))
-      entry.resolves.forEach((resolve, i) => resolve(result[i]))
-    } catch (err) {
-      entry.rejects.forEach((reject => reject(err)))
-    }
+    return yield execute(entry.func(...entry.args))
   },
 })
 
@@ -74,7 +74,7 @@ export interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
 }
 
 interface BatchEntry {
-  fork: Task
+  result?: Promise<any[]>
   resolves: ((res: any) => void)[]
   rejects: ((err: any) => void)[]
   func: GeneratorFunction
@@ -98,7 +98,7 @@ function executeBatch(fn: GeneratorFunction): ExecuteBatch {
   }
 }
 
-async function* delayBatchExecution(batchKey: any, delay?: number) {
-  await new Promise(resolve => (delay ? setTimeout(resolve, delay) : setImmediate(resolve)))
-  yield executeBatch(batchKey)
+function delay(timeout: number): Promise<void> {
+  return new Promise(resolve => (timeout ? setTimeout(resolve, timeout) : setImmediate(resolve)))
 }
+
