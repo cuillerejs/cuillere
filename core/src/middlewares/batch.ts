@@ -2,6 +2,7 @@ import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
 import { execute, fork, CallOperation, Operation, next } from '../operations'
 import { resolvablePromise } from '../utils/promise'
+import { delayOperation } from '../utils/delay'
 
 interface BatchOptions {
   timeout?: number
@@ -26,7 +27,7 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => (
   },
   call: {
     filter: isBatchedCall,
-    async* handle(operation: any, ctx: Context) {
+    async* handle(operation: CallOperation, ctx: Context) {
       const batchKey = operation.func[BATCH_KEY](...operation.args)
 
       if (!batchKey) {
@@ -43,10 +44,7 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => (
 
         const [resultPromise, resolve] = resolvablePromise<any[]>()
         entry.result = resultPromise
-        const { result } = yield fork(async function* delayBatchExecution() {
-          await delay(timeout)
-          return yield executeBatch(batchKey)
-        })
+        const { result } = yield fork(delayOperation, executeBatch(batchKey), timeout)
         resolve(result)
       }
 
@@ -90,14 +88,10 @@ interface ExecuteBatch extends Operation {
   batchKey: any
 }
 
-function executeBatch(fn: GeneratorFunction): ExecuteBatch {
+function executeBatch(batchKey: any): ExecuteBatch {
   return {
     kind: 'executeBatch',
-    batchKey: fn,
+    batchKey,
   }
-}
-
-function delay(timeout: number): Promise<void> {
-  return new Promise(resolve => (timeout ? setTimeout(resolve, timeout) : setImmediate(resolve)))
 }
 
