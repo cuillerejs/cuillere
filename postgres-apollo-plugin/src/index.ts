@@ -1,10 +1,6 @@
 import type { ApolloServerPlugin } from 'apollo-server-plugin-base'
 import { ProviderMiddlewareOptions, TransactionManagerOptions, PoolProvider, TransactionManager, setQueryHandler } from '@cuillere/postgres'
 
-interface Options extends ProviderMiddlewareOptions {
-  prepared?: boolean
-}
-
 export const CuillerePostgresApolloPlugin = (
   options: ProviderMiddlewareOptions,
   transactionOptions: TransactionManagerOptions,
