@@ -1,6 +1,6 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { execute, fork, CallOperation, Operation, next } from '../operations'
+import { execute, fork, CallOperation, Operation } from '../operations'
 import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
 
