@@ -7,7 +7,7 @@ interface Resolver {
 export const makeResolverFactory = (cllr: Cuillere) => (fn: Resolver): Resolver =>
   (obj, args, ctx: CuillereContext, info) => {
     const res = fn(obj, args, ctx, info)
-    return isGenerator(res) ? (ctx.cuillere ?? cllr.ctx(ctx)).execute(res) : res
+    return isGenerator(res) ? (ctx.cuillere ?? cllr.ctx(ctx)).execute(res as any) : res
   }
 
 export const makeResolversTreeFactory = (cllr: Cuillere) => {
