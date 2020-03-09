@@ -33,7 +33,7 @@ export const concurrentMiddleware = (): Middleware => ({
 
 function concurrent(kind: string) {
   const fn = {
-    // We need an object because it's the only to set the name of a function
+    // Set the function name
     [kind](operations: Iterable<Operation>): Concurrent {
       return { kind, operations }
     },
