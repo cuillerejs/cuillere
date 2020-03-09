@@ -40,13 +40,15 @@ export class Stack {
 
     if (isNext(operation)) {
       if (!this.currentFrame?.isHandler) throw error('next yielded outside of middleware')
+
+      operation = operation.operation
+
       if (this.currentFrame.handlerKind !== operation.kind) {
-        throw error(`operation kind mismatch in next: expected "${this.currentFrame.handlerKind}", got ${operation.kind}`)
+        throw error(`operation kind mismatch in next: expected "${this.currentFrame.handlerKind}", got "${operation.kind}"`)
       }
 
       handlerIndex = this.currentFrame.handlerIndex + 1
       handlers = this.currentFrame.handlers
-      operation = operation.operation
     } else {
       handlers = this.#handlers[operation.kind]
       // There is no middleware for this kind of operation
