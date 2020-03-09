@@ -40,6 +40,10 @@ export class Stack {
 
     if (isNext(operation)) {
       if (!this.currentFrame?.isHandler) throw error('next yielded outside of middleware')
+      if (this.currentFrame.handlerKind !== operation.kind) {
+        throw error(`operation kind mismatch in next: expected "${this.currentFrame.handlerKind}", got ${operation.kind}`)
+      }
+
       handlerIndex = this.currentFrame.handlerIndex + 1
       handlers = this.currentFrame.handlers
       operation = operation.operation
@@ -57,7 +61,7 @@ export class Stack {
     if (handlerIndex === handlers.length) return this.stackFrameForCore(operation, previous)
 
     const gen = handlers[handlerIndex].handle(operation, this.#ctx)
-    return { isHandler: true, gen, handlers, handlerIndex, defers: [], previous }
+    return { isHandler: true, gen, handlers, handlerIndex, defers: [], previous, handlerKind: operation.kind }
   }
 
   stackFrameForCore(operation: Operation, previous: StackFrame): StackFrame {
@@ -111,6 +115,7 @@ export interface HandlerStackFrame {
   previous?: StackFrame
   handlers: FilteredHandler[]
   handlerIndex: number
+  handlerKind: string
 }
 
 export enum Canceled {

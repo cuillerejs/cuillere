@@ -22,11 +22,11 @@ export class Task {
 
   #isError: boolean
 
-  constructor(mws: Record<string, FilteredHandler[]>, ctx: any, operation: Operation) {
-    this.#handlers = mws
+  constructor(handlers: Record<string, FilteredHandler[]>, ctx: any, operation: Operation) {
+    this.#handlers = handlers
     this.#ctx = ctx
 
-    this.#stack = new Stack(mws, ctx)
+    this.#stack = new Stack(handlers, ctx)
     this.#stack.handle(operation)
 
     this.#result = this.execute().finally(() => { this.#settled = true })
