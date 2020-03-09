@@ -2,7 +2,6 @@ import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
 import { execute, fork, Call, Operation, next } from '../operations'
 import { resolvablePromise } from '../utils/promise'
-import { Task } from '../task'
 
 interface BatchOptions {
   timeout?: number
