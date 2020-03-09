@@ -12,6 +12,8 @@ export interface Cuillere {
 }
 
 export default function cuillere(...pMws: Middleware[]): Cuillere {
+  const instances = new WeakMap<any, Cuillere>()
+
   const mws = pMws.concat([
     concurrentMiddleware(),
     contextMiddleware(),
@@ -34,12 +36,18 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
 
+    if (instances.has(ctx)) return instances.get(ctx)
+
     const cllr: Cuillere = {
       ctx: make,
-      start: operation => new Task(handlers, ctx, start(operation)).result,
+      start: handlers.start
+        ? operation => new Task(handlers, ctx, start(operation)).result
+        : operation => new Task(handlers, ctx, operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }
+
+    instances.set(ctx, cllr)
 
     return cllr
   }

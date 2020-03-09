@@ -1,7 +1,7 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
 import { execute, fork, CallOperation, Operation, next } from '../operations'
-import { resolvablePromise } from '../utils/promise'
+import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
 
 interface BatchOptions {
@@ -18,13 +18,6 @@ export function batched<Args extends any[] = any[], R = any>(
 }
 
 export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => ({
-  start: {
-    filter: (_operation, ctx) => !ctx[BATCH_CTX],
-    async* handle(operation, ctx) {
-      ctx[BATCH_CTX] = new Map()
-      return yield next(operation)
-    },
-  },
   call: {
     filter: isBatchedCall,
     async* handle(operation: CallOperation, ctx: Context) {
@@ -35,17 +28,18 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => (
         return result
       }
 
+      if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
+
       let entry: BatchEntry
       if (ctx[BATCH_CTX].has(batchKey)) {
         entry = ctx[BATCH_CTX].get(batchKey)
       } else {
-        entry = { resolves: [], rejects: [], args: [], func: operation.func }
+        const [result, resolve] = executablePromise<any[]>()
+        entry = { resolves: [], rejects: [], args: [], func: operation.func, result }
         ctx[BATCH_CTX].set(batchKey, entry)
 
-        const [resultPromise, resolve] = resolvablePromise<any[]>()
-        entry.result = resultPromise
-        const { result } = yield fork(delayOperation, executeBatch(batchKey), timeout)
-        resolve(result)
+        const task = yield fork(delayOperation, executeBatch(batchKey), timeout)
+        resolve(task.result)
       }
 
       const index = entry.args.push(operation.args) - 1
@@ -71,7 +65,7 @@ export interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
 }
 
 interface BatchEntry {
-  result?: Promise<any[]>
+  result: Promise<any[]>
   resolves: ((res: any) => void)[]
   rejects: ((err: any) => void)[]
   func: GeneratorFunction
