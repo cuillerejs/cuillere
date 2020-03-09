@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/graphql-example",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {
     "name": "Valentin COCAUD",
@@ -23,9 +23,9 @@
     "start": "node ."
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.6.2",
-    "@cuillere/graphql": "^0.6.2",
-    "@cuillere/postgres-apollo-plugin": "^0.6.2",
+    "@cuillere/core": "^0.7.1",
+    "@cuillere/graphql": "^0.7.1",
+    "@cuillere/postgres-apollo-plugin": "^0.7.1",
     "koa": "^2.11.0",
     "pg": "^7.18.1"
   },
