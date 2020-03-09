@@ -1,12 +1,12 @@
 import { FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
-import { isTerminal } from './operations'
+import { isTerminal, Operation } from './operations'
 import { error, CancellationError } from './errors'
 
 export class Task {
   #ctx: any
 
-  #mws: Record<string, FilteredHandler[]>
+  #handlers: Record<string, FilteredHandler[]>
 
   #stack: Stack
 
@@ -16,14 +16,14 @@ export class Task {
 
   #canceled = false
 
-  #current: IteratorResult<any>
+  #current: IteratorResult<Operation>
 
   #res: any
 
   #isError: boolean
 
-  constructor(mws: Record<string, FilteredHandler[]>, ctx: any, operation: any) {
-    this.#mws = mws
+  constructor(mws: Record<string, FilteredHandler[]>, ctx: any, operation: Operation) {
+    this.#handlers = mws
     this.#ctx = ctx
 
     this.#stack = new Stack(mws, ctx)
@@ -32,7 +32,7 @@ export class Task {
     this.#result = this.execute().finally(() => { this.#settled = true })
   }
 
-  private async execute(): Promise<any> {
+  async execute(): Promise<any> {
     while (this.#stack.currentFrame) {
       const curFrame = this.#stack.currentFrame
 
@@ -73,7 +73,7 @@ export class Task {
       }
 
       if (this.#current.value.kind === 'fork') {
-        this.#res = new Task(this.#mws, this.#ctx, this.#current.value.operation)
+        this.#res = new Task(this.#handlers, this.#ctx, this.#current.value.operation)
         continue
       }
 
@@ -93,12 +93,12 @@ export class Task {
     return this.#res
   }
 
-  private async shift() {
+  async shift() {
     const { defers } = this.#stack.currentFrame
 
     for (const operation of defers) {
       try {
-        await new Task(this.#mws, this.#ctx, operation).result
+        await new Task(this.#handlers, this.#ctx, operation).result
       } catch (e) {
         this.#isError = true
         this.#res = e

@@ -1,5 +1,5 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, Wrapper, Execute, Call, isNext, isTerminal } from './operations'
+import { Operation, Wrapper, Execute, CallOperation, isNext, isTerminal } from './operations'
 import { error, unrecognizedOperation } from './errors'
 import { isGenerator } from './generator'
 
@@ -70,7 +70,7 @@ export class Stack {
 }
 
 const coreHandlers = {
-  call({ func, args }: Call, previous: StackFrame): OperationStackFrame {
+  call({ func, args }: CallOperation, previous: StackFrame): OperationStackFrame {
     // FIXME improve error message
     if (!func) throw error('the call operation function is null or undefined')
 
@@ -97,17 +97,17 @@ export type StackFrame = OperationStackFrame | HandlerStackFrame
 
 export interface OperationStackFrame {
   isHandler: false
-  gen: Generator | AsyncGenerator
+  gen: Generator<any, Operation> | AsyncGenerator<any, Operation>
   canceled?: Canceled
-  defers: any[]
+  defers: Operation[]
   previous?: StackFrame
 }
 
 export interface HandlerStackFrame {
   isHandler: true
-  gen: Generator | AsyncGenerator
+  gen: Generator<any, Operation> | AsyncGenerator<any, Operation>
   canceled?: Canceled
-  defers: any[]
+  defers: Operation[]
   previous?: StackFrame
   handlers: FilteredHandler[]
   handlerIndex: number

@@ -1,7 +1,7 @@
 import { Operation } from '../operations'
 import { GeneratorFunction } from '../generator'
 
-export type Handle = GeneratorFunction<[Operation, any]>
+export type Handle = GeneratorFunction<[Operation, any], any, Operation>
 
 export interface FilteredHandler {
   filter?: (operation: Operation, ctx: any) => boolean
