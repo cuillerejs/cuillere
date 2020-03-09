@@ -1,3 +1,8 @@
-import { makeWrapperOperation } from './operation'
+import { Operation, Wrapper } from './operation'
 
-export const [start, isStart] = makeWrapperOperation(Symbol('START'))
+export function start(operation: Operation): Wrapper {
+  return {
+    kind: 'start',
+    operation,
+  }
+}

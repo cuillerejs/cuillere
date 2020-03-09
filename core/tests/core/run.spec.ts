@@ -82,8 +82,8 @@ describe('run', () => {
 
       async function* f2() {
         try {
-          await delay(10)
-          yield 'anything...' // let cancellation happen
+          await delay(20)
+          yield 'anything' // let cancellation happen
         } catch (err) {
           called = true
         }

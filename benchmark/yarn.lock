@@ -37,9 +37,9 @@
     fast-deep-equal "^3.1.1"
 
 "@cuillere/core@^0.6.6":
-  version "0.6.6"
-  resolved "https://registry.yarnpkg.com/@cuillere/core/-/core-0.6.6.tgz#5c6e21967db605d5ba962dcc76fa940aea77236b"
-  integrity sha512-fkNG+42Ha8S5rG6ccK8suVEW8uRTxuLKCbFjiMac/45yp7/n6ZZHPNJcSAKD+egjCmUiMLtfPEdtVb9Gs8Gyhw==
+  version "0.6.7"
+  resolved "https://registry.yarnpkg.com/@cuillere/core/-/core-0.6.7.tgz#b384fbec93fb7e7f9125079214dbf2cb19ff4cae"
+  integrity sha512-x3agLBqsLsbT9xY4h85ifA6mR1ttuifiRmGiqYOMnH67HrBd8G+wpwjrvk3sLrMNpQ+wxppKMxvl/p2HpgyBQQ==
 
 ansi-escapes@^3.2.0:
   version "3.2.0"

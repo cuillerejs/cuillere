@@ -1,3 +1,12 @@
-import { makeWrapperOperation } from './operation'
+import { Operation, Wrapper } from './operation'
 
-export const [next, isNext] = makeWrapperOperation(Symbol('NEXT'))
+export function next(operation: Operation): Wrapper {
+  return {
+    kind: 'next',
+    operation,
+  }
+}
+
+export function isNext(operation: Operation): operation is Wrapper {
+  return operation?.kind === 'next'
+}

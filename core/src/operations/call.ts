@@ -1,24 +1,20 @@
 import { GeneratorFunction } from '../generator'
-import { makeOperation, Operation } from './operation'
+import { Operation } from './operation'
 import type { BatchedGeneratorFunction } from '../middlewares'
 
-export interface Call extends Operation {
+export interface CallOperation extends Operation {
   func: CallFunction
   args?: any[]
-  location?: string
 }
 
 export type CallFunction<Args extends any[] = any[], R = any> =
-  GeneratorFunction<Args, R> |
+  GeneratorFunction<Args, R, Operation> |
   BatchedGeneratorFunction<Args, R>
 
-export const [callOperation, isCall] = makeOperation(
-  Symbol('CALL'),
-  (operation, func: GeneratorFunction, ...args: any[]): Call => ({
-    ...operation, func, args,
-  }),
-)
-
-export function call<Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args): Call {
-  return callOperation(func, ...args)
+export function call<Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args): CallOperation {
+  return {
+    kind: 'call',
+    func,
+    args,
+  }
 }

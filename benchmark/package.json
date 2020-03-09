@@ -10,6 +10,7 @@
   },
   "scripts": {
     "start": "node --harmony .",
-    "prof": "node --harmony --prof . && node --prof-process --preprocess -j isolate*.log | flamebearer"
+    "prof": "node --harmony --prof . && node --prof-process --preprocess -j isolate*.log | flamebearer",
+    "debug": "node --harmony --inspect-brk ."
   }
 }

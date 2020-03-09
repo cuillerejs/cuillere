@@ -13,17 +13,21 @@ describe('middlewares', () => {
     await test(cllr)
   })
 
-  it('should call all middlewares', async () => {
+  it('should call middlewares for call operation', async () => {
     const middleware1Fn = jest.fn()
-    const middleware1: Middleware = function* middleware1(operation) {
-      middleware1Fn()
-      return yield next(operation)
+    const middleware1: Middleware = {
+      async* call(operation) {
+        middleware1Fn()
+        return yield next(operation)
+      },
     }
 
     const middleware2Fn = jest.fn()
-    const middleware2: Middleware = function* middleware2(operation) {
-      middleware2Fn()
-      return yield next(operation)
+    const middleware2: Middleware = {
+      async* call(operation) {
+        middleware2Fn()
+        return yield next(operation)
+      },
     }
 
     const cllr = cuillere(middleware1, middleware2)
@@ -34,9 +38,9 @@ describe('middlewares', () => {
   })
 
   it('should call middlewares in right ordrer', async () => {
-    const middleware1: Middleware = function* middleware1(operation) { return `expected ${yield next(operation)}` }
-    const middleware2: Middleware = function* middleware2(operation) { return `returned ${yield next(operation)}` }
-    const middleware3: Middleware = function* middleware3() { return 'value' }
+    const middleware1: Middleware = { async* call(operation) { return `expected ${yield next(operation)}` } }
+    const middleware2: Middleware = { async* call(operation) { return `returned ${yield next(operation)}` } }
+    const middleware3: Middleware = { async* call() { return 'value' } }
 
     const cllr = cuillere(middleware1, middleware2, middleware3)
 
@@ -45,20 +49,21 @@ describe('middlewares', () => {
 
   // SKIPPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
   it.skip('should be able to catch exception from middleware', async () => {
-    const throwOperation = { op: 'throw' }
+    const throwOperation = () => ({ kind: 'throw' })
     const error = { error: 'test' }
 
     async function* test() {
       try {
-        yield throwOperation
+        yield throwOperation()
       } catch (err) {
         expect(err).toEqual({ error: 'test' }) // eslint-disable-line jest/no-try-expect
       }
     }
 
-    const middleware: Middleware = function* middleware(op) {
-      if (op === throwOperation) throw error
-      return yield next(op)
+    const middleware: Middleware = {
+      async* throw() {
+        throw error
+      },
     }
 
     try {

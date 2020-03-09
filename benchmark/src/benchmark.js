@@ -1,4 +1,4 @@
-/* eslint-disable func-names, one-var-declaration-per-line,
+/* eslint-disable func-names, one-var-declaration-per-line, spaced-comment,
   one-var, @typescript-eslint/no-var-requires, global-require */
 // eslint-disable-next-line no-undef
 const nbCalls = BigInt(process.argv[2] || 100000)
@@ -24,12 +24,9 @@ async function benchmark(name, cuillereImplementation) {
     return true
   }
 
-  let start, end
-  await cllr.call(function* () {
-    start = process.hrtime.bigint()
-    for (let i = 0; i < nbCalls; i++) yield call(noop)
-    end = process.hrtime.bigint()
-  })
+  const start = process.hrtime.bigint()
+  for (let i = 0; i < nbCalls; i++) await cllr.call(noop)
+  const end = process.hrtime.bigint()
 
   const elapsed = end - start
   const mean = Number(elapsed / nbCalls)
@@ -37,10 +34,8 @@ async function benchmark(name, cuillereImplementation) {
   return mean
 }
 
-// eslint-disable-next-line spaced-comment
 //*
 main()
-// eslint-disable-next-line spaced-comment
 /*/
 benchmark('current local', require('../../core/lib'))
 // */

@@ -63,6 +63,7 @@ module.exports = {
         }],
         "import/prefer-default-export": "off",
         "max-classes-per-file": "off",
+        "max-len":["error", { code: 160 }],
         "no-await-in-loop": "off",
         "no-console": "off",
         "no-continue": "off",
@@ -96,6 +97,7 @@ module.exports = {
         "no-dupe-class-members": "off",
         "import/no-extraneous-dependencies": "off",
         "no-multi-assign": "off",
-        "no-plusplus": "off"
+        "no-plusplus": "off",
+        "func-names": "off"
     }
 };

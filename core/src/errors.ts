@@ -6,7 +6,7 @@ class UnrecognizedOperationError extends TypeError {
   operation: any
 
   constructor(operation: any) {
-    super(formatMessage('operation could not be handled, misformed operation or missing middleware'))
+    super(formatMessage(`operation could not be handled, misformed operation or missing middleware: ${operation?.kind}`))
     this.operation = operation
   }
 }
