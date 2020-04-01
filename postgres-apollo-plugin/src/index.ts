@@ -22,7 +22,7 @@ export const CuillerePostgresApolloPlugin = (
   })
 }
 
-const getClientImpl: GeneratorFunction<[string], Client> = function* getClient(name: string) {
+const getClientImpl: GeneratorFunction<[string], Client> = async function* getClient(name: string) {
   const getClientFn = yield get('getClient')
   return getClientFn(name)
 }
