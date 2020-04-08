@@ -10,15 +10,18 @@ export const CuillerePostgresApolloPlugin = (
   const provider = options.poolProvider ?? new PoolProvider(...options.poolConfigs)
 
   return ({
-    requestDidStart: () => ({
-      executionDidStart({ context }) {
-        const manager = new TransactionManager(provider, transactionOptions)
-        setQueryHandler(context, query => manager.query(query))
-        context.getClient = (pool: string) => manager.getClient(pool)
-
-        return err => (err ? manager.rollback() : manager.commit())
-      },
-    }),
+    requestDidStart() {
+      let shouldRollback = false
+      return {
+        didEncounterErrors() { shouldRollback = true },
+        executionDidStart({ context }) {
+          const manager = new TransactionManager(provider, transactionOptions)
+          setQueryHandler(context, query => manager.query(query))
+          context.getClient = (pool: string) => manager.getClient(pool)
+          return () => (shouldRollback ? manager.rollback() : manager.commit())
+        },
+      }
+    },
   })
 }
 
