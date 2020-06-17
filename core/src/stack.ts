@@ -1,7 +1,7 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal } from './operations'
+import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal, execute } from './operations'
 import { error, unrecognizedOperation } from './errors'
-import { isGenerator } from './generator'
+import { isGenerator, Generator } from './generator'
 
 export class Stack {
   #handlers: Record<string, FilteredHandler[]>
@@ -50,8 +50,11 @@ export class Stack {
       handlerIndex = this.currentFrame.handlerIndex + 1
       handlers = this.currentFrame.handlers
     } else {
-      // operation is a generator, directly put it on the stack
-      if (isGenerator(operation)) return { gen: operation, isHandler: false, defers: [], previous }
+      if (isGenerator(operation)) {
+        // no middleware handles generator execution, directly put it on the stack
+        if (!this.#handlers.execute) return newOperationStackFrame(operation, previous)
+        operation = execute(operation)
+      }
 
       handlers = this.#handlers[operation.kind]
 
@@ -89,13 +92,13 @@ const coreHandlers = {
     // FIXME improve error message
     if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
 
-    return { gen, isHandler: false, defers: [], previous }
+    return newOperationStackFrame(gen, previous)
   },
 
   execute({ gen }: Execute, previous: StackFrame): OperationStackFrame {
     // FIXME improve error message
     if (!isGenerator(gen)) throw error('gen should be a generator')
-    return { gen, isHandler: false, defers: [], previous }
+    return newOperationStackFrame(gen, previous)
   },
 
   start(operation: Wrapper, previous: StackFrame): StackFrame {
@@ -103,11 +106,14 @@ const coreHandlers = {
   },
 }
 
+const newOperationStackFrame = (gen: Generator<any, Operation>, previous?: StackFrame): OperationStackFrame =>
+  ({ gen, previous, isHandler: false, defers: [] })
+
 export type StackFrame = OperationStackFrame | HandlerStackFrame
 
 export interface OperationStackFrame {
   isHandler: false
-  gen: Generator<any, Operation> | AsyncGenerator<any, Operation>
+  gen: Generator<any, Operation>
   canceled?: Canceled
   defers: Operation[]
   previous?: StackFrame
@@ -115,7 +121,7 @@ export interface OperationStackFrame {
 
 export interface HandlerStackFrame {
   isHandler: true
-  gen: Generator<any, Operation> | AsyncGenerator<any, Operation>
+  gen: Generator<any, Operation>
   canceled?: Canceled
   defers: Operation[]
   previous?: StackFrame
