@@ -9,12 +9,20 @@ describe('run', () => {
   })
 
   describe('runCallOperation', () => {
-    it('should return the result of a simple generator function', async () => {
+    it('should return the result of a simple generator function (using call)', async () => {
       function* test() {
         return 'test'
       }
 
       expect(await cllr.call(test)).toBe('test')
+    })
+
+    it('should return the result of a simple generator function', async () => {
+      function* test() {
+        return 'test'
+      }
+
+      expect(await cllr.start(test())).toBe('test')
     })
 
     it('should pass arguments to the generator function', async () => {
@@ -56,7 +64,7 @@ describe('run', () => {
       async function* f2() {
         try {
           await delay(20)
-          yield 'anything...' // let cancellation happen
+          yield { kind: 'let cancellation happen' }
         } finally {
           yield call(f3)
         }
@@ -83,7 +91,7 @@ describe('run', () => {
       async function* f2() {
         try {
           await delay(20)
-          yield 'anything' // let cancellation happen
+          yield { kind: 'let cancellation happen' }
         } catch (err) {
           called = true
         }

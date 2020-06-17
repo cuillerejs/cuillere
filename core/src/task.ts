@@ -1,6 +1,6 @@
 import { FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
-import { isTerminal, Operation } from './operations'
+import { isTerminal, Operation, isFork, isDefer } from './operations'
 import { error, CancellationError } from './errors'
 
 export class Task {
@@ -61,15 +61,17 @@ export class Task {
 
       if (curFrame.canceled === Canceled.ToDo) continue
 
+      if (this.#current.value === undefined || this.#current.value === null) throw error(`${this.#current.value} operation is forbidden`)
+
       if (isTerminal(this.#current.value)) {
+        if (isFork(this.#current.value.operation)) throw error('terminal forks are forbidden')
+        if (isDefer(this.#current.value.operation)) throw error('terminal defers are forbidden')
+
         try {
           if (!(await curFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
         } catch (e) {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
-
-        if (this.#current.value.operation.kind === 'fork') throw error('terminal forks are forbidden')
-        if (this.#current.value.operation.kind === 'defer') throw error('terminal defers are forbidden')
       }
 
       if (this.#current.value.kind === 'fork') {

@@ -1,7 +1,7 @@
-import { Operation } from './operation'
+import { Operation, OperationObject } from './operation'
 import { Generator } from '../generator'
 
-export interface Execute<R = any> extends Operation {
+export interface Execute<R = any> extends OperationObject {
   gen: Generator<R, Operation>
 }
 

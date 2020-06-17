@@ -1,4 +1,4 @@
-import { Operation, Wrapper } from './operation'
+import { Operation, Wrapper, isKind } from './operation'
 
 export function terminal(operation: Operation): Wrapper {
   return {
@@ -7,6 +7,4 @@ export function terminal(operation: Operation): Wrapper {
   }
 }
 
-export function isTerminal(operation: Operation): operation is Wrapper {
-  return operation?.kind === 'terminal'
-}
+export const isTerminal = isKind<Wrapper>('terminal')

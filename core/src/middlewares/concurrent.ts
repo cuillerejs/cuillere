@@ -1,9 +1,9 @@
-import { forkOperation, Operation } from '../operations'
+import { forkOperation, Operation, OperationObject } from '../operations'
 import { Task } from '../task'
 import { allSettled as promiseAllSettled } from '../utils/promise'
 import { Middleware } from './middleware'
 
-export interface Concurrent extends Operation {
+export interface Concurrent extends OperationObject {
   operations: Iterable<Operation>
 }
 

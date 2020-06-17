@@ -1,5 +1,5 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, Wrapper, Execute, CallOperation, isNext, isTerminal } from './operations'
+import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal } from './operations'
 import { error, unrecognizedOperation } from './errors'
 import { isGenerator } from './generator'
 
@@ -50,7 +50,11 @@ export class Stack {
       handlerIndex = this.currentFrame.handlerIndex + 1
       handlers = this.currentFrame.handlers
     } else {
+      // operation is a generator, directly put it on the stack
+      if (isGenerator(operation)) return { gen: operation, isHandler: false, defers: [], previous }
+
       handlers = this.#handlers[operation.kind]
+
       // There is no middleware for this kind of operation
       if (!handlers) return this.stackFrameForCore(operation, previous)
     }
@@ -66,7 +70,7 @@ export class Stack {
     return { isHandler: true, gen, handlers, handlerIndex, defers: [], previous, handlerKind: operation.kind }
   }
 
-  stackFrameForCore(operation: Operation, previous: StackFrame): StackFrame {
+  stackFrameForCore(operation: OperationObject, previous: StackFrame): StackFrame {
     const stackFrame: StackFrame = coreHandlers[operation.kind]?.call(this, operation, previous)
 
     if (!stackFrame) throw unrecognizedOperation(operation)

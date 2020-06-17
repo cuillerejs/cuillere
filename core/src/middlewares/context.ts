@@ -1,5 +1,5 @@
 import { Middleware } from './middleware'
-import { Operation } from '../operations'
+import { OperationObject } from '../operations'
 
 export const contextMiddleware = (): Middleware => ({
   * get({ key }: Get, ctx) {
@@ -26,11 +26,11 @@ export function set(key: ContextKey, value: any): Set {
   }
 }
 
-export interface Get extends Operation {
+export interface Get extends OperationObject {
   key: ContextKey
 }
 
-export interface Set extends Operation {
+export interface Set extends OperationObject {
   key: ContextKey
   value: any
 }

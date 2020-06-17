@@ -1,6 +1,6 @@
 import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { execute, fork, CallOperation, Operation } from '../operations'
+import { execute, fork, CallOperation, Operation, OperationObject } from '../operations'
 import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
 
@@ -58,8 +58,7 @@ const BATCHED = Symbol('BATCHED')
 const BATCH_CTX = Symbol('BATCH_CTX')
 const BATCH_KEY = Symbol('BATCH_KEY')
 
-export interface BatchedGeneratorFunction<Args extends any[] = any[], R = any>
-  extends GeneratorFunction<Args[], R[], Operation> {
+export interface BatchedGeneratorFunction<Args extends any[] = any[], R = any> extends GeneratorFunction<Args[], R[], Operation> {
   [BATCHED]: true
   [BATCH_KEY]: (...args: Args) => any
 }
@@ -78,7 +77,7 @@ interface Context {
 
 const isBatchedCall = (operation: any): operation is CallOperation => operation.func[BATCHED]
 
-interface ExecuteBatch extends Operation {
+interface ExecuteBatch extends OperationObject {
   batchKey: any
 }
 
