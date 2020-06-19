@@ -2,6 +2,7 @@ import { FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
 import { isTerminal, Operation, isFork, isDefer, validateOperation } from './operations'
 import { error, CancellationError } from './errors'
+import { isRecover } from './operations/recover'
 
 export class Task {
   #ctx: any
@@ -90,6 +91,10 @@ export class Task {
         curFrame.defers.unshift(operation.operation)
         this.#res = undefined
         continue
+      }
+
+      if (isRecover(this.#current.value)) {
+        // FIXME
       }
 
       this.#stack.handle(operation)

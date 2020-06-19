@@ -1,6 +1,7 @@
 import { terminal } from './terminal'
 import { fork } from './fork'
 import { defer } from './defer'
+import { recover } from './recover'
 
 describe('terminal', () => {
   function* dummy() {
@@ -15,6 +16,11 @@ describe('terminal', () => {
   it('should not accept defer operation', () => {
     expect(() => terminal(defer(dummy()))).toThrow(TypeError)
     expect(() => terminal(defer(dummy()))).toThrow('terminal defers are forbidden')
+  })
+
+  it('should not accept recover operation', () => {
+    expect(() => terminal(recover())).toThrow(TypeError)
+    expect(() => terminal(recover())).toThrow('terminal recovers are forbidden')
   })
 
   it('should not accept terminal operation', () => {
