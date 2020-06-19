@@ -17,7 +17,7 @@ describe('run', () => {
       expect(await cllr.call(test)).toBe('test')
     })
 
-    it('should return the result of a simple generator function', async () => {
+    it('should return the result of a simple generator (using start)', async () => {
       function* test() {
         return 'test'
       }
@@ -34,7 +34,7 @@ describe('run', () => {
       expect(await cllr.call(test, ...testArgs)).toEqual(testArgs)
     })
 
-    it('should run yielded operations', async () => {
+    it('should run yielded call operations', async () => {
       function* test1() {
         return 'test1'
       }
@@ -52,7 +52,25 @@ describe('run', () => {
       expect(await cllr.call(test3)).toEqual(['test1', 'test2'])
     })
 
-    it('should allow to use finaly to clean up canceled calls', async () => {
+    it('should run yielded generators', async () => {
+      function* test1() {
+        return 'test1'
+      }
+
+      function* test2() {
+        return 'test2'
+      }
+
+      function* test3() {
+        const result1 = yield test1()
+        const result2 = yield test2()
+        return [result1, result2]
+      }
+
+      expect(await cllr.call(test3)).toEqual(['test1', 'test2'])
+    })
+
+    it('should allow to use finally to clean up canceled calls', async () => {
       let called = false
 
       async function* f1() {
