@@ -136,7 +136,7 @@ describe('run', () => {
       throw new Error(message)
     }
 
-    it('should be called in reversed order', async () => {
+    it('should be executed in reversed order', async () => {
       function* test() {
         yield defer(push, 3)
         yield defer(push, 2)
@@ -148,7 +148,7 @@ describe('run', () => {
       expect(defers).toEqual([1, 2, 3])
     })
 
-    it('should be called on uncaught exception', async () => {
+    it('should be executed after uncaught exception', async () => {
       function* test() {
         yield defer(push, 3)
         yield defer(push, 2)
@@ -163,7 +163,7 @@ describe('run', () => {
       expect(defers).toEqual([1, 2, 3])
     })
 
-    it('should be called after uncaught exception in defer', async () => {
+    it('should be executed after uncaught exception in defer', async () => {
       function* test() {
         yield defer(push, 2)
         yield defer(throwError, 'foo')

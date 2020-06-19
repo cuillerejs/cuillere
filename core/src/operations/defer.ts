@@ -1,15 +1,11 @@
-import { Operation, Wrapper, isKind } from './operation'
+import { Operation, Wrapper, isKind, isOperation } from './operation'
 import { call, CallFunction } from './call'
 
-export function deferOperation(operation: Operation): Wrapper {
-  return {
-    kind: 'defer',
-    operation,
-  }
-}
+export function defer<Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args): Wrapper<Operation>
+export function defer<Args extends any[], R>(operation: Operation): Wrapper<Operation>
 
-export function defer<Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args) {
-  return deferOperation(call(func, ...args))
+export function defer<Args extends any[], R>(arg0: Operation | CallFunction<Args, R>, ...args: Args) {
+  return { kind: 'defer', operation: isOperation(arg0) ? arg0 : call(arg0, ...args) }
 }
 
 export const isDefer = isKind<Wrapper>('defer')

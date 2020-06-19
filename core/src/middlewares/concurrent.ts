@@ -1,4 +1,4 @@
-import { forkOperation, Operation, OperationObject } from '../operations'
+import { fork, Operation, OperationObject } from '../operations'
 import { Task } from '../task'
 import { allSettled as promiseAllSettled } from '../utils/promise'
 import { Middleware } from './middleware'
@@ -10,7 +10,7 @@ export interface Concurrent extends OperationObject {
 export const concurrentMiddleware = (): Middleware => ({
   async* all({ operations }: Concurrent) {
     const tasks: Task[] = []
-    for (const op of operations) tasks.push(yield forkOperation(op))
+    for (const op of operations) tasks.push(yield fork(op))
 
     try {
       return await Promise.all(tasks.map(({ result }) => result))
@@ -26,7 +26,7 @@ export const concurrentMiddleware = (): Middleware => ({
 
   async* allSettled({ operations }: Concurrent) {
     const tasks = []
-    for (const op of operations) tasks.push(yield forkOperation(op))
+    for (const op of operations) tasks.push(yield fork(op))
     return promiseAllSettled(tasks.map(({ result }) => result))
   },
 })
