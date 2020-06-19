@@ -119,6 +119,18 @@ describe('run', () => {
 
       expect(called).toBe(false)
     })
+
+    it('should throw error for undefined operation', async () => {
+      await cllr.call(function* () {
+        try {
+          yield undefined
+          throw Error('should have thrown error')
+        } catch (e) {
+          // eslint-disable-next-line jest/no-try-expect
+          expect(e).toHaveProperty('message', 'undefined operation is forbidden')
+        }
+      })
+    })
   })
 
   describe('defer', () => {
