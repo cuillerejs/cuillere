@@ -131,6 +131,18 @@ describe('run', () => {
         }
       })
     })
+
+    it('should throw error for null operation', async () => {
+      await cllr.call(function* () {
+        try {
+          yield null
+          throw Error('should have thrown error')
+        } catch (e) {
+          // eslint-disable-next-line jest/no-try-expect
+          expect(e).toHaveProperty('message', 'null operation is forbidden')
+        }
+      })
+    })
   })
 
   describe('defer', () => {

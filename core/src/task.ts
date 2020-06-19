@@ -61,7 +61,11 @@ export class Task {
 
       if (curFrame.canceled === Canceled.ToDo) continue
 
-      if (this.#current.value === undefined || this.#current.value === null) throw Error(`${this.#current.value} operation is forbidden`)
+      if (this.#current.value === undefined || this.#current.value === null) {
+        this.#isError = true
+        this.#res = Error(`${this.#current.value} operation is forbidden`)
+        continue
+      }
 
       if (isTerminal(this.#current.value)) {
         if (isFork(this.#current.value.operation)) throw error('terminal forks are forbidden')
