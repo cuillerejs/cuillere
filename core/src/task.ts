@@ -1,6 +1,6 @@
 import { FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
-import { isTerminal, Operation, isFork, isDefer } from './operations'
+import { isTerminal, Operation, isFork, isDefer, validateOperation } from './operations'
 import { error, CancellationError } from './errors'
 
 export class Task {
@@ -27,7 +27,9 @@ export class Task {
     this.#ctx = ctx
 
     this.#stack = new Stack(handlers, ctx)
-    this.#stack.handle(operation)
+
+    // FIXME additional validations on start operation
+    this.#stack.handle(validateOperation(operation))
 
     this.#result = this.execute().finally(() => { this.#settled = true })
   }
@@ -61,35 +63,36 @@ export class Task {
 
       if (curFrame.canceled === Canceled.ToDo) continue
 
-      if (this.#current.value === undefined || this.#current.value === null) {
+      let operation: Operation
+      try {
+        operation = validateOperation(this.#current.value)
+      } catch (e) {
         this.#isError = true
-        this.#res = Error(`${this.#current.value} operation is forbidden`)
+        this.#res = e
         continue
       }
 
-      if (isTerminal(this.#current.value)) {
-        if (isFork(this.#current.value.operation)) throw error('terminal forks are forbidden')
-        if (isDefer(this.#current.value.operation)) throw error('terminal defers are forbidden')
-
+      if (isTerminal(operation)) {
         try {
+          // FIXME what should we do if there are defers ? warning ? throw ?
           if (!(await curFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
         } catch (e) {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
       }
 
-      if (this.#current.value.kind === 'fork') {
-        this.#res = new Task(this.#handlers, this.#ctx, this.#current.value.operation)
+      if (isFork(operation)) {
+        this.#res = new Task(this.#handlers, this.#ctx, operation.operation)
         continue
       }
 
-      if (this.#current.value.kind === 'defer') {
-        curFrame.defers.unshift(this.#current.value.operation)
+      if (isDefer(operation)) {
+        curFrame.defers.unshift(operation.operation)
         this.#res = undefined
         continue
       }
 
-      this.#stack.handle(this.#current.value)
+      this.#stack.handle(operation)
     }
 
     if (this.#canceled) throw new CancellationError()

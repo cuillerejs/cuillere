@@ -23,3 +23,17 @@ export function isKind<T extends OperationObject>(kind: string) {
 export interface Wrapper<T extends Operation = Operation> extends OperationObject {
   readonly operation: T
 }
+
+export function isWrapper(operation: Operation): operation is Wrapper {
+  return 'operation' in operation
+}
+
+export function validateOperation(value: any): Operation {
+  if (value === undefined || value === null) throw new TypeError(`${value} operation is forbidden`)
+
+  if (!isOperation(value)) throw new TypeError(`${value} is neither an operation nor a generator`)
+
+  if (isWrapper(value)) validateOperation(value.operation)
+
+  return value
+}

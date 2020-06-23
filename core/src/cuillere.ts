@@ -40,9 +40,10 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
 
     const cllr: Cuillere = {
       ctx: make,
+      // ⚠ async keywords are necessary in order to reject on throws in Task constructor
       start: handlers.start
-        ? operation => new Task(handlers, ctx, start(operation)).result
-        : operation => new Task(handlers, ctx, operation).result,
+        ? async operation => new Task(handlers, ctx, start(operation)).result
+        : async operation => new Task(handlers, ctx, operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }

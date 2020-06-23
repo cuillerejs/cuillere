@@ -7,22 +7,17 @@ describe('generator', () => {
         return true
       }
 
-      expect(isGenerator(test())).toBeTruthy()
+      expect(isGenerator(test())).toBe(true)
     })
 
     it('should return false for non generator values', () => {
-      expect(isGenerator(Promise.resolve())).toBeFalsy()
-      expect(isGenerator(1)).toBeFalsy()
-      expect(isGenerator('test')).toBeFalsy()
-      expect(isGenerator([])).toBeFalsy()
-      expect(isGenerator({})).toBeFalsy()
-      expect(isGenerator(true)).toBeFalsy()
-      expect(isGenerator(false)).toBeFalsy()
-    })
-
-    it('should handle null and undefined by returning false', () => {
-      expect(isGenerator(null)).toBeFalsy()
-      expect(isGenerator(undefined)).toBeFalsy()
+      expect(isGenerator(Promise.resolve())).toBe(false)
+      expect(isGenerator(1)).toBe(false)
+      expect(isGenerator('test')).toBe(false)
+      expect(isGenerator([])).toBe(false)
+      expect(isGenerator({})).toBe(false)
+      expect(isGenerator(true)).toBe(false)
+      expect(isGenerator(false)).toBe(false)
     })
   })
 })
