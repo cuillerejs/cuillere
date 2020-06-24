@@ -50,13 +50,14 @@ describe('middlewares', () => {
   // SKIPPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
   it.skip('should be able to catch exception from middleware', async () => {
     const throwOperation = () => ({ kind: 'throw' })
-    const error = { error: 'test' }
+    const error = new Error('test')
+    let catched: Error
 
     async function* test() {
       try {
         yield throwOperation()
-      } catch (err) {
-        expect(err).toEqual({ error: 'test' }) // eslint-disable-line jest/no-try-expect
+      } catch (e) {
+        catched = e
       }
     }
 
@@ -66,10 +67,7 @@ describe('middlewares', () => {
       },
     }
 
-    try {
-      await cuillere(middleware).call(test)
-    } catch (err) {
-      throw new Error("middleware exception shouldn't be rethrown")
-    }
+    await expect(cuillere(middleware).call(test)).resolves.toBeUndefined()
+    expect(catched).toBe(error)
   })
 })
