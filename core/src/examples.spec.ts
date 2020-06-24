@@ -1,4 +1,4 @@
-import cuillere, { Middleware } from '../src'
+import cuillere, { Middleware } from '.'
 
 describe('examples', () => {
   it('promise middleware with custom operations', async () => {

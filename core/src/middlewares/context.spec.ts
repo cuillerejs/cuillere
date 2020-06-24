@@ -1,4 +1,4 @@
-import cuillere, { get, set } from '../../src'
+import cuillere, { get, set } from '..'
 
 describe('middlewares', () => {
   let cllr

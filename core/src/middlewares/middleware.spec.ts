@@ -1,6 +1,6 @@
-import cuillere, { Cuillere, Middleware, next } from '../../src'
+import cuillere, { Cuillere, Middleware, next } from '..'
 
-describe('middlewares', () => {
+describe('middleware', () => {
   const test = async (cllr: Cuillere, expected = 'test') => {
     function* func() {
       return 'test'

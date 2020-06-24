@@ -1,4 +1,4 @@
-import { isGenerator } from '../src/generator'
+import { isGenerator } from './generator'
 
 describe('generator', () => {
   describe('isGenerator', () => {

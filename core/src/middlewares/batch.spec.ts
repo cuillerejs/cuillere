@@ -1,5 +1,4 @@
-import cuillere, { Cuillere, call, GeneratorFunction } from '../../src'
-import { batched, batchMiddelware } from '../../src/middlewares'
+import cuillere, { Cuillere, GeneratorFunction, batched, batchMiddelware, call } from '..'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 

@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, call, fork, defer } from '../../src'
+import cuillere, { Cuillere, call, fork, defer } from '.'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
