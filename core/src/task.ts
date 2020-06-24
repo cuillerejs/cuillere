@@ -17,8 +17,6 @@ export class Task {
 
   #canceled = false
 
-  #current: IteratorResult<Operation>
-
   #res: any
 
   #isError: boolean
@@ -38,16 +36,15 @@ export class Task {
   async execute(): Promise<any> {
     while (this.#stack.currentFrame) {
       const curFrame = this.#stack.currentFrame
+      let result: IteratorResult<Operation>
 
       try {
         // FIXME add some tests for defer and finally when canceled
         if (curFrame.canceled && curFrame.canceled === Canceled.ToDo) {
           curFrame.canceled = Canceled.Done
-          this.#current = await curFrame.gen.return(undefined)
+          result = await curFrame.gen.return(undefined)
         } else {
-          this.#current = await (
-            this.#isError ? curFrame.gen.throw(this.#res) : curFrame.gen.next(this.#res)
-          )
+          result = await (this.#isError ? curFrame.gen.throw(this.#res) : curFrame.gen.next(this.#res))
         }
         this.#isError = false
       } catch (e) {
@@ -57,8 +54,8 @@ export class Task {
         continue
       }
 
-      if (this.#current.done) {
-        this.#res = this.#current.value
+      if (result.done) {
+        this.#res = result.value
         await this.shift()
         continue
       }
@@ -67,7 +64,7 @@ export class Task {
 
       let operation: Operation
       try {
-        operation = validateOperation(this.#current.value)
+        operation = validateOperation(result.value)
       } catch (e) {
         this.#isError = true
         this.#res = e
@@ -105,6 +102,7 @@ export class Task {
         // FIXME mutualize with try...catch of validateOperation ?
         this.#isError = true
         this.#res = e
+        continue
       }
     }
 

@@ -116,7 +116,11 @@ export class StackFrame {
 
   #defers: Operation[] = []
 
-  #previous?: StackFrame
+  #previous: StackFrame
+
+  #res: any
+
+  #isError: boolean
 
   constructor(gen: Generator<any, Operation>, previous: StackFrame) {
     this.#gen = gen
@@ -128,6 +132,20 @@ export class StackFrame {
   get defers() { return this.#defers }
 
   get previous() { return this.#previous }
+
+  get res() { return this.#res }
+
+  get isError() { return this.#isError }
+
+  set returns(res: any) {
+    this.#res = res
+    this.#isError = false
+  }
+
+  set throws(e: any) {
+    this.#res = e
+    this.#isError = true
+  }
 }
 
 export class HandlerStackFrame extends StackFrame {

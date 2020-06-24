@@ -1,7 +1,7 @@
 import cuillere, { defer, recover } from '..'
 
 describe('recover', () => {
-  it('should recover from error', async () => {
+  it.skip('should recover from error', async () => {
     function* test() {
       yield throwAndRecover()
 
