@@ -40,6 +40,7 @@ export class Task {
       const curFrame = this.#stack.currentFrame
 
       try {
+        // FIXME add some tests for defer and finally when canceled
         if (curFrame.canceled && curFrame.canceled === Canceled.ToDo) {
           curFrame.canceled = Canceled.Done
           this.#current = await curFrame.gen.return(undefined)
@@ -74,6 +75,7 @@ export class Task {
       }
 
       if (isTerminal(operation)) {
+        // FIXME should throw in previous stackFrame
         try {
           // FIXME what should we do if there are defers ? warning ? throw ?
           if (!(await curFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
@@ -93,11 +95,17 @@ export class Task {
         continue
       }
 
-      if (isRecover(this.#current.value)) {
+      if (isRecover(operation)) {
         // FIXME
       }
 
-      this.#stack.handle(operation)
+      try {
+        this.#stack.handle(operation)
+      } catch (e) {
+        // FIXME mutualize with try...catch of validateOperation ?
+        this.#isError = true
+        this.#res = e
+      }
     }
 
     if (this.#canceled) throw new CancellationError()

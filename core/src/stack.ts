@@ -8,7 +8,7 @@ export class Stack {
 
   #ctx: any
 
-  currentFrame: StackFrame
+  #currentFrame: StackFrame
 
   constructor(handlers: Record<string, FilteredHandler[]>, ctx: any) {
     this.#handlers = handlers
@@ -16,20 +16,20 @@ export class Stack {
   }
 
   shift() {
-    this.currentFrame = this.currentFrame.previous
+    this.#currentFrame = this.#currentFrame.previous
   }
 
   cancel() {
-    for (let frame = this.currentFrame; frame; frame = frame.previous) {
+    for (let frame = this.#currentFrame; frame; frame = frame.previous) {
       frame.canceled = Canceled.ToDo
     }
   }
 
   handle(operation: Operation) {
     if (isTerminal(operation)) {
-      this.currentFrame = this.stackFrameFor(operation.operation, this.currentFrame.previous)
+      this.#currentFrame = this.stackFrameFor(operation.operation, this.#currentFrame.previous)
     } else {
-      this.currentFrame = this.stackFrameFor(operation, this.currentFrame)
+      this.#currentFrame = this.stackFrameFor(operation, this.#currentFrame)
     }
   }
 
@@ -39,26 +39,26 @@ export class Stack {
     let operation = pOperation
 
     if (isNext(operation)) {
-      if (!this.currentFrame?.isHandler) throw error('next yielded outside of middleware')
+      if (!(this.#currentFrame instanceof HandlerStackFrame)) throw new TypeError('next cannot be used outside of a handler')
 
       operation = operation.operation
 
-      if (this.currentFrame.handlerKind !== operation.kind) {
-        throw error(`operation kind mismatch in next: expected "${this.currentFrame.handlerKind}", got "${operation.kind}"`)
+      if (this.#currentFrame.kind !== operation.kind) {
+        throw error(`operation kind mismatch in next: expected "${this.#currentFrame.kind}", got "${operation.kind}"`)
       }
 
-      handlerIndex = this.currentFrame.handlerIndex + 1
-      handlers = this.currentFrame.handlers
+      handlers = this.#currentFrame.handlers
+      handlerIndex = this.#currentFrame.index + 1
     } else {
       if (isGenerator(operation)) {
-        // no middleware handles generator execution, directly put it on the stack
-        if (!this.#handlers.execute) return newOperationStackFrame(operation, previous)
+        // no handler for generator execution, directly put it on the stack
+        if (!this.#handlers.execute) return new StackFrame(operation, previous)
         operation = execute(operation)
       }
 
       handlers = this.#handlers[operation.kind]
 
-      // There is no middleware for this kind of operation
+      // There is no handler for this kind of operation
       if (!handlers) return this.stackFrameForCore(operation, previous)
     }
 
@@ -66,11 +66,12 @@ export class Stack {
       if (handlers[handlerIndex].filter(operation, this.#ctx)) break
     }
 
-    // There is no middleware left for this kind of operation
+    // There is no handler left for this kind of operation
     if (handlerIndex === handlers.length) return this.stackFrameForCore(operation, previous)
 
     const gen = handlers[handlerIndex].handle(operation, this.#ctx)
-    return { isHandler: true, gen, handlers, handlerIndex, defers: [], previous, handlerKind: operation.kind }
+
+    return new HandlerStackFrame(gen, previous, operation.kind, handlers, handlerIndex)
   }
 
   stackFrameForCore(operation: OperationObject, previous: StackFrame): StackFrame {
@@ -80,10 +81,12 @@ export class Stack {
 
     return stackFrame
   }
+
+  get currentFrame() { return this.#currentFrame }
 }
 
 const coreHandlers = {
-  call({ func, args }: CallOperation, previous: StackFrame): OperationStackFrame {
+  call({ func, args }: CallOperation, previous: StackFrame): StackFrame {
     // FIXME improve error message
     if (!func) throw error('the call operation function is null or undefined')
 
@@ -92,13 +95,13 @@ const coreHandlers = {
     // FIXME improve error message
     if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
 
-    return newOperationStackFrame(gen, previous)
+    return new StackFrame(gen, previous)
   },
 
-  execute({ gen }: Execute, previous: StackFrame): OperationStackFrame {
+  execute({ gen }: Execute, previous: StackFrame): StackFrame {
     // FIXME improve error message
     if (!isGenerator(gen)) throw error('gen should be a generator')
-    return newOperationStackFrame(gen, previous)
+    return new StackFrame(gen, previous)
   },
 
   start(operation: Wrapper, previous: StackFrame): StackFrame {
@@ -106,28 +109,46 @@ const coreHandlers = {
   },
 }
 
-const newOperationStackFrame = (gen: Generator<any, Operation>, previous?: StackFrame): OperationStackFrame =>
-  ({ gen, previous, isHandler: false, defers: [] })
+export class StackFrame {
+  #gen: Generator<any, Operation>
 
-export type StackFrame = OperationStackFrame | HandlerStackFrame
-
-export interface OperationStackFrame {
-  isHandler: false
-  gen: Generator<any, Operation>
   canceled?: Canceled
-  defers: Operation[]
-  previous?: StackFrame
+
+  #defers: Operation[] = []
+
+  #previous?: StackFrame
+
+  constructor(gen: Generator<any, Operation>, previous: StackFrame) {
+    this.#gen = gen
+    this.#previous = previous
+  }
+
+  get gen() { return this.#gen }
+
+  get defers() { return this.#defers }
+
+  get previous() { return this.#previous }
 }
 
-export interface HandlerStackFrame {
-  isHandler: true
-  gen: Generator<any, Operation>
-  canceled?: Canceled
-  defers: Operation[]
-  previous?: StackFrame
-  handlers: FilteredHandler[]
-  handlerIndex: number
-  handlerKind: string
+export class HandlerStackFrame extends StackFrame {
+  #kind: string
+
+  #handlers: FilteredHandler[]
+
+  #index: number
+
+  constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, handlers: FilteredHandler[], index: number) {
+    super(gen, previous)
+    this.#kind = kind
+    this.#handlers = handlers
+    this.#index = index
+  }
+
+  get kind() { return this.#kind }
+
+  get handlers() { return this.#handlers }
+
+  get index() { return this.#index }
 }
 
 export enum Canceled {

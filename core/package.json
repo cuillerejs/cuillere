@@ -17,7 +17,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "test": "node --harmony ../node_modules/.bin/jest",
-    "lint": "yarn eslint --ext .ts src tests",
+    "lint": "yarn eslint --ext .ts src",
     "prebuild": "yarn clean && yarn lint",
     "build": "yarn tsc",
     "prewatch": "yarn clean",
