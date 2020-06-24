@@ -153,7 +153,7 @@ describe('middlewares', () => {
       await expect(result).rejects.toBe(testError)
     })
 
-    it('should works in nested called', async () => {
+    it('should work in nested call', async () => {
       let nestedResult: any
       const batchedFn = batched(function* batchedFn(...calls) {
         mock.call(calls)

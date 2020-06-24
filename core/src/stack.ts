@@ -16,7 +16,10 @@ export class Stack {
   }
 
   shift() {
+    const frame = this.#currentFrame
     this.#currentFrame = this.#currentFrame.previous
+    if (this.#currentFrame) this.#currentFrame.result = frame.result
+    return frame
   }
 
   cancel() {
@@ -109,6 +112,11 @@ const coreHandlers = {
   },
 }
 
+export interface StackFrameResult {
+  value: any
+  isError: boolean
+}
+
 export class StackFrame {
   #gen: Generator<any, Operation>
 
@@ -118,9 +126,7 @@ export class StackFrame {
 
   #previous: StackFrame
 
-  #res: any
-
-  #isError: boolean
+  result: StackFrameResult = { value: undefined, isError: false }
 
   constructor(gen: Generator<any, Operation>, previous: StackFrame) {
     this.#gen = gen
@@ -133,19 +139,11 @@ export class StackFrame {
 
   get previous() { return this.#previous }
 
-  get res() { return this.#res }
+  set yields(value: any) { this.result = { value, isError: false } }
 
-  get isError() { return this.#isError }
+  set throws(value: any) { this.result = { value, isError: true } }
 
-  set returns(res: any) {
-    this.#res = res
-    this.#isError = false
-  }
-
-  set throws(e: any) {
-    this.#res = e
-    this.#isError = true
-  }
+  set returns(value: any) { this.result = { value, isError: false } }
 }
 
 export class HandlerStackFrame extends StackFrame {

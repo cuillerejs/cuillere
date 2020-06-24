@@ -98,7 +98,7 @@ describe('run', () => {
     })
 
     it("shouldn't allow to use catch to stop cancellation", async () => {
-      let called = false
+      let catched = false
 
       async function* f1() {
         const task = yield fork(f2)
@@ -110,14 +110,14 @@ describe('run', () => {
         try {
           await delay(20)
           yield { kind: 'let cancellation happen' }
-        } catch (err) {
-          called = true
+        } catch (e) {
+          catched = true
         }
       }
 
       await cllr.call(f1)
 
-      expect(called).toBe(false)
+      expect(catched).toBe(false)
     })
 
     it('should throw error for undefined start operation', async () => {

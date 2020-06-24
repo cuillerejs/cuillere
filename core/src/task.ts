@@ -3,6 +3,7 @@ import { Stack, Canceled } from './stack'
 import { isTerminal, Operation, isFork, isDefer, validateOperation } from './operations'
 import { error, CancellationError } from './errors'
 import { isRecover } from './operations/recover'
+import { executablePromise } from './utils/promise'
 
 export class Task {
   #ctx: any
@@ -11,15 +12,11 @@ export class Task {
 
   #stack: Stack
 
-  #result: Promise<any>
+  #result = executablePromise<any>()
 
   #settled = false
 
   #canceled = false
-
-  #res: any
-
-  #isError: boolean
 
   constructor(handlers: Record<string, FilteredHandler[]>, ctx: any, operation: Operation) {
     this.#handlers = handlers
@@ -30,44 +27,47 @@ export class Task {
     // FIXME additional validations on start operation
     this.#stack.handle(validateOperation(operation))
 
-    this.#result = this.execute().finally(() => { this.#settled = true })
+    this.#result[0]
+      .catch(() => { /* Avoids unhandled promise rejection */ })
+      .finally(() => { this.#settled = true })
+
+    this.execute()
   }
 
-  async execute(): Promise<any> {
+  async execute() {
     while (this.#stack.currentFrame) {
-      const curFrame = this.#stack.currentFrame
       let result: IteratorResult<Operation>
 
       try {
         // FIXME add some tests for defer and finally when canceled
-        if (curFrame.canceled && curFrame.canceled === Canceled.ToDo) {
-          curFrame.canceled = Canceled.Done
-          result = await curFrame.gen.return(undefined)
+        if (this.#stack.currentFrame.canceled && this.#stack.currentFrame.canceled === Canceled.ToDo) {
+          this.#stack.currentFrame.canceled = Canceled.Done
+          result = await this.#stack.currentFrame.gen.return(undefined)
         } else {
-          result = await (this.#isError ? curFrame.gen.throw(this.#res) : curFrame.gen.next(this.#res))
+          result = await (
+            this.#stack.currentFrame.result.isError
+              ? this.#stack.currentFrame.gen.throw(this.#stack.currentFrame.result.value)
+              : this.#stack.currentFrame.gen.next(this.#stack.currentFrame.result.value))
         }
-        this.#isError = false
       } catch (e) {
-        this.#isError = true
-        this.#res = e
+        this.#stack.currentFrame.throws = e
         await this.shift()
         continue
       }
 
       if (result.done) {
-        this.#res = result.value
+        this.#stack.currentFrame.returns = result.value
         await this.shift()
         continue
       }
 
-      if (curFrame.canceled === Canceled.ToDo) continue
+      if (this.#stack.currentFrame.canceled === Canceled.ToDo) continue
 
       let operation: Operation
       try {
         operation = validateOperation(result.value)
       } catch (e) {
-        this.#isError = true
-        this.#res = e
+        this.#stack.currentFrame.throws = e
         continue
       }
 
@@ -75,20 +75,20 @@ export class Task {
         // FIXME should throw in previous stackFrame
         try {
           // FIXME what should we do if there are defers ? warning ? throw ?
-          if (!(await curFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
+          if (!(await this.#stack.currentFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
         } catch (e) {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
       }
 
       if (isFork(operation)) {
-        this.#res = new Task(this.#handlers, this.#ctx, operation.operation)
+        this.#stack.currentFrame.yields = new Task(this.#handlers, this.#ctx, operation.operation)
         continue
       }
 
       if (isDefer(operation)) {
-        curFrame.defers.unshift(operation.operation)
-        this.#res = undefined
+        this.#stack.currentFrame.defers.unshift(operation.operation)
+        this.#stack.currentFrame.yields = undefined
         continue
       }
 
@@ -100,17 +100,10 @@ export class Task {
         this.#stack.handle(operation)
       } catch (e) {
         // FIXME mutualize with try...catch of validateOperation ?
-        this.#isError = true
-        this.#res = e
+        this.#stack.currentFrame.throws = e
         continue
       }
     }
-
-    if (this.#canceled) throw new CancellationError()
-
-    if (this.#isError) throw this.#res
-
-    return this.#res
   }
 
   async shift() {
@@ -120,16 +113,24 @@ export class Task {
       try {
         await new Task(this.#handlers, this.#ctx, operation).result
       } catch (e) {
-        this.#isError = true
-        this.#res = e
+        this.#stack.currentFrame.throws = e
       }
     }
 
-    this.#stack.shift()
+    const frame = this.#stack.shift()
+
+    if (!this.#stack.currentFrame) {
+      if (this.#canceled) {
+        this.#result[2](new CancellationError())
+        return
+      }
+
+      this.#result[frame.result.isError ? 2 : 1](frame.result.value)
+    }
   }
 
   get result() {
-    return this.#result
+    return this.#result[0]
   }
 
   get settled() {
@@ -145,9 +146,10 @@ export class Task {
     }
 
     try {
-      await this.#result
+      await this.#result[0]
     } catch (e) {
       if (CancellationError.isCancellationError(e)) return
+      // This should not happen
       throw error('fork did not cancel properly. Caused by: ', e.stack)
     }
   }
