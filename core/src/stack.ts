@@ -16,9 +16,25 @@ export class Stack {
   }
 
   shift() {
-    const frame = this.#currentFrame
-    this.#currentFrame = this.#currentFrame.previous
-    if (this.#currentFrame) this.#currentFrame.result = frame.result
+    let frame: StackFrame
+
+    do {
+      if (this.#currentFrame.defers.length !== 0) {
+        this.handle(this.#currentFrame.defers.shift())
+        return undefined
+      }
+
+      if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
+
+      if (this.#currentFrame.previous?.done && this.currentFrame.result.hasError) {
+        this.#currentFrame.previous.result.hasError = true
+        this.#currentFrame.previous.result.error = this.currentFrame.result.error
+      }
+
+      frame = this.#currentFrame
+      this.#currentFrame = this.#currentFrame.previous
+    } while (this.#currentFrame?.done)
+
     return frame
   }
 
@@ -113,8 +129,9 @@ const coreHandlers = {
 }
 
 export interface StackFrameResult {
-  value: any
-  isError: boolean
+  value?: any
+  hasError: boolean
+  error?: any
 }
 
 export class StackFrame {
@@ -126,7 +143,9 @@ export class StackFrame {
 
   #previous: StackFrame
 
-  result: StackFrameResult = { value: undefined, isError: false }
+  result: StackFrameResult = { hasError: false }
+
+  done = false
 
   constructor(gen: Generator<any, Operation>, previous: StackFrame) {
     this.#gen = gen
@@ -138,12 +157,6 @@ export class StackFrame {
   get defers() { return this.#defers }
 
   get previous() { return this.#previous }
-
-  set yields(value: any) { this.result = { value, isError: false } }
-
-  set throws(value: any) { this.result = { value, isError: true } }
-
-  set returns(value: any) { this.result = { value, isError: false } }
 }
 
 export class HandlerStackFrame extends StackFrame {

@@ -45,18 +45,22 @@ export class Task {
           result = await this.#stack.currentFrame.gen.return(undefined)
         } else {
           result = await (
-            this.#stack.currentFrame.result.isError
-              ? this.#stack.currentFrame.gen.throw(this.#stack.currentFrame.result.value)
+            this.#stack.currentFrame.result.hasError
+              ? this.#stack.currentFrame.gen.throw(this.#stack.currentFrame.result.error)
               : this.#stack.currentFrame.gen.next(this.#stack.currentFrame.result.value))
         }
+
+        this.#stack.currentFrame.result = { hasError: false }
       } catch (e) {
-        this.#stack.currentFrame.throws = e
+        this.#stack.currentFrame.result = { hasError: true, error: e }
+        this.#stack.currentFrame.done = true
         await this.shift()
         continue
       }
 
       if (result.done) {
-        this.#stack.currentFrame.returns = result.value
+        this.#stack.currentFrame.result.value = result.value
+        this.#stack.currentFrame.done = true
         await this.shift()
         continue
       }
@@ -67,7 +71,7 @@ export class Task {
       try {
         operation = validateOperation(result.value)
       } catch (e) {
-        this.#stack.currentFrame.throws = e
+        this.#stack.currentFrame.result = { hasError: true, error: e }
         continue
       }
 
@@ -82,13 +86,12 @@ export class Task {
       }
 
       if (isFork(operation)) {
-        this.#stack.currentFrame.yields = new Task(this.#handlers, this.#ctx, operation.operation)
+        this.#stack.currentFrame.result.value = new Task(this.#handlers, this.#ctx, operation.operation)
         continue
       }
 
       if (isDefer(operation)) {
         this.#stack.currentFrame.defers.unshift(operation.operation)
-        this.#stack.currentFrame.yields = undefined
         continue
       }
 
@@ -100,23 +103,13 @@ export class Task {
         this.#stack.handle(operation)
       } catch (e) {
         // FIXME mutualize with try...catch of validateOperation ?
-        this.#stack.currentFrame.throws = e
+        this.#stack.currentFrame.result = { hasError: true, error: e }
         continue
       }
     }
   }
 
   async shift() {
-    const { defers } = this.#stack.currentFrame
-
-    for (const operation of defers) {
-      try {
-        await new Task(this.#handlers, this.#ctx, operation).result
-      } catch (e) {
-        this.#stack.currentFrame.throws = e
-      }
-    }
-
     const frame = this.#stack.shift()
 
     if (!this.#stack.currentFrame) {
@@ -125,7 +118,8 @@ export class Task {
         return
       }
 
-      this.#result[frame.result.isError ? 2 : 1](frame.result.value)
+      if (frame.result.hasError) this.#result[2](frame.result.error)
+      else this.#result[1](frame.result.value)
     }
   }
 
