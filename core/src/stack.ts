@@ -126,6 +126,15 @@ const coreHandlers = {
   start(operation: Wrapper, previous: StackFrame): StackFrame {
     return this.stackFrameFor(operation.operation, previous)
   },
+
+  recover(): StackFrame {
+    if (this.currentFrame?.previous.done && this.currentFrame.previous.result.hasError) {
+      this.currentFrame.previous.result.hasError = false
+      this.currentFrame.previous.result.error = undefined
+    }
+
+    return this.currentFrame
+  },
 }
 
 export interface StackFrameResult {
