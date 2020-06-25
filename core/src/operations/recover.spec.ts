@@ -24,15 +24,74 @@ describe('recover', () => {
   })
 
   it('should recover from error in previous defer', async () => {
+    const error = new Error('test')
+    let recovered: any
+
     function* test() {
       yield defer(function* () {
-        yield recover()
+        recovered = yield recover()
       }())
       yield defer(function* () {
-        throw new Error('test')
+        throw error
       }())
     }
 
-    await cuillere().call(test)
+    await expect(cuillere().call(test)).resolves.toBeUndefined()
+    expect(recovered).toBe(error)
+  })
+
+  it('should recover from error in previous nested defer', async () => {
+    const error = new Error('test')
+    let recovered: any
+
+    function* test() {
+      yield defer(function* () {
+        recovered = yield recover()
+      }())
+      yield defer(function* () {
+        yield defer(function* () {
+          throw error
+        }())
+      }())
+    }
+
+    await expect(cuillere().call(test)).resolves.toBeUndefined()
+    expect(recovered).toBe(error)
+  })
+
+  it('should recover error from defer replacing error from function', async () => {
+    const error = new Error('test')
+    let recovered: any
+
+    function* test() {
+      yield defer(function* () {
+        recovered = yield recover()
+      }())
+      yield defer(function* () {
+        throw error
+      }())
+      throw new Error('replaced')
+    }
+
+    await expect(cuillere().call(test)).resolves.toBeUndefined()
+    expect(recovered).toBe(error)
+  })
+
+  it('should keep returned value after recovering error from defer', async () => {
+    const error = new Error('test')
+    let recovered: any
+
+    function* test() {
+      yield defer(function* () {
+        recovered = yield recover()
+      }())
+      yield defer(function* () {
+        throw error
+      }())
+      return 'kept'
+    }
+
+    await expect(cuillere().call(test)).resolves.toBe('kept')
+    expect(recovered).toBe(error)
   })
 })
