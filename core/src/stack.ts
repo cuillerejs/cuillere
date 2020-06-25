@@ -130,6 +130,7 @@ const coreHandlers = {
   recover(): StackFrame {
     if (this.currentFrame?.previous.done && this.currentFrame.previous.result.hasError) {
       this.currentFrame.previous.result.hasError = false
+      this.currentFrame.result = { hasError: false, value: this.currentFrame.previous.result.error }
       this.currentFrame.previous.result.error = undefined
     }
 

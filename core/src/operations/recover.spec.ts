@@ -18,4 +18,20 @@ describe('recover', () => {
 
     await expect(cuillere().call(test)).resolves.toBe('ok')
   })
+
+  it('should return the recovered error', async () => {
+    const error = new TypeError('test')
+    let recovered: any
+
+    function* throwAndRecover() {
+      yield defer(function* () {
+        recovered = yield recover()
+      }())
+
+      throw error
+    }
+
+    await cuillere().call(throwAndRecover)
+    expect(recovered).toBe(error)
+  })
 })
