@@ -13,10 +13,6 @@ describe('defer', () => {
     defers.push(n)
   }
 
-  function* throwError(message: string) {
-    throw new Error(message)
-  }
-
   it('should execute defers in reversed order', async () => {
     function* test() {
       yield defer(push(3))
@@ -42,47 +38,59 @@ describe('defer', () => {
   })
 
   it('should execute defers after uncaught exception', async () => {
+    const error = new Error('foo')
+
     function* test() {
       yield defer(push(3))
       yield defer(push(2))
       yield defer(push(1))
-      throw new Error('foo')
+      throw error
     }
 
-    const res = cllr.call(test)
-
-    await expect(res).rejects.toBeInstanceOf(Error)
-    await expect(res).rejects.toHaveProperty('message', 'foo')
+    await expect(cllr.call(test)).rejects.toBe(error)
     expect(defers).toEqual([1, 2, 3])
   })
 
   it('should be executed after uncaught exception in defer', async () => {
+    const error = new Error('test')
+
     function* test() {
       yield defer(push(2))
-      yield defer(throwError, 'foo')
+      yield defer(function* () {
+        throw error
+      }())
       yield defer(push(1))
-      return 4
     }
 
-    const res = cllr.call(test)
+    await expect(cllr.call(test)).rejects.toBe(error)
 
-    await expect(res).rejects.toBeInstanceOf(Error)
-    await expect(res).rejects.toHaveProperty('message', 'foo')
     expect(defers).toEqual([1, 2])
   })
 
-  it('should throw error from defer', async () => {
+  it('should replace error by error from defer', async () => {
+    const error = new Error('bar')
+
     function* test() {
-      yield defer(push(2))
-      yield defer(throwError, 'bar')
-      yield defer(push(1))
+      yield defer(function* () {
+        throw error
+      }())
       throw new Error('foo')
     }
 
-    const res = cllr.call(test)
+    await expect(cllr.call(test)).rejects.toBe(error)
+  })
 
-    await expect(res).rejects.toBeInstanceOf(Error)
-    await expect(res).rejects.toHaveProperty('message', 'bar')
-    expect(defers).toEqual([1, 2])
+  it('should throw error from nested defer', async () => {
+    const error = new Error('bar')
+
+    function* test() {
+      yield defer(function* () {
+        yield defer(function* () {
+          throw error
+        }())
+      }())
+    }
+
+    await expect(cllr.call(test)).rejects.toBe(error)
   })
 })
