@@ -146,5 +146,14 @@ describe('run', () => {
         }
       })
     })
+
+    it('should throw error from async generator with no yield (bug suspicion)', async () => {
+      const error = new Error('test')
+      await expect(cllr.call(function* () {
+        yield call(async function* () {
+          throw error
+        })
+      })).rejects.toBe(error)
+    })
   })
 })
