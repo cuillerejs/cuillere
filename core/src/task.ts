@@ -2,7 +2,6 @@ import { FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
 import { isTerminal, Operation, isFork, isDefer, validateOperation } from './operations'
 import { error, CancellationError } from './errors'
-import { isRecover } from './operations/recover'
 import { executablePromise } from './utils/promise'
 
 export class Task {
@@ -93,10 +92,6 @@ export class Task {
       if (isDefer(operation)) {
         this.#stack.currentFrame.defers.unshift(operation.operation)
         continue
-      }
-
-      if (isRecover(operation)) {
-        // FIXME
       }
 
       try {
