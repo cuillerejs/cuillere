@@ -10,18 +10,18 @@ export class Stack {
 
   #currentFrame: StackFrame
 
+  #result: StackFrameResult
+
   constructor(handlers: Record<string, FilteredHandler[]>, ctx: any) {
     this.#handlers = handlers
     this.#ctx = ctx
   }
 
   shift() {
-    let frame: StackFrame
-
     do {
       if (this.#currentFrame.defers.length !== 0) {
         this.handle(this.#currentFrame.defers.shift())
-        return undefined
+        return
       }
 
       if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
@@ -31,11 +31,10 @@ export class Stack {
         this.#currentFrame.previous.result.error = this.currentFrame.result.error
       }
 
-      frame = this.#currentFrame
+      if (!this.#currentFrame.previous) this.#result = this.#currentFrame.result
+
       this.#currentFrame = this.#currentFrame.previous
     } while (this.#currentFrame?.done)
-
-    return frame
   }
 
   cancel() {
@@ -102,6 +101,8 @@ export class Stack {
   }
 
   get currentFrame() { return this.#currentFrame }
+
+  get result() { return this.#result }
 }
 
 const coreHandlers = {

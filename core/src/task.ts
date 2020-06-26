@@ -53,14 +53,14 @@ export class Task {
       } catch (e) {
         this.#stack.currentFrame.result = { hasError: true, error: e }
         this.#stack.currentFrame.done = true
-        await this.shift()
+        this.#stack.shift()
         continue
       }
 
       if (result.done) {
         this.#stack.currentFrame.result.value = result.value
         this.#stack.currentFrame.done = true
-        await this.shift()
+        this.#stack.shift()
         continue
       }
 
@@ -102,20 +102,14 @@ export class Task {
         continue
       }
     }
-  }
 
-  async shift() {
-    const frame = this.#stack.shift()
-
-    if (!this.#stack.currentFrame) {
-      if (this.#canceled) {
-        this.#result[2](new CancellationError())
-        return
-      }
-
-      if (frame.result.hasError) this.#result[2](frame.result.error)
-      else this.#result[1](frame.result.value)
+    if (this.#canceled) {
+      this.#result[2](new CancellationError())
+      return
     }
+
+    if (this.#stack.result.hasError) this.#result[2](this.#stack.result.error)
+    else this.#result[1](this.#stack.result.value)
   }
 
   get result() {
