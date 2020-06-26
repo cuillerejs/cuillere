@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return, no-throw-literal */
 
-import cuillere, { Cuillere, call } from '.'
+import cuillere, { Cuillere, call } from '..'
 
 describe('call', () => {
   let cllr: Cuillere
