@@ -17,6 +17,56 @@ export class Stack {
     this.#ctx = ctx
   }
 
+  handle(operation: Operation) {
+    if (isTerminal(operation)) {
+      this.#currentFrame = this.stackFrameFor(operation.operation, this.#currentFrame.previous)
+    } else {
+      this.#currentFrame = this.stackFrameFor(operation, this.#currentFrame)
+    }
+  }
+
+  async next(): Promise<IteratorResult<any>> {
+    let result: IteratorResult<any>
+    let yielded = false
+
+    do {
+      if (!this.currentFrame) return { done: true, value: undefined }
+
+      try {
+        // FIXME add some tests for defer and finally when canceled
+        if (this.currentFrame.canceled && this.currentFrame.canceled === Canceled.ToDo) {
+          this.currentFrame.canceled = Canceled.Done
+          result = await this.currentFrame.gen.return(undefined)
+        } else {
+          result = await (
+            this.currentFrame.result.hasError
+              ? this.currentFrame.gen.throw(this.currentFrame.result.error)
+              : this.currentFrame.gen.next(this.currentFrame.result.value))
+        }
+
+        this.currentFrame.result = { hasError: false }
+      } catch (e) {
+        this.currentFrame.result = { hasError: true, error: e }
+        this.currentFrame.done = true
+        this.shift()
+        continue
+      }
+
+      if (result.done) {
+        this.currentFrame.result.value = result.value
+        this.currentFrame.done = true
+        this.shift()
+        continue
+      }
+
+      if (this.currentFrame.canceled === Canceled.ToDo) continue
+
+      yielded = true
+    } while (!yielded)
+
+    return result
+  }
+
   shift() {
     do {
       if (this.#currentFrame.defers.length !== 0) {
@@ -40,14 +90,6 @@ export class Stack {
   cancel() {
     for (let frame = this.#currentFrame; frame; frame = frame.previous) {
       frame.canceled = Canceled.ToDo
-    }
-  }
-
-  handle(operation: Operation) {
-    if (isTerminal(operation)) {
-      this.#currentFrame = this.stackFrameFor(operation.operation, this.#currentFrame.previous)
-    } else {
-      this.#currentFrame = this.stackFrameFor(operation, this.#currentFrame)
     }
   }
 
@@ -98,6 +140,10 @@ export class Stack {
     if (!stackFrame) throw unrecognizedOperation(operation)
 
     return stackFrame
+  }
+
+  [Symbol.asyncIterator]() {
+    return this
   }
 
   get currentFrame() { return this.#currentFrame }

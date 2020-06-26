@@ -1,5 +1,5 @@
 import { FilteredHandler } from './middlewares'
-import { Stack, Canceled } from './stack'
+import { Stack } from './stack'
 import { isTerminal, Operation, isFork, isDefer, validateOperation } from './operations'
 import { error, CancellationError } from './errors'
 
@@ -29,41 +29,10 @@ export class Task {
   }
 
   async execute() {
-    while (this.#stack.currentFrame) {
-      let result: IteratorResult<Operation>
-
-      try {
-        // FIXME add some tests for defer and finally when canceled
-        if (this.#stack.currentFrame.canceled && this.#stack.currentFrame.canceled === Canceled.ToDo) {
-          this.#stack.currentFrame.canceled = Canceled.Done
-          result = await this.#stack.currentFrame.gen.return(undefined)
-        } else {
-          result = await (
-            this.#stack.currentFrame.result.hasError
-              ? this.#stack.currentFrame.gen.throw(this.#stack.currentFrame.result.error)
-              : this.#stack.currentFrame.gen.next(this.#stack.currentFrame.result.value))
-        }
-
-        this.#stack.currentFrame.result = { hasError: false }
-      } catch (e) {
-        this.#stack.currentFrame.result = { hasError: true, error: e }
-        this.#stack.currentFrame.done = true
-        this.#stack.shift()
-        continue
-      }
-
-      if (result.done) {
-        this.#stack.currentFrame.result.value = result.value
-        this.#stack.currentFrame.done = true
-        this.#stack.shift()
-        continue
-      }
-
-      if (this.#stack.currentFrame.canceled === Canceled.ToDo) continue
-
+    for await (const value of this.#stack) {
       let operation: Operation
       try {
-        operation = validateOperation(result.value)
+        operation = validateOperation(value)
       } catch (e) {
         this.#stack.currentFrame.result = { hasError: true, error: e }
         continue
