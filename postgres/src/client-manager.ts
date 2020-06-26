@@ -13,6 +13,7 @@ export class ClientManager {
   }
 
   public async query(query: QueryConfig) {
+    if (query.transaction?.manager === 'none') return this.provider.query(query)
     return (await this.getClient(query.pool)).query(query)
   }
 
@@ -57,4 +58,7 @@ export class ClientManager {
 
 export interface QueryConfig extends PgQueryConfig {
   pool?: string
+  transaction?: {
+    manager?: 'none' | 'default'
+  }
 }
