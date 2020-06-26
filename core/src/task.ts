@@ -2,7 +2,6 @@ import { FilteredHandler } from './middlewares'
 import { Stack, Canceled } from './stack'
 import { isTerminal, Operation, isFork, isDefer, validateOperation } from './operations'
 import { error, CancellationError } from './errors'
-import { executablePromise } from './utils/promise'
 
 export class Task {
   #ctx: any
@@ -11,7 +10,7 @@ export class Task {
 
   #stack: Stack
 
-  #result = executablePromise<any>()
+  #result: Promise<any>
 
   #settled = false
 
@@ -26,11 +25,7 @@ export class Task {
     // FIXME additional validations on start operation
     this.#stack.handle(validateOperation(operation))
 
-    this.#result[0]
-      .catch(() => { /* Avoids unhandled promise rejection */ })
-      .finally(() => { this.#settled = true })
-
-    this.execute()
+    this.#result = this.execute().finally(() => { this.#settled = true })
   }
 
   async execute() {
@@ -104,16 +99,16 @@ export class Task {
     }
 
     if (this.#canceled) {
-      this.#result[2](new CancellationError())
-      return
+      throw new CancellationError()
     }
 
-    if (this.#stack.result.hasError) this.#result[2](this.#stack.result.error)
-    else this.#result[1](this.#stack.result.value)
+    if (this.#stack.result.hasError) throw this.#stack.result.error
+
+    return this.#stack.result.value
   }
 
   get result() {
-    return this.#result[0]
+    return this.#result
   }
 
   get settled() {
@@ -129,7 +124,7 @@ export class Task {
     }
 
     try {
-      await this.#result[0]
+      await this.#result
     } catch (e) {
       if (CancellationError.isCancellationError(e)) return
       // This should not happen
