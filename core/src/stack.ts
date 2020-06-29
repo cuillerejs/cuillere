@@ -197,7 +197,6 @@ export class Stack {
           if (this.#currentFrame === this.#rootFrame) return { done: true, value: undefined }
 
           try {
-            // FIXME add some tests for defer and finally when canceled
             if (this.#currentFrame.canceled && this.#currentFrame.canceled === Canceled.ToDo) {
               this.#currentFrame.canceled = Canceled.Done
               result = await this.#currentFrame.gen.return(undefined)

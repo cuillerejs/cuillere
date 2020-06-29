@@ -1,5 +1,6 @@
 import cuillere, { fork, call } from '..'
 import { Cuillere } from '../cuillere'
+import { defer } from './defer'
 
 async function* identity(arg: any) {
   return arg
@@ -33,40 +34,46 @@ describe('fork', () => {
   })
 
   describe('cancel', () => {
-    it('should allow to use finally to clean up canceled calls', async () => {
-      let called = false
+    it('should allow to use finally and defer to clean up canceled calls', async () => {
+      let cleanups = 0
 
       async function* f1() {
-        const stack = yield fork(f2)
+        const task = yield fork(f2)
         await delay(10) // let some time for f2 to start
-        await stack.cancel()
+        await task.cancel()
       }
 
       async function* f2() {
+        yield defer(cleanup())
+        yield defer(cleanup())
+        yield defer(cleanup())
+
         try {
           await delay(20)
           yield { kind: 'let cancellation happen' }
         } finally {
-          yield call(f3)
+          yield cleanup()
+          yield cleanup()
+          yield cleanup()
         }
       }
 
-      async function* f3() {
-        called = true
+      function* cleanup() {
+        cleanups++
       }
 
       await cllr.call(f1)
 
-      expect(called).toBe(true)
+      expect(cleanups).toBe(6)
     })
 
     it("shouldn't allow to use catch to stop cancellation", async () => {
       let catched = false
 
       async function* f1() {
-        const stack = yield fork(f2)
+        const task = yield fork(f2)
         await delay(10) // let some time for f2 to start
-        await stack.cancel()
+        await task.cancel()
       }
 
       async function* f2() {
