@@ -50,7 +50,7 @@ export class Stack {
     }
   }
 
-  stackFrameFor(pOperation: Operation, previous: StackFrame): StackFrame {
+  stackFrameFor(pOperation: Operation, curFrame: StackFrame): StackFrame {
     let handlers: FilteredHandler[]
     let handlerIndex = 0
     let operation = pOperation
@@ -70,7 +70,7 @@ export class Stack {
       // Equivalent to isGenerator(operation) but gives priority to the OperationObject
       if (!isOperationObject(operation)) {
         // No handler for generator execution, directly put it on the stack
-        if (!this.#handlers.execute) return new StackFrame(operation, previous)
+        if (!this.#handlers.execute) return new StackFrame(operation, curFrame)
 
         operation = execute(operation)
       }
@@ -78,7 +78,7 @@ export class Stack {
       handlers = this.#handlers[operation.kind]
 
       // There is no handler for this kind of operation
-      if (!handlers) return this.handleCore(operation, previous)
+      if (!handlers) return this.handleCore(operation, curFrame)
     }
 
     for (; handlerIndex < handlers.length; handlerIndex++) {
@@ -86,11 +86,11 @@ export class Stack {
     }
 
     // No handler left for this kind of operation
-    if (handlerIndex === handlers.length) return this.handleCore(operation, previous)
+    if (handlerIndex === handlers.length) return this.handleCore(operation, curFrame)
 
     const gen = handlers[handlerIndex].handle(operation, this.#ctx)
 
-    return new HandlerStackFrame(gen, previous, operation.kind, handlers, handlerIndex)
+    return new HandlerStackFrame(gen, curFrame, operation.kind, handlers, handlerIndex)
   }
 
   handleCore(operation: OperationObject, curFrame: StackFrame): StackFrame {
