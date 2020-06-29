@@ -19,6 +19,6 @@ describe('next', () => {
     }
 
     await cllr.call(test)
-    expect(catched).toStrictEqual(new TypeError('next cannot be used outside of a handler'))
+    expect(catched).toStrictEqual(new TypeError('next: should be used only in handlers'))
   })
 })

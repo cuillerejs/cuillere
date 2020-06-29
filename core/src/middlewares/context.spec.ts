@@ -1,7 +1,8 @@
 import cuillere, { get, set } from '..'
+import { Cuillere } from '../cuillere'
 
 describe('middlewares', () => {
-  let cllr
+  let cllr: Cuillere
 
   beforeEach(() => {
     cllr = cuillere()
@@ -16,23 +17,22 @@ describe('middlewares', () => {
 
     it('should allow to get a value from context', async () => {
       const ctx = { test: 'value' }
-      const result = await cllr.ctx(ctx).start(get('test'))
-      expect(result).toBe('value')
+      await expect(cllr.ctx(ctx).start(get('test'))).resolves.toBe('value')
     })
 
     it('should allow symbol as key', async () => {
       const symbol = Symbol('test')
-      await expect(cllr.start(set(symbol, 'value'))).resolves.not.toThrow()
+      await expect(cllr.start(set(symbol, 'value'))).resolves.toBeUndefined()
       await expect(cllr.start(get(symbol))).resolves.toBe('value')
     })
 
     it('should allow string as key', async () => {
-      await expect(cllr.start(set('test', 'value'))).resolves.not.toThrow()
+      await expect(cllr.start(set('test', 'value'))).resolves.toBeUndefined()
       await expect(cllr.start(get('test'))).resolves.toBe('value')
     })
 
     it('should allow number as key', async () => {
-      await expect(cllr.start(set(1, 'value'))).resolves.not.toThrow()
+      await expect(cllr.start(set(1, 'value'))).resolves.toBeUndefined()
       await expect(cllr.start(get(1))).resolves.toBe('value')
     })
   })

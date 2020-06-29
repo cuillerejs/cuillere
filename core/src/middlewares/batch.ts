@@ -3,7 +3,7 @@ import { GeneratorFunction } from '../generator'
 import { execute, fork, CallOperation, Operation, OperationObject } from '../operations'
 import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
-import { Stack } from '../stack'
+import { Task } from '../stack'
 
 interface BatchOptions {
   timeout?: number
@@ -39,8 +39,8 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => (
         entry = { resolves: [], rejects: [], args: [], func: operation.func, result }
         ctx[BATCH_CTX].set(batchKey, entry)
 
-        const stack: Stack = yield fork(delayOperation, executeBatch(batchKey), timeout)
-        resolve(stack.result)
+        const task: Task = yield fork(delayOperation, executeBatch(batchKey), timeout)
+        resolve(task.result)
       }
 
       const index = entry.args.push(operation.args) - 1

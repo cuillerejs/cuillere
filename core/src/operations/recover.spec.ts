@@ -94,4 +94,25 @@ describe('recover', () => {
     await expect(cuillere().call(test)).resolves.toBe('kept')
     expect(recovered).toBe(error)
   })
+
+  it('should return undefined outside of defer', async () => {
+    function* test() {
+      return yield recover()
+    }
+
+    await expect(cuillere().call(test)).resolves.toBeUndefined()
+  })
+
+  it('should return undefined when no error is recovered', async () => {
+    let recovered: any
+
+    function* test() {
+      yield defer(function* () {
+        recovered = yield recover()
+      })
+    }
+
+    await expect(cuillere().call(test)).resolves.toBeUndefined()
+    expect(recovered).toBeUndefined()
+  })
 })

@@ -1,6 +1,4 @@
-import cuillere, { Cuillere, call, fork } from '.'
-
-const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
+import cuillere, { Cuillere, call } from '.'
 
 describe('run', () => {
   let cllr: Cuillere
@@ -68,56 +66,6 @@ describe('run', () => {
       }
 
       expect(await cllr.call(test3)).toEqual(['test1', 'test2'])
-    })
-
-    it('should allow to use finally to clean up canceled calls', async () => {
-      let called = false
-
-      async function* f1() {
-        const stack = yield fork(f2)
-        await delay(10) // let some time for f2 to start
-        await stack.cancel()
-      }
-
-      async function* f2() {
-        try {
-          await delay(20)
-          yield { kind: 'let cancellation happen' }
-        } finally {
-          yield call(f3)
-        }
-      }
-
-      async function* f3() {
-        called = true
-      }
-
-      await cllr.call(f1)
-
-      expect(called).toBe(true)
-    })
-
-    it("shouldn't allow to use catch to stop cancellation", async () => {
-      let catched = false
-
-      async function* f1() {
-        const stack = yield fork(f2)
-        await delay(10) // let some time for f2 to start
-        await stack.cancel()
-      }
-
-      async function* f2() {
-        try {
-          await delay(20)
-          yield { kind: 'let cancellation happen' }
-        } catch (e) {
-          catched = true
-        }
-      }
-
-      await cllr.call(f1)
-
-      expect(catched).toBe(false)
     })
 
     it('should throw error for undefined start operation', async () => {

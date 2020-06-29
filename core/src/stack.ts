@@ -56,19 +56,19 @@ export class Stack {
     let operation = pOperation
 
     if (isNext(operation)) {
-      if (!(this.#currentFrame instanceof HandlerStackFrame)) throw new TypeError('next cannot be used outside of a handler')
+      if (!(this.#currentFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
 
       operation = operation.operation
 
       if (this.#currentFrame.kind !== operation.kind) {
-        throw error(`operation kind mismatch in next: expected "${this.#currentFrame.kind}", got "${operation.kind}"`)
+        throw error(`next: operation kind mismatch, expected "${this.#currentFrame.kind}", got "${operation.kind}"`)
       }
 
       handlers = this.#currentFrame.handlers
       handlerIndex = this.#currentFrame.index + 1
     } else {
       if (isGenerator(operation)) {
-        // no handler for generator execution, directly put it on the stack
+        // No handler for generator execution, directly put it on the stack
         if (!this.#handlers.execute) return new StackFrame(operation, previous)
 
         operation = execute(operation)
@@ -84,7 +84,7 @@ export class Stack {
       if (handlers[handlerIndex].filter(operation, this.#ctx)) break
     }
 
-    // There is no handler left for this kind of operation
+    // No handler left for this kind of operation
     if (handlerIndex === handlers.length) return this.handleCore(operation, previous)
 
     const gen = handlers[handlerIndex].handle(operation, this.#ctx)
@@ -116,7 +116,7 @@ export class Stack {
     },
 
     fork: ({ operation }: Wrapper) => {
-      this.#currentFrame.result.value = new Stack(this.#handlers, this.#ctx).start(operation)
+      this.#currentFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx).start(operation))
 
       return this.#currentFrame
     },
@@ -183,7 +183,7 @@ export class Stack {
     } catch (e) {
       if (CancellationError.isCancellationError(e)) return
       // This should not happen
-      throw error('fork did not cancel properly. Caused by: ', e.stack)
+      throw error('cancel: stack did not cancel properly: ', e.stack)
     }
   }
 
@@ -240,6 +240,18 @@ export class Stack {
   get result() {
     return this.#result
   }
+}
+
+export class Task {
+  #stack: Stack
+
+  constructor(stack: Stack) {
+    this.#stack = stack
+  }
+
+  async cancel() { return this.#stack.cancel() }
+
+  get result() { return this.#stack.result }
 }
 
 interface StackFrameResult {
