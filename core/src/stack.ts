@@ -1,5 +1,5 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal, execute, validateOperation } from './operations'
+import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, execute, validateOperation } from './operations'
 import { error, unrecognizedOperation, CancellationError } from './errors'
 import { isGenerator, Generator } from './generator'
 
@@ -23,10 +23,9 @@ export class Stack {
     this.#ctx = ctx
   }
 
-  start(operation: any) {
+  start(value: any) {
     try {
-      // FIXME additional validations on start operation
-      this.handle(validateOperation(operation))
+      this.handle(value)
 
       this.#resultPromise = this.execute().finally(() => { this.#settled = true })
     } catch (e) {
@@ -39,30 +38,10 @@ export class Stack {
 
   async execute() {
     for await (const value of this.yields) {
-      let operation: Operation
       try {
-        operation = validateOperation(value)
+        this.handle(value)
       } catch (e) {
         this.#currentFrame.result = { hasError: true, error: e }
-        continue
-      }
-
-      if (isTerminal(operation)) {
-        // FIXME should throw in previous stackFrame
-        try {
-          // FIXME what should we do if there are defers ? warning ? throw ?
-          if (!(await this.#currentFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
-        } catch (e) {
-          throw error('generator did not terminate properly. Caused by: ', e.stack)
-        }
-      }
-
-      try {
-        this.handle(operation)
-      } catch (e) {
-        // FIXME mutualize with try...catch of validateOperation ?
-        this.#currentFrame.result = { hasError: true, error: e }
-        continue
       }
     }
 
@@ -75,12 +54,9 @@ export class Stack {
     return this.#result.value
   }
 
-  handle(operation: Operation) {
-    if (isTerminal(operation)) {
-      this.#currentFrame = this.stackFrameFor(operation.operation, this.#currentFrame.previous)
-    } else {
-      this.#currentFrame = this.stackFrameFor(operation, this.#currentFrame)
-    }
+  handle(value: any) {
+    // FIXME additional validations on start operation
+    this.#currentFrame = this.stackFrameFor(validateOperation(value), this.#currentFrame)
   }
 
   stackFrameFor(pOperation: Operation, previous: StackFrame): StackFrame {
@@ -171,6 +147,12 @@ export class Stack {
       }
 
       return this.#currentFrame
+    },
+
+    terminal: ({ operation }: Wrapper, curFrame) => {
+      curFrame.terminate()
+
+      return this.stackFrameFor(operation, curFrame.previous)
     },
   }
 
@@ -295,6 +277,16 @@ export class StackFrame {
   constructor(gen: Generator<any, Operation>, previous: StackFrame) {
     this.#gen = gen
     this.#previous = previous
+  }
+
+  async terminate() {
+    try {
+      // FIXME Add an error or warning if there are defers
+      const { done } = await this.gen.return(undefined)
+      if (!done) console.error("don't use terminal operation inside a try...finally")
+    } catch (e) {
+      console.error('generator did not terminate properly:', e)
+    }
   }
 
   get gen() { return this.#gen }
