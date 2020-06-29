@@ -1,5 +1,5 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal, execute, isFork, isDefer, validateOperation } from './operations'
+import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal, execute, validateOperation } from './operations'
 import { error, unrecognizedOperation, CancellationError } from './errors'
 import { isGenerator, Generator } from './generator'
 
@@ -43,7 +43,7 @@ export class Stack {
       try {
         operation = validateOperation(value)
       } catch (e) {
-        this.currentFrame.result = { hasError: true, error: e }
+        this.#currentFrame.result = { hasError: true, error: e }
         continue
       }
 
@@ -51,27 +51,17 @@ export class Stack {
         // FIXME should throw in previous stackFrame
         try {
           // FIXME what should we do if there are defers ? warning ? throw ?
-          if (!(await this.currentFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
+          if (!(await this.#currentFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
         } catch (e) {
           throw error('generator did not terminate properly. Caused by: ', e.stack)
         }
-      }
-
-      if (isFork(operation)) {
-        this.currentFrame.result.value = new Stack(this.#handlers, this.#ctx).start(operation.operation)
-        continue
-      }
-
-      if (isDefer(operation)) {
-        this.currentFrame.defers.unshift(operation.operation)
-        continue
       }
 
       try {
         this.handle(operation)
       } catch (e) {
         // FIXME mutualize with try...catch of validateOperation ?
-        this.currentFrame.result = { hasError: true, error: e }
+        this.#currentFrame.result = { hasError: true, error: e }
         continue
       }
     }
@@ -135,15 +125,16 @@ export class Stack {
   }
 
   stackFrameForCore(operation: OperationObject, previous: StackFrame): StackFrame {
-    const stackFrame: StackFrame = Stack.coreHandlers[operation.kind]?.call(this, operation, previous)
+    const stackFrame = this.coreHandlers[operation.kind]?.(operation, previous)
 
+    // FIXME this is not strictly true
     if (!stackFrame) throw unrecognizedOperation(operation)
 
     return stackFrame
   }
 
-  static coreHandlers = {
-    call({ func, args }: CallOperation, previous: StackFrame): StackFrame {
+  coreHandlers: Record<string, (operation: Operation, previous: StackFrame) => StackFrame> = {
+    call: ({ func, args }: CallOperation, previous) => {
       // FIXME improve error message
       if (!func) throw error('the call operation function is null or undefined')
 
@@ -155,24 +146,34 @@ export class Stack {
       return new StackFrame(gen, previous)
     },
 
-    execute({ gen }: Execute, previous: StackFrame): StackFrame {
+    execute: ({ gen }: Execute, previous) => {
       // FIXME improve error message
       if (!isGenerator(gen)) throw error('gen should be a generator')
       return new StackFrame(gen, previous)
     },
 
-    start(operation: Wrapper, previous: StackFrame): StackFrame {
-      return this.stackFrameFor(operation.operation, previous)
+    fork: ({ operation }: Wrapper) => {
+      this.#currentFrame.result.value = new Stack(this.#handlers, this.#ctx).start(operation)
+
+      return this.#currentFrame
     },
 
-    recover(): StackFrame {
-      if (this.currentFrame?.previous.done && this.currentFrame.previous.result.hasError) {
-        this.currentFrame.result = { hasError: false, value: this.currentFrame.previous.result.error }
-        this.currentFrame.previous.result.hasError = false
-        this.currentFrame.previous.result.error = undefined
+    start: ({ operation }: Wrapper, previous: StackFrame) => this.stackFrameFor(operation, previous),
+
+    defer: ({ operation }: Wrapper) => {
+      this.#currentFrame.defers.unshift(operation)
+
+      return this.#currentFrame
+    },
+
+    recover: () => {
+      if (this.#currentFrame?.previous.done && this.#currentFrame.previous.result.hasError) {
+        this.#currentFrame.result = { hasError: false, value: this.#currentFrame.previous.result.error }
+        this.#currentFrame.previous.result.hasError = false
+        this.#currentFrame.previous.result.error = undefined
       }
 
-      return this.currentFrame
+      return this.#currentFrame
     },
   }
 
@@ -185,9 +186,9 @@ export class Stack {
 
       if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
 
-      if (this.#currentFrame.previous?.done && this.currentFrame.result.hasError) {
+      if (this.#currentFrame.previous?.done && this.#currentFrame.result.hasError) {
         this.#currentFrame.previous.result.hasError = true
-        this.#currentFrame.previous.result.error = this.currentFrame.result.error
+        this.#currentFrame.previous.result.error = this.#currentFrame.result.error
       }
 
       if (!this.#currentFrame.previous) this.#result = this.#currentFrame.result
@@ -216,43 +217,43 @@ export class Stack {
     }
   }
 
-  get yields() {
+  get yields(): AsyncIterableIterator<any> {
     return {
       next: async (): Promise<IteratorResult<any>> => {
         let result: IteratorResult<any>
         let yielded = false
 
         do {
-          if (!this.currentFrame) return { done: true, value: undefined }
+          if (!this.#currentFrame) return { done: true, value: undefined }
 
           try {
             // FIXME add some tests for defer and finally when canceled
-            if (this.currentFrame.canceled && this.currentFrame.canceled === Canceled.ToDo) {
-              this.currentFrame.canceled = Canceled.Done
-              result = await this.currentFrame.gen.return(undefined)
+            if (this.#currentFrame.canceled && this.#currentFrame.canceled === Canceled.ToDo) {
+              this.#currentFrame.canceled = Canceled.Done
+              result = await this.#currentFrame.gen.return(undefined)
             } else {
               result = await (
-                this.currentFrame.result.hasError
-                  ? this.currentFrame.gen.throw(this.currentFrame.result.error)
-                  : this.currentFrame.gen.next(this.currentFrame.result.value))
+                this.#currentFrame.result.hasError
+                  ? this.#currentFrame.gen.throw(this.#currentFrame.result.error)
+                  : this.#currentFrame.gen.next(this.#currentFrame.result.value))
             }
 
-            this.currentFrame.result = { hasError: false }
+            this.#currentFrame.result = { hasError: false }
           } catch (e) {
-            this.currentFrame.result = { hasError: true, error: e }
-            this.currentFrame.done = true
+            this.#currentFrame.result = { hasError: true, error: e }
+            this.#currentFrame.done = true
             this.shift()
             continue
           }
 
           if (result.done) {
-            this.currentFrame.result.value = result.value
-            this.currentFrame.done = true
+            this.#currentFrame.result.value = result.value
+            this.#currentFrame.done = true
             this.shift()
             continue
           }
 
-          if (this.currentFrame.canceled === Canceled.ToDo) continue
+          if (this.#currentFrame.canceled === Canceled.ToDo) continue
 
           yielded = true
         } while (!yielded)
@@ -265,8 +266,6 @@ export class Stack {
       },
     }
   }
-
-  get currentFrame() { return this.#currentFrame }
 
   get result() {
     return this.#resultPromise
