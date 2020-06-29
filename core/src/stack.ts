@@ -109,7 +109,7 @@ export class Stack {
       handlers = this.#handlers[operation.kind]
 
       // There is no handler for this kind of operation
-      if (!handlers) return this.stackFrameForCore(operation, previous)
+      if (!handlers) return this.handleCore(operation, previous)
     }
 
     for (; handlerIndex < handlers.length; handlerIndex++) {
@@ -117,20 +117,17 @@ export class Stack {
     }
 
     // There is no handler left for this kind of operation
-    if (handlerIndex === handlers.length) return this.stackFrameForCore(operation, previous)
+    if (handlerIndex === handlers.length) return this.handleCore(operation, previous)
 
     const gen = handlers[handlerIndex].handle(operation, this.#ctx)
 
     return new HandlerStackFrame(gen, previous, operation.kind, handlers, handlerIndex)
   }
 
-  stackFrameForCore(operation: OperationObject, previous: StackFrame): StackFrame {
-    const stackFrame = this.coreHandlers[operation.kind]?.(operation, previous)
+  handleCore(operation: OperationObject, previous: StackFrame): StackFrame {
+    if (!this.coreHandlers[operation.kind]) throw unrecognizedOperation(operation)
 
-    // FIXME this is not strictly true
-    if (!stackFrame) throw unrecognizedOperation(operation)
-
-    return stackFrame
+    return this.coreHandlers[operation.kind](operation, previous)
   }
 
   coreHandlers: Record<string, (operation: Operation, previous: StackFrame) => StackFrame> = {
