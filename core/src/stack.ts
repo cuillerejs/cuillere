@@ -24,30 +24,17 @@ export class Stack {
   }
 
   start(value: any) {
-    try {
-      this.handle(value)
+    this.handle(value)
 
-      this.#result = this.execute().finally(() => { this.#settled = true })
-    } catch (e) {
-      this.#result = Promise.reject(e)
-      this.#settled = true
-    }
+    this.#result = this.execute().finally(() => { this.#settled = true })
 
     return this
   }
 
   async execute() {
-    for await (const value of this.yields) {
-      try {
-        this.handle(value)
-      } catch (e) {
-        this.#currentFrame.result = { hasError: true, error: e }
-      }
-    }
+    for await (const value of this.yields) this.handle(value)
 
-    if (this.#canceled) {
-      throw new CancellationError()
-    }
+    if (this.#canceled) throw new CancellationError()
 
     if (this.#rootFrame.result.hasError) throw this.#rootFrame.result.error
 
@@ -55,8 +42,12 @@ export class Stack {
   }
 
   handle(value: any) {
-    // FIXME additional validations on start operation
-    this.#currentFrame = this.stackFrameFor(validateOperation(value), this.#currentFrame)
+    try {
+      // FIXME additional validations on start operation
+      this.#currentFrame = this.stackFrameFor(validateOperation(value), this.#currentFrame)
+    } catch (e) {
+      this.#currentFrame.result = { hasError: true, error: e }
+    }
   }
 
   stackFrameFor(pOperation: Operation, previous: StackFrame): StackFrame {
