@@ -1,9 +1,13 @@
-import { Middleware } from './middleware'
 import { GeneratorFunction } from '../generator'
-import { execute, fork, CallOperation, Operation, OperationObject } from '../operations'
+import { Operation, OperationObject } from '../operations/operation'
+import { CallOperation, call } from '../operations/call'
+import { callable } from '../operations/callable'
+import { execute } from '../operations/execute'
+import { fork } from '../operations/fork'
+import { Task } from '../stack'
 import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
-import { Task } from '../stack'
+import { Middleware } from './middleware'
 
 interface BatchOptions {
   timeout?: number
@@ -12,10 +16,12 @@ interface BatchOptions {
 export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R>,
   batchKey: (...args: Args) => any = () => func,
-): BatchedGeneratorFunction<Args, R> {
-  func[BATCHED] = true
-  func[BATCH_KEY] = batchKey
-  return func as BatchedGeneratorFunction<Args, R>
+) {
+  const batchedFunc: GeneratorFunction<Args[], R> = (...args: Args[]) => func(...args)
+  batchedFunc[BATCHED] = true
+  batchedFunc[BATCH_KEY] = batchKey
+
+  return callable((...args: Args) => call(batchedFunc, ...args))
 }
 
 export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => ({

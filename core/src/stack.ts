@@ -1,5 +1,5 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, execute, validateOperation } from './operations'
+import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, execute, validateOperation, isOperationObject } from './operations'
 import { error, unrecognizedOperation, CancellationError } from './errors'
 import { isGenerator, Generator } from './generator'
 
@@ -67,7 +67,8 @@ export class Stack {
       handlers = this.#currentFrame.handlers
       handlerIndex = this.#currentFrame.index + 1
     } else {
-      if (isGenerator(operation)) {
+      // Equivalent to isGenerator(operation) but gives priority to the OperationObject
+      if (!isOperationObject(operation)) {
         // No handler for generator execution, directly put it on the stack
         if (!this.#handlers.execute) return new StackFrame(operation, previous)
 
@@ -92,57 +93,63 @@ export class Stack {
     return new HandlerStackFrame(gen, previous, operation.kind, handlers, handlerIndex)
   }
 
-  handleCore(operation: OperationObject, previous: StackFrame): StackFrame {
+  handleCore(operation: OperationObject, curFrame: StackFrame): StackFrame {
     if (!this.coreHandlers[operation.kind]) throw unrecognizedOperation(operation)
 
-    return this.coreHandlers[operation.kind](operation, previous)
+    return this.coreHandlers[operation.kind](operation, curFrame)
   }
 
-  coreHandlers: Record<string, (operation: Operation, previous: StackFrame) => StackFrame> = {
-    call: ({ func, args }: CallOperation, previous) => {
+  coreHandlers: Record<string, (operation: Operation, curFrame: StackFrame) => StackFrame> = {
+    call: ({ func, args }: CallOperation, curFrame) => {
       if (!func) throw new TypeError(`call: cannot call ${func}`)
 
       const gen = func(...args)
 
       if (!isGenerator(gen)) throw new TypeError('call: function did not return a Generator')
 
-      return new StackFrame(gen, previous)
+      return new StackFrame(gen, curFrame)
     },
 
-    execute: ({ gen }: Execute, previous) => {
+    execute: ({ gen }: Execute, curFrame) => {
       if (!isGenerator(gen)) throw new TypeError(`execute: ${gen} is not a Generator`)
 
-      return new StackFrame(gen, previous)
+      return new StackFrame(gen, curFrame)
     },
 
-    fork: ({ operation }: Wrapper) => {
-      this.#currentFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx).start(operation))
+    fork: ({ operation }: Wrapper, curFrame) => {
+      curFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx).start(operation))
 
-      return this.#currentFrame
+      return curFrame
     },
 
-    start: ({ operation }: Wrapper, previous: StackFrame) => this.stackFrameFor(operation, previous),
+    start: ({ operation }: Wrapper, curFrame) => this.stackFrameFor(operation, curFrame),
 
-    defer: ({ operation }: Wrapper) => {
-      this.#currentFrame.defers.unshift(operation)
+    defer: ({ operation }: Wrapper, curFrame) => {
+      curFrame.defers.unshift(operation)
 
-      return this.#currentFrame
+      return curFrame
     },
 
-    recover: () => {
-      if (this.#currentFrame?.previous.done && this.#currentFrame.previous.result.hasError) {
-        this.#currentFrame.result = { hasError: false, value: this.#currentFrame.previous.result.error }
-        this.#currentFrame.previous.result.hasError = false
-        this.#currentFrame.previous.result.error = undefined
+    recover: (_operation, curFrame) => {
+      if (curFrame.previous.done && curFrame.previous.result.hasError) {
+        curFrame.result = { hasError: false, value: curFrame.previous.result.error }
+        curFrame.previous.result.hasError = false
+        curFrame.previous.result.error = undefined
       }
 
-      return this.#currentFrame
+      return curFrame
     },
 
     terminal: ({ operation }: Wrapper, curFrame) => {
       curFrame.terminate()
 
       return this.stackFrameFor(operation, curFrame.previous)
+    },
+
+    generator: (_operation, curFrame) => {
+      curFrame.result.value = curFrame.gen
+
+      return curFrame
     },
   }
 
