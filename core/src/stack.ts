@@ -79,6 +79,7 @@ export class Stack {
       if (isGenerator(operation)) {
         // no handler for generator execution, directly put it on the stack
         if (!this.#handlers.execute) return new StackFrame(operation, previous)
+
         operation = execute(operation)
       }
 
@@ -108,20 +109,18 @@ export class Stack {
 
   coreHandlers: Record<string, (operation: Operation, previous: StackFrame) => StackFrame> = {
     call: ({ func, args }: CallOperation, previous) => {
-      // FIXME improve error message
-      if (!func) throw error('the call operation function is null or undefined')
+      if (!func) throw new TypeError(`call: cannot call ${func}`)
 
       const gen = func(...args)
 
-      // FIXME improve error message
-      if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
+      if (!isGenerator(gen)) throw new TypeError('call: function did not return a Generator')
 
       return new StackFrame(gen, previous)
     },
 
     execute: ({ gen }: Execute, previous) => {
-      // FIXME improve error message
-      if (!isGenerator(gen)) throw error('gen should be a generator')
+      if (!isGenerator(gen)) throw new TypeError(`execute: ${gen} is not a Generator`)
+
       return new StackFrame(gen, previous)
     },
 
