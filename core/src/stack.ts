@@ -8,11 +8,11 @@ export class Stack {
 
   #ctx: any
 
-  #currentFrame: StackFrame
+  #rootFrame = new StackFrame(null, null)
 
-  #result: StackFrameResult
+  #currentFrame = this.#rootFrame
 
-  #resultPromise: Promise<any>
+  #result: Promise<any>
 
   #settled = false
 
@@ -27,9 +27,9 @@ export class Stack {
     try {
       this.handle(value)
 
-      this.#resultPromise = this.execute().finally(() => { this.#settled = true })
+      this.#result = this.execute().finally(() => { this.#settled = true })
     } catch (e) {
-      this.#resultPromise = Promise.reject(e)
+      this.#result = Promise.reject(e)
       this.#settled = true
     }
 
@@ -49,9 +49,9 @@ export class Stack {
       throw new CancellationError()
     }
 
-    if (this.#result.hasError) throw this.#result.error
+    if (this.#rootFrame.result.hasError) throw this.#rootFrame.result.error
 
-    return this.#result.value
+    return this.#rootFrame.result.value
   }
 
   handle(value: any) {
@@ -172,8 +172,6 @@ export class Stack {
         this.#currentFrame.previous.result.error = this.#currentFrame.result.error
       }
 
-      if (!this.#currentFrame.previous) this.#result = this.#currentFrame.result
-
       this.#currentFrame = this.#currentFrame.previous
     } while (this.#currentFrame?.done)
   }
@@ -190,7 +188,7 @@ export class Stack {
     }
 
     try {
-      await this.#resultPromise
+      await this.#result
     } catch (e) {
       if (CancellationError.isCancellationError(e)) return
       // This should not happen
@@ -205,7 +203,7 @@ export class Stack {
         let yielded = false
 
         while (!yielded) {
-          if (!this.#currentFrame) return { done: true, value: undefined }
+          if (this.#currentFrame === this.#rootFrame) return { done: true, value: undefined }
 
           try {
             // FIXME add some tests for defer and finally when canceled
@@ -249,7 +247,7 @@ export class Stack {
   }
 
   get result() {
-    return this.#resultPromise
+    return this.#result
   }
 }
 
