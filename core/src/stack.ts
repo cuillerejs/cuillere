@@ -24,11 +24,15 @@ export class Stack {
   }
 
   start(operation: any) {
-    // FIXME additional validations on start operation
-    // FIXME if this throws, this.result empty ?!
-    this.handle(validateOperation(operation))
+    try {
+      // FIXME additional validations on start operation
+      this.handle(validateOperation(operation))
 
-    this.#resultPromise = this.execute().finally(() => { this.#settled = true })
+      this.#resultPromise = this.execute().finally(() => { this.#settled = true })
+    } catch (e) {
+      this.#resultPromise = Promise.reject(e)
+      this.#settled = true
+    }
 
     return this
   }
