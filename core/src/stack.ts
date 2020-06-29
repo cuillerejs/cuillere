@@ -157,13 +157,16 @@ export class Stack {
 
   shift() {
     do {
+      // Handle defers if any
       if (this.#currentFrame.defers.length !== 0) {
         this.handle(this.#currentFrame.defers.shift())
         return
       }
 
+      // Copy yield result to previous frame
       if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
 
+      // Propagate uncaught error from defer
       if (this.#currentFrame.previous?.done && this.#currentFrame.result.hasError) {
         this.#currentFrame.previous.result.hasError = true
         this.#currentFrame.previous.result.error = this.#currentFrame.result.error
