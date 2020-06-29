@@ -202,7 +202,7 @@ export class Stack {
         let result: IteratorResult<any>
         let yielded = false
 
-        do {
+        while (!yielded) {
           if (!this.#currentFrame) return { done: true, value: undefined }
 
           try {
@@ -235,7 +235,7 @@ export class Stack {
           if (this.#currentFrame.canceled === Canceled.ToDo) continue
 
           yielded = true
-        } while (!yielded)
+        }
 
         return result
       },
@@ -248,10 +248,6 @@ export class Stack {
 
   get result() {
     return this.#resultPromise
-  }
-
-  get settled() {
-    return this.#settled
   }
 }
 
