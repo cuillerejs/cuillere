@@ -18,14 +18,19 @@ export class Stack {
 
   #canceled = false
 
-  constructor(handlers: Record<string, FilteredHandler[]>, ctx: any, operation: any) {
+  constructor(handlers: Record<string, FilteredHandler[]>, ctx: any) {
     this.#handlers = handlers
     this.#ctx = ctx
+  }
 
+  start(operation: any) {
     // FIXME additional validations on start operation
+    // FIXME if this throws, this.result empty ?!
     this.handle(validateOperation(operation))
 
     this.#resultPromise = this.execute().finally(() => { this.#settled = true })
+
+    return this
   }
 
   async execute() {
@@ -49,7 +54,7 @@ export class Stack {
       }
 
       if (isFork(operation)) {
-        this.currentFrame.result.value = new Stack(this.#handlers, this.#ctx, operation.operation)
+        this.currentFrame.result.value = new Stack(this.#handlers, this.#ctx).start(operation.operation)
         continue
       }
 

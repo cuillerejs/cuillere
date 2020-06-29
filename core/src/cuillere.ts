@@ -42,8 +42,8 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
       ctx: make,
       // ⚠ async keywords are necessary in order to reject on throws in Stack constructor
       start: handlers.start
-        ? async operation => new Stack(handlers, ctx, start(operation)).result
-        : async operation => new Stack(handlers, ctx, operation).result,
+        ? async operation => new Stack(handlers, ctx).start(start(operation)).result
+        : async operation => new Stack(handlers, ctx).start(operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }
