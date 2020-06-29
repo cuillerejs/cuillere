@@ -1,6 +1,6 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal, execute } from './operations'
-import { error, unrecognizedOperation } from './errors'
+import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, isTerminal, execute, isFork, isDefer, validateOperation } from './operations'
+import { error, unrecognizedOperation, CancellationError } from './errors'
 import { isGenerator, Generator } from './generator'
 
 export class Stack {
@@ -12,9 +12,68 @@ export class Stack {
 
   #result: StackFrameResult
 
-  constructor(handlers: Record<string, FilteredHandler[]>, ctx: any) {
+  #resultPromise: Promise<any>
+
+  #settled = false
+
+  #canceled = false
+
+  constructor(handlers: Record<string, FilteredHandler[]>, ctx: any, operation: any) {
     this.#handlers = handlers
     this.#ctx = ctx
+
+    // FIXME additional validations on start operation
+    this.handle(validateOperation(operation))
+
+    this.#resultPromise = this.execute().finally(() => { this.#settled = true })
+  }
+
+  async execute() {
+    for await (const value of this) {
+      let operation: Operation
+      try {
+        operation = validateOperation(value)
+      } catch (e) {
+        this.currentFrame.result = { hasError: true, error: e }
+        continue
+      }
+
+      if (isTerminal(operation)) {
+        // FIXME should throw in previous stackFrame
+        try {
+          // FIXME what should we do if there are defers ? warning ? throw ?
+          if (!(await this.currentFrame.gen.return(undefined)).done) throw new Error("don't use terminal operation inside a try...finally")
+        } catch (e) {
+          throw error('generator did not terminate properly. Caused by: ', e.stack)
+        }
+      }
+
+      if (isFork(operation)) {
+        this.currentFrame.result.value = new Stack(this.#handlers, this.#ctx, operation.operation)
+        continue
+      }
+
+      if (isDefer(operation)) {
+        this.currentFrame.defers.unshift(operation.operation)
+        continue
+      }
+
+      try {
+        this.handle(operation)
+      } catch (e) {
+        // FIXME mutualize with try...catch of validateOperation ?
+        this.currentFrame.result = { hasError: true, error: e }
+        continue
+      }
+    }
+
+    if (this.#canceled) {
+      throw new CancellationError()
+    }
+
+    if (this.#result.hasError) throw this.#result.error
+
+    return this.#result.value
   }
 
   handle(operation: Operation) {
@@ -87,9 +146,23 @@ export class Stack {
     } while (this.#currentFrame?.done)
   }
 
-  cancel() {
-    for (let frame = this.#currentFrame; frame; frame = frame.previous) {
-      frame.canceled = Canceled.ToDo
+  async cancel() {
+    if (this.#settled) return
+
+    if (!this.#canceled) {
+      for (let frame = this.#currentFrame; frame; frame = frame.previous) {
+        frame.canceled = Canceled.ToDo
+      }
+
+      this.#canceled = true
+    }
+
+    try {
+      await this.#resultPromise
+    } catch (e) {
+      if (CancellationError.isCancellationError(e)) return
+      // This should not happen
+      throw error('fork did not cancel properly. Caused by: ', e.stack)
     }
   }
 
@@ -148,7 +221,13 @@ export class Stack {
 
   get currentFrame() { return this.#currentFrame }
 
-  get result() { return this.#result }
+  get result() {
+    return this.#resultPromise
+  }
+
+  get settled() {
+    return this.#settled
+  }
 }
 
 const coreHandlers = {

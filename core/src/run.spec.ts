@@ -74,9 +74,9 @@ describe('run', () => {
       let called = false
 
       async function* f1() {
-        const task = yield fork(f2)
+        const stack = yield fork(f2)
         await delay(10) // let some time for f2 to start
-        await task.cancel()
+        await stack.cancel()
       }
 
       async function* f2() {
@@ -101,9 +101,9 @@ describe('run', () => {
       let catched = false
 
       async function* f1() {
-        const task = yield fork(f2)
+        const stack = yield fork(f2)
         await delay(10) // let some time for f2 to start
-        await task.cancel()
+        await stack.cancel()
       }
 
       async function* f2() {

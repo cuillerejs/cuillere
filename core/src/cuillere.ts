@@ -2,7 +2,7 @@
 import { Middleware, concurrentMiddleware, contextMiddleware, FilteredHandler, Handler } from './middlewares'
 import { Generator } from './generator'
 import { call, execute, start, CallFunction, Operation } from './operations'
-import { Task } from './task'
+import { Stack } from './stack'
 
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
@@ -40,10 +40,10 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
 
     const cllr: Cuillere = {
       ctx: make,
-      // ⚠ async keywords are necessary in order to reject on throws in Task constructor
+      // ⚠ async keywords are necessary in order to reject on throws in Stack constructor
       start: handlers.start
-        ? async operation => new Task(handlers, ctx, start(operation)).result
-        : async operation => new Task(handlers, ctx, operation).result,
+        ? async operation => new Stack(handlers, ctx, start(operation)).result
+        : async operation => new Stack(handlers, ctx, operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(execute(gen)),
     }
