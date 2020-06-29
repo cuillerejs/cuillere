@@ -242,69 +242,59 @@ export class Stack {
   }
 }
 
-export interface StackFrameResult {
+interface StackFrameResult {
   value?: any
   hasError: boolean
   error?: any
 }
 
-export class StackFrame {
-  #gen: Generator<any, Operation>
+class StackFrame {
+  gen: Generator<any, Operation>
+
+  previous: StackFrame
 
   canceled?: Canceled
 
-  #defers: Operation[] = []
-
-  #previous: StackFrame
+  defers: Operation[] = []
 
   result: StackFrameResult = { hasError: false }
 
   done = false
 
   constructor(gen: Generator<any, Operation>, previous: StackFrame) {
-    this.#gen = gen
-    this.#previous = previous
+    this.gen = gen
+    this.previous = previous
   }
 
   async terminate() {
     try {
-      // FIXME Add an error or warning if there are defers
+      if (this.defers.length !== 0) console.error('cuillere error: terminate: deferred operations are not executed')
+
       const { done } = await this.gen.return(undefined)
-      if (!done) console.error("don't use terminal operation inside a try...finally")
+
+      if (!done) console.error('cuillere error: terminate: should not be used inside a try...finally')
     } catch (e) {
-      console.error('generator did not terminate properly:', e)
+      console.error('cuillere error: terminate: generator did not terminate properly:', e)
     }
   }
-
-  get gen() { return this.#gen }
-
-  get defers() { return this.#defers }
-
-  get previous() { return this.#previous }
 }
 
-export class HandlerStackFrame extends StackFrame {
-  #kind: string
+class HandlerStackFrame extends StackFrame {
+  kind: string
 
-  #handlers: FilteredHandler[]
+  handlers: FilteredHandler[]
 
-  #index: number
+  index: number
 
   constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, handlers: FilteredHandler[], index: number) {
     super(gen, previous)
-    this.#kind = kind
-    this.#handlers = handlers
-    this.#index = index
+    this.kind = kind
+    this.handlers = handlers
+    this.index = index
   }
-
-  get kind() { return this.#kind }
-
-  get handlers() { return this.#handlers }
-
-  get index() { return this.#index }
 }
 
-export enum Canceled {
+enum Canceled {
   ToDo = 1,
   Done,
 }
