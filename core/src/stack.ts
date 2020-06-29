@@ -38,7 +38,7 @@ export class Stack {
   }
 
   async execute() {
-    for await (const value of this) {
+    for await (const value of this.yields) {
       let operation: Operation
       try {
         operation = validateOperation(value)
@@ -93,88 +93,6 @@ export class Stack {
     }
   }
 
-  async next(): Promise<IteratorResult<any>> {
-    let result: IteratorResult<any>
-    let yielded = false
-
-    do {
-      if (!this.currentFrame) return { done: true, value: undefined }
-
-      try {
-        // FIXME add some tests for defer and finally when canceled
-        if (this.currentFrame.canceled && this.currentFrame.canceled === Canceled.ToDo) {
-          this.currentFrame.canceled = Canceled.Done
-          result = await this.currentFrame.gen.return(undefined)
-        } else {
-          result = await (
-            this.currentFrame.result.hasError
-              ? this.currentFrame.gen.throw(this.currentFrame.result.error)
-              : this.currentFrame.gen.next(this.currentFrame.result.value))
-        }
-
-        this.currentFrame.result = { hasError: false }
-      } catch (e) {
-        this.currentFrame.result = { hasError: true, error: e }
-        this.currentFrame.done = true
-        this.shift()
-        continue
-      }
-
-      if (result.done) {
-        this.currentFrame.result.value = result.value
-        this.currentFrame.done = true
-        this.shift()
-        continue
-      }
-
-      if (this.currentFrame.canceled === Canceled.ToDo) continue
-
-      yielded = true
-    } while (!yielded)
-
-    return result
-  }
-
-  shift() {
-    do {
-      if (this.#currentFrame.defers.length !== 0) {
-        this.handle(this.#currentFrame.defers.shift())
-        return
-      }
-
-      if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
-
-      if (this.#currentFrame.previous?.done && this.currentFrame.result.hasError) {
-        this.#currentFrame.previous.result.hasError = true
-        this.#currentFrame.previous.result.error = this.currentFrame.result.error
-      }
-
-      if (!this.#currentFrame.previous) this.#result = this.#currentFrame.result
-
-      this.#currentFrame = this.#currentFrame.previous
-    } while (this.#currentFrame?.done)
-  }
-
-  async cancel() {
-    if (this.#settled) return
-
-    if (!this.#canceled) {
-      for (let frame = this.#currentFrame; frame; frame = frame.previous) {
-        frame.canceled = Canceled.ToDo
-      }
-
-      this.#canceled = true
-    }
-
-    try {
-      await this.#resultPromise
-    } catch (e) {
-      if (CancellationError.isCancellationError(e)) return
-      // This should not happen
-      throw error('fork did not cancel properly. Caused by: ', e.stack)
-    }
-  }
-
   stackFrameFor(pOperation: Operation, previous: StackFrame): StackFrame {
     let handlers: FilteredHandler[]
     let handlerIndex = 0
@@ -217,15 +135,135 @@ export class Stack {
   }
 
   stackFrameForCore(operation: OperationObject, previous: StackFrame): StackFrame {
-    const stackFrame: StackFrame = coreHandlers[operation.kind]?.call(this, operation, previous)
+    const stackFrame: StackFrame = Stack.coreHandlers[operation.kind]?.call(this, operation, previous)
 
     if (!stackFrame) throw unrecognizedOperation(operation)
 
     return stackFrame
   }
 
-  [Symbol.asyncIterator]() {
-    return this
+  static coreHandlers = {
+    call({ func, args }: CallOperation, previous: StackFrame): StackFrame {
+      // FIXME improve error message
+      if (!func) throw error('the call operation function is null or undefined')
+
+      const gen = func(...args)
+
+      // FIXME improve error message
+      if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
+
+      return new StackFrame(gen, previous)
+    },
+
+    execute({ gen }: Execute, previous: StackFrame): StackFrame {
+      // FIXME improve error message
+      if (!isGenerator(gen)) throw error('gen should be a generator')
+      return new StackFrame(gen, previous)
+    },
+
+    start(operation: Wrapper, previous: StackFrame): StackFrame {
+      return this.stackFrameFor(operation.operation, previous)
+    },
+
+    recover(): StackFrame {
+      if (this.currentFrame?.previous.done && this.currentFrame.previous.result.hasError) {
+        this.currentFrame.result = { hasError: false, value: this.currentFrame.previous.result.error }
+        this.currentFrame.previous.result.hasError = false
+        this.currentFrame.previous.result.error = undefined
+      }
+
+      return this.currentFrame
+    },
+  }
+
+  shift() {
+    do {
+      if (this.#currentFrame.defers.length !== 0) {
+        this.handle(this.#currentFrame.defers.shift())
+        return
+      }
+
+      if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
+
+      if (this.#currentFrame.previous?.done && this.currentFrame.result.hasError) {
+        this.#currentFrame.previous.result.hasError = true
+        this.#currentFrame.previous.result.error = this.currentFrame.result.error
+      }
+
+      if (!this.#currentFrame.previous) this.#result = this.#currentFrame.result
+
+      this.#currentFrame = this.#currentFrame.previous
+    } while (this.#currentFrame?.done)
+  }
+
+  async cancel() {
+    if (this.#settled) return
+
+    if (!this.#canceled) {
+      for (let frame = this.#currentFrame; frame; frame = frame.previous) {
+        frame.canceled = Canceled.ToDo
+      }
+
+      this.#canceled = true
+    }
+
+    try {
+      await this.#resultPromise
+    } catch (e) {
+      if (CancellationError.isCancellationError(e)) return
+      // This should not happen
+      throw error('fork did not cancel properly. Caused by: ', e.stack)
+    }
+  }
+
+  get yields() {
+    return {
+      next: async (): Promise<IteratorResult<any>> => {
+        let result: IteratorResult<any>
+        let yielded = false
+
+        do {
+          if (!this.currentFrame) return { done: true, value: undefined }
+
+          try {
+            // FIXME add some tests for defer and finally when canceled
+            if (this.currentFrame.canceled && this.currentFrame.canceled === Canceled.ToDo) {
+              this.currentFrame.canceled = Canceled.Done
+              result = await this.currentFrame.gen.return(undefined)
+            } else {
+              result = await (
+                this.currentFrame.result.hasError
+                  ? this.currentFrame.gen.throw(this.currentFrame.result.error)
+                  : this.currentFrame.gen.next(this.currentFrame.result.value))
+            }
+
+            this.currentFrame.result = { hasError: false }
+          } catch (e) {
+            this.currentFrame.result = { hasError: true, error: e }
+            this.currentFrame.done = true
+            this.shift()
+            continue
+          }
+
+          if (result.done) {
+            this.currentFrame.result.value = result.value
+            this.currentFrame.done = true
+            this.shift()
+            continue
+          }
+
+          if (this.currentFrame.canceled === Canceled.ToDo) continue
+
+          yielded = true
+        } while (!yielded)
+
+        return result
+      },
+
+      [Symbol.asyncIterator]() {
+        return this
+      },
+    }
   }
 
   get currentFrame() { return this.#currentFrame }
@@ -237,40 +275,6 @@ export class Stack {
   get settled() {
     return this.#settled
   }
-}
-
-const coreHandlers = {
-  call({ func, args }: CallOperation, previous: StackFrame): StackFrame {
-    // FIXME improve error message
-    if (!func) throw error('the call operation function is null or undefined')
-
-    const gen = func(...args)
-
-    // FIXME improve error message
-    if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
-
-    return new StackFrame(gen, previous)
-  },
-
-  execute({ gen }: Execute, previous: StackFrame): StackFrame {
-    // FIXME improve error message
-    if (!isGenerator(gen)) throw error('gen should be a generator')
-    return new StackFrame(gen, previous)
-  },
-
-  start(operation: Wrapper, previous: StackFrame): StackFrame {
-    return this.stackFrameFor(operation.operation, previous)
-  },
-
-  recover(): StackFrame {
-    if (this.currentFrame?.previous.done && this.currentFrame.previous.result.hasError) {
-      this.currentFrame.result = { hasError: false, value: this.currentFrame.previous.result.error }
-      this.currentFrame.previous.result.hasError = false
-      this.currentFrame.previous.result.error = undefined
-    }
-
-    return this.currentFrame
-  },
 }
 
 export interface StackFrameResult {
