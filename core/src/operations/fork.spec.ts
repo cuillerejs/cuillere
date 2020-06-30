@@ -1,6 +1,4 @@
-import cuillere, { fork, call } from '..'
-import { Cuillere } from '../cuillere'
-import { defer } from './defer'
+import cuillere, { Cuillere, fork, call, defer } from '..'
 
 async function* identity(arg: any) {
   return arg

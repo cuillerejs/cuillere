@@ -56,16 +56,16 @@ export class Stack {
     let operation = pOperation
 
     if (isNext(operation)) {
-      if (!(this.#currentFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
+      if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
 
       operation = operation.operation
 
-      if (this.#currentFrame.kind !== operation.kind) {
-        throw error(`next: operation kind mismatch, expected "${this.#currentFrame.kind}", got "${operation.kind}"`)
+      if (curFrame.kind !== operation.kind) {
+        throw error(`next: operation kind mismatch, expected "${curFrame.kind}", got "${operation.kind}"`)
       }
 
-      handlers = this.#currentFrame.handlers
-      handlerIndex = this.#currentFrame.index + 1
+      handlers = curFrame.handlers
+      handlerIndex = curFrame.index + 1
     } else {
       // Equivalent to isGenerator(operation) but gives priority to the OperationObject
       if (!isOperationObject(operation)) {
@@ -286,13 +286,13 @@ class StackFrame {
 
   async terminate() {
     try {
-      if (this.defers.length !== 0) console.error('cuillere error: terminate: deferred operations are not executed')
+      if (this.defers.length !== 0) console.warn('cuillere: terminate: deferred operations are not executed')
 
       const { done } = await this.gen.return(undefined)
 
-      if (!done) console.error('cuillere error: terminate: should not be used inside a try...finally')
+      if (!done) console.warn('cuillere: terminate: should not be used inside a try...finally')
     } catch (e) {
-      console.error('cuillere error: terminate: generator did not terminate properly:', e)
+      console.warn('cuillere: terminate: generator did not terminate properly:', e)
     }
   }
 }
