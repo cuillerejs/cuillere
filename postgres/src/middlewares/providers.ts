@@ -1,4 +1,4 @@
-import { Middleware, next, Operation, Wrapper } from '@cuillere/core'
+import { Middleware, next, Wrapper, OperationObject } from '@cuillere/core'
 import { PoolProvider, PoolConfig } from '../pool-provider'
 import { setQueryHandler } from './query'
 import { ClientManager } from '../client-manager'
@@ -47,7 +47,7 @@ export function getClient(name: string): GetClientOperation {
   return { kind: 'getClient', name }
 }
 
-interface GetClientOperation extends Operation {
+interface GetClientOperation extends OperationObject {
   name?: string
 }
 

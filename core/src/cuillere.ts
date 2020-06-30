@@ -1,13 +1,13 @@
 /* eslint-disable no-param-reassign */
 import { Middleware, concurrentMiddleware, contextMiddleware, FilteredHandler, Handler } from './middlewares'
-import { Generator } from './generator'
-import { call, execute, start, CallFunction, Operation } from './operations'
-import { Task } from './task'
+import { Generator, GeneratorFunction } from './generator'
+import { call, start, Operation } from './operations'
+import { Stack } from './stack'
 
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
   start: (operation: Operation) => Promise<any>
-  call: <Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args) => Promise<R>
+  call: <Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args) => Promise<R>
   execute: <R>(gen: Generator<R, Operation>) => Promise<R>
 }
 
@@ -41,10 +41,10 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
     const cllr: Cuillere = {
       ctx: make,
       start: handlers.start
-        ? operation => new Task(handlers, ctx, start(operation)).result
-        : operation => new Task(handlers, ctx, operation).result,
+        ? operation => new Stack(handlers, ctx).start(start(operation)).result
+        : operation => new Stack(handlers, ctx).start(operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
-      execute: gen => cllr.start(execute(gen)),
+      execute: gen => cllr.start(gen),
     }
 
     instances.set(ctx, cllr)

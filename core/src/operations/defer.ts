@@ -1,13 +1,16 @@
-import { Operation, Wrapper } from './operation'
-import { call, CallFunction } from './call'
+import { GeneratorFunction } from '../generator'
+import { Operation, Wrapper, isKind, isOperation, validateOperation } from './operation'
+import { call } from './call'
 
-export function deferOperation(operation: Operation): Wrapper {
-  return {
-    kind: 'defer',
-    operation,
-  }
+export function defer<Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args): Wrapper<Operation>
+export function defer<Args extends any[], R>(operation: Operation): Wrapper<Operation>
+
+export function defer<Args extends any[], R>(arg0: Operation | GeneratorFunction<Args, R>, ...args: Args) {
+  if (!isOperation(arg0)) return { kind: 'defer', operation: call(arg0, ...args) }
+
+  const operation = validateOperation(arg0)
+
+  return { kind: 'defer', operation }
 }
 
-export function defer<Args extends any[], R>(func: CallFunction<Args, R>, ...args: Args) {
-  return deferOperation(call(func, ...args))
-}
+export const isDefer = isKind<Wrapper>('defer')

@@ -1,7 +1,7 @@
-import { Operation } from './operation'
+import { OperationObject } from './operation'
 import { next } from './next'
 import { terminal } from './terminal'
 
-export function delegate(operation: Operation) {
+export function delegate(operation: OperationObject) {
   return terminal(next(operation))
 }

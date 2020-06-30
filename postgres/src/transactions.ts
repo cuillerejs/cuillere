@@ -52,7 +52,7 @@ export const commit = async (clients: Client[]): Promise<void> => {
   }
 }
 
-export const UNSAFE_commit = async (clients: Client[]) => {
+export const unsafeCommit = async (clients: Client[]) => {
   try {
     await chain(clients, client => client.query('COMMIT'))
   } catch (err) {

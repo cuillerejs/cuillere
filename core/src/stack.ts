@@ -1,126 +1,318 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, Wrapper, Execute, CallOperation, isNext, isTerminal } from './operations'
-import { error, unrecognizedOperation } from './errors'
-import { isGenerator } from './generator'
+import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, execute, validateOperation, isOperationObject } from './operations'
+import { error, unrecognizedOperation, CancellationError } from './errors'
+import { isGenerator, Generator } from './generator'
 
 export class Stack {
   #handlers: Record<string, FilteredHandler[]>
 
   #ctx: any
 
-  currentFrame: StackFrame
+  #rootFrame = new StackFrame(null, null)
+
+  #currentFrame = this.#rootFrame
+
+  #result: Promise<any>
+
+  #settled = false
+
+  #canceled = false
 
   constructor(handlers: Record<string, FilteredHandler[]>, ctx: any) {
     this.#handlers = handlers
     this.#ctx = ctx
   }
 
-  shift() {
-    this.currentFrame = this.currentFrame.previous
+  start(value: any) {
+    this.handle(value)
+
+    this.#result = this.execute().finally(() => { this.#settled = true })
+
+    return this
   }
 
-  cancel() {
-    for (let frame = this.currentFrame; frame; frame = frame.previous) {
-      frame.canceled = Canceled.ToDo
+  async execute() {
+    for await (const value of this.yields) this.handle(value)
+
+    if (this.#canceled) throw new CancellationError()
+
+    if (this.#rootFrame.result.hasError) throw this.#rootFrame.result.error
+
+    return this.#rootFrame.result.value
+  }
+
+  handle(value: any) {
+    try {
+      // FIXME additional validations on start operation
+      this.#currentFrame = this.stackFrameFor(validateOperation(value), this.#currentFrame)
+    } catch (e) {
+      this.#currentFrame.result = { hasError: true, error: e }
     }
   }
 
-  handle(operation: Operation) {
-    if (isTerminal(operation)) {
-      this.currentFrame = this.stackFrameFor(operation.operation, this.currentFrame.previous)
-    } else {
-      this.currentFrame = this.stackFrameFor(operation, this.currentFrame)
-    }
-  }
-
-  stackFrameFor(pOperation: Operation, previous: StackFrame): StackFrame {
+  stackFrameFor(pOperation: Operation, curFrame: StackFrame): StackFrame {
     let handlers: FilteredHandler[]
     let handlerIndex = 0
     let operation = pOperation
 
     if (isNext(operation)) {
-      if (!this.currentFrame?.isHandler) throw error('next yielded outside of middleware')
+      if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
 
       operation = operation.operation
 
-      if (this.currentFrame.handlerKind !== operation.kind) {
-        throw error(`operation kind mismatch in next: expected "${this.currentFrame.handlerKind}", got "${operation.kind}"`)
+      if (curFrame.kind !== operation.kind) {
+        throw error(`next: operation kind mismatch, expected "${curFrame.kind}", got "${operation.kind}"`)
       }
 
-      handlerIndex = this.currentFrame.handlerIndex + 1
-      handlers = this.currentFrame.handlers
+      handlers = curFrame.handlers
+      handlerIndex = curFrame.index + 1
     } else {
+      // Equivalent to isGenerator(operation) but gives priority to the OperationObject
+      if (!isOperationObject(operation)) {
+        // No handler for generator execution, directly put it on the stack
+        if (!this.#handlers.execute) return new StackFrame(operation, curFrame)
+
+        operation = execute(operation)
+      }
+
       handlers = this.#handlers[operation.kind]
-      // There is no middleware for this kind of operation
-      if (!handlers) return this.stackFrameForCore(operation, previous)
+
+      // There is no handler for this kind of operation
+      if (!handlers) return this.handleCore(operation, curFrame)
     }
 
     for (; handlerIndex < handlers.length; handlerIndex++) {
       if (handlers[handlerIndex].filter(operation, this.#ctx)) break
     }
 
-    // There is no middleware left for this kind of operation
-    if (handlerIndex === handlers.length) return this.stackFrameForCore(operation, previous)
+    // No handler left for this kind of operation
+    if (handlerIndex === handlers.length) return this.handleCore(operation, curFrame)
 
     const gen = handlers[handlerIndex].handle(operation, this.#ctx)
-    return { isHandler: true, gen, handlers, handlerIndex, defers: [], previous, handlerKind: operation.kind }
+
+    return new HandlerStackFrame(gen, curFrame, operation.kind, handlers, handlerIndex)
   }
 
-  stackFrameForCore(operation: Operation, previous: StackFrame): StackFrame {
-    const stackFrame: StackFrame = coreHandlers[operation.kind]?.call(this, operation, previous)
+  handleCore(operation: OperationObject, curFrame: StackFrame): StackFrame {
+    if (!this.coreHandlers[operation.kind]) throw unrecognizedOperation(operation)
 
-    if (!stackFrame) throw unrecognizedOperation(operation)
+    return this.coreHandlers[operation.kind](operation, curFrame)
+  }
 
-    return stackFrame
+  coreHandlers: Record<string, (operation: Operation, curFrame: StackFrame) => StackFrame> = {
+    call: ({ func, args }: CallOperation, curFrame) => {
+      if (!func) throw new TypeError(`call: cannot call ${func}`)
+
+      const gen = func(...args)
+
+      if (!isGenerator(gen)) throw new TypeError('call: function did not return a Generator')
+
+      return new StackFrame(gen, curFrame)
+    },
+
+    execute: ({ gen }: Execute, curFrame) => {
+      if (!isGenerator(gen)) throw new TypeError(`execute: ${gen} is not a Generator`)
+
+      return new StackFrame(gen, curFrame)
+    },
+
+    fork: ({ operation }: Wrapper, curFrame) => {
+      curFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx).start(operation))
+
+      return curFrame
+    },
+
+    start: ({ operation }: Wrapper, curFrame) => this.stackFrameFor(operation, curFrame),
+
+    defer: ({ operation }: Wrapper, curFrame) => {
+      curFrame.defers.unshift(operation)
+
+      return curFrame
+    },
+
+    recover: (_operation, curFrame) => {
+      if (curFrame.previous.done && curFrame.previous.result.hasError) {
+        curFrame.result = { hasError: false, value: curFrame.previous.result.error }
+        curFrame.previous.result.hasError = false
+        curFrame.previous.result.error = undefined
+      }
+
+      return curFrame
+    },
+
+    terminal: ({ operation }: Wrapper, curFrame) => {
+      curFrame.terminate()
+
+      return this.stackFrameFor(operation, curFrame.previous)
+    },
+
+    generator: (_operation, curFrame) => {
+      curFrame.result.value = curFrame.gen
+
+      return curFrame
+    },
+  }
+
+  shift() {
+    do {
+      // Handle defers if any
+      if (this.#currentFrame.defers.length !== 0) {
+        this.handle(this.#currentFrame.defers.shift())
+        return
+      }
+
+      // Copy yield result to previous frame
+      if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
+
+      // Propagate uncaught error from defer
+      if (this.#currentFrame.previous?.done && this.#currentFrame.result.hasError) {
+        this.#currentFrame.previous.result.hasError = true
+        this.#currentFrame.previous.result.error = this.#currentFrame.result.error
+      }
+
+      this.#currentFrame = this.#currentFrame.previous
+    } while (this.#currentFrame?.done)
+  }
+
+  async cancel() {
+    if (this.#settled) return
+
+    if (!this.#canceled) {
+      for (let frame = this.#currentFrame; frame; frame = frame.previous) {
+        frame.canceled = Canceled.ToDo
+      }
+
+      this.#canceled = true
+    }
+
+    try {
+      await this.#result
+    } catch (e) {
+      if (CancellationError.isCancellationError(e)) return
+      // This should not happen
+      throw error('cancel: stack did not cancel properly: ', e.stack)
+    }
+  }
+
+  get yields(): AsyncIterableIterator<any> {
+    return {
+      next: async (): Promise<IteratorResult<any>> => {
+        let result: IteratorResult<any>
+        let yielded = false
+
+        while (!yielded) {
+          if (this.#currentFrame === this.#rootFrame) return { done: true, value: undefined }
+
+          try {
+            if (this.#currentFrame.canceled && this.#currentFrame.canceled === Canceled.ToDo) {
+              this.#currentFrame.canceled = Canceled.Done
+              result = await this.#currentFrame.gen.return(undefined)
+            } else {
+              result = await (
+                this.#currentFrame.result.hasError
+                  ? this.#currentFrame.gen.throw(this.#currentFrame.result.error)
+                  : this.#currentFrame.gen.next(this.#currentFrame.result.value))
+            }
+
+            this.#currentFrame.result = { hasError: false }
+          } catch (e) {
+            this.#currentFrame.result = { hasError: true, error: e }
+            this.#currentFrame.done = true
+            this.shift()
+            continue
+          }
+
+          if (result.done) {
+            this.#currentFrame.result.value = result.value
+            this.#currentFrame.done = true
+            this.shift()
+            continue
+          }
+
+          if (this.#currentFrame.canceled === Canceled.ToDo) continue
+
+          yielded = true
+        }
+
+        return result
+      },
+
+      [Symbol.asyncIterator]() {
+        return this
+      },
+    }
+  }
+
+  get result() {
+    return this.#result
   }
 }
 
-const coreHandlers = {
-  call({ func, args }: CallOperation, previous: StackFrame): OperationStackFrame {
-    // FIXME improve error message
-    if (!func) throw error('the call operation function is null or undefined')
+export class Task {
+  #stack: Stack
 
-    const gen = func(...args)
+  constructor(stack: Stack) {
+    this.#stack = stack
+  }
 
-    // FIXME improve error message
-    if (!isGenerator(gen)) throw error('the call operation function should return a Generator. You probably used `function` instead of `function*`')
+  async cancel() { return this.#stack.cancel() }
 
-    return { gen, isHandler: false, defers: [], previous }
-  },
-
-  execute({ gen }: Execute, previous: StackFrame): OperationStackFrame {
-    // FIXME improve error message
-    if (!isGenerator(gen)) throw error('gen should be a generator')
-    return { gen, isHandler: false, defers: [], previous }
-  },
-
-  start(operation: Wrapper, previous: StackFrame): StackFrame {
-    return this.stackFrameFor(operation.operation, previous)
-  },
+  get result() { return this.#stack.result }
 }
 
-export type StackFrame = OperationStackFrame | HandlerStackFrame
-
-export interface OperationStackFrame {
-  isHandler: false
-  gen: Generator<any, Operation> | AsyncGenerator<any, Operation>
-  canceled?: Canceled
-  defers: Operation[]
-  previous?: StackFrame
+interface StackFrameResult {
+  value?: any
+  hasError: boolean
+  error?: any
 }
 
-export interface HandlerStackFrame {
-  isHandler: true
-  gen: Generator<any, Operation> | AsyncGenerator<any, Operation>
+class StackFrame {
+  gen: Generator<any, Operation>
+
+  previous: StackFrame
+
   canceled?: Canceled
-  defers: Operation[]
-  previous?: StackFrame
+
+  defers: Operation[] = []
+
+  result: StackFrameResult = { hasError: false }
+
+  done = false
+
+  constructor(gen: Generator<any, Operation>, previous: StackFrame) {
+    this.gen = gen
+    this.previous = previous
+  }
+
+  async terminate() {
+    try {
+      if (this.defers.length !== 0) console.warn('cuillere: terminate: deferred operations are not executed')
+
+      const { done } = await this.gen.return(undefined)
+
+      if (!done) console.warn('cuillere: terminate: should not be used inside a try...finally')
+    } catch (e) {
+      console.warn('cuillere: terminate: generator did not terminate properly:', e)
+    }
+  }
+}
+
+class HandlerStackFrame extends StackFrame {
+  kind: string
+
   handlers: FilteredHandler[]
-  handlerIndex: number
-  handlerKind: string
+
+  index: number
+
+  constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, handlers: FilteredHandler[], index: number) {
+    super(gen, previous)
+    this.kind = kind
+    this.handlers = handlers
+    this.index = index
+  }
 }
 
-export enum Canceled {
+enum Canceled {
   ToDo = 1,
   Done,
 }

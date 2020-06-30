@@ -1,10 +1,10 @@
-import { Operation } from '../operations'
+import { OperationObject, Operation } from '../operations'
 import { GeneratorFunction } from '../generator'
 
-export type Handle = GeneratorFunction<[Operation, any], any, Operation>
+export type Handle = GeneratorFunction<[OperationObject, any], any, Operation>
 
 export interface FilteredHandler {
-  filter?: (operation: Operation, ctx: any) => boolean
+  filter?: (operation: OperationObject, ctx: any) => boolean
   handle: Handle
 }
 

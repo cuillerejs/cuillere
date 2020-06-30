@@ -1,6 +1,6 @@
 /* eslint-disable consistent-return, no-throw-literal */
 
-import cuillere, { Cuillere, call } from '../../src'
+import cuillere, { Cuillere, call } from '..'
 
 describe('call', () => {
   let cllr: Cuillere
@@ -107,5 +107,25 @@ describe('call', () => {
     }
 
     expect(await cllr.execute(test())).toBe('test')
+  })
+
+  it('should throw an error for non generator function', async () => {
+    let catched: any
+
+    function dummy(): any {
+      return {}
+    }
+
+    function* test() {
+      try {
+        yield call(dummy)
+      } catch (e) {
+        catched = e
+      }
+    }
+
+    await cllr.call(test)
+
+    expect(catched).toStrictEqual(new TypeError('call: function did not return a Generator'))
   })
 })

@@ -31,11 +31,6 @@
   "peerDependencies": {
     "@cuillere/core": "^0.7.1",
     "@cuillere/postgres": "^0.7.1",
-    "pg": "^7.0"
-  },
-  "devDependencies": {
-    "@types/pg": "^7.14.1",
-    "apollo-server-plugin-base": "^0.6.10",
-    "graphql": "^14.6.0"
+    "pg": "^8"
   }
 }
