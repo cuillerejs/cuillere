@@ -2,7 +2,6 @@
   "private": true,
   "workspaces": [
     "core",
-    "express",
     "koa",
     "graphql",
     "graphql-example",

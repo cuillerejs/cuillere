@@ -1,11 +1,11 @@
 {
   "name": "@cuillere/benchmark",
-  "version": "0.7.1",
+  "version": "0.0.0",
   "main": "src/benchmark.js",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "private": true,
   "devDependencies": {
-    "@cuillere/core": "^0.7.1",
+    "@cuillere/core": "^0.8.0",
     "benny": "^3.6.14"
   },
   "scripts": {

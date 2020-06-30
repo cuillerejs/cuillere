@@ -36,10 +36,10 @@
     "@arrows/error" "^1.0.2"
     fast-deep-equal "^3.1.1"
 
-"@cuillere/core@^0.6.6":
-  version "0.6.7"
-  resolved "https://registry.yarnpkg.com/@cuillere/core/-/core-0.6.7.tgz#b384fbec93fb7e7f9125079214dbf2cb19ff4cae"
-  integrity sha512-x3agLBqsLsbT9xY4h85ifA6mR1ttuifiRmGiqYOMnH67HrBd8G+wpwjrvk3sLrMNpQ+wxppKMxvl/p2HpgyBQQ==
+"@cuillere/core@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@cuillere/core/-/core-0.8.0.tgz#5a0cf2d41195ede58537500f5be9913e73d5ea8e"
+  integrity sha512-lZCgtghKLSZL2M6tTo2BqPun9jDemEBncTVNv/udn8T1OAupTMuNGXp0fcoCSKSEPUHWDmMzM7ZLyY8xtGiwzg==
 
 ansi-escapes@^3.2.0:
   version "3.2.0"
