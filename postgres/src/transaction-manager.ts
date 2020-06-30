@@ -1,6 +1,6 @@
 import { PoolClient } from 'pg'
 import { ClientManager } from './client-manager'
-import { rollback, commit, UNSAFE_commit } from './transactions'
+import { rollback, commit, unsafeCommit } from './transactions'
 import { PoolProvider } from './pool-provider'
 
 export interface TransactionManagerOptions {
@@ -12,7 +12,7 @@ export class TransactionManager extends ClientManager {
 
   constructor(provider: PoolProvider, options: TransactionManagerOptions = {}) {
     super(provider)
-    this.#doCommit = (options.prepared ?? true) ? commit : UNSAFE_commit
+    this.#doCommit = (options.prepared ?? true) ? commit : unsafeCommit
   }
 
   protected async createClient(name: string): Promise<PoolClient> {
