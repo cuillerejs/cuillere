@@ -26,12 +26,8 @@
     "@cuillere/core": "^0.7.1",
     "@cuillere/graphql": "^0.7.1",
     "@cuillere/postgres-apollo-plugin": "^0.7.1",
-    "koa": "^2.11.0",
-    "pg": "^7.18.1"
-  },
-  "dependencies": {
-    "apollo-server-koa": "^2.10.1",
-    "esm": "^3.2.25",
-    "graphql": "^14.6.0"
+    "apollo-server-koa": "^2.15.1",
+    "koa": "^2.13.0",
+    "pg": "^8"
   }
 }

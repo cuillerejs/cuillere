@@ -16,7 +16,7 @@ async function main() {
 
 async function benchmark(name, cuillereImplementation) {
   console.log(name, 'cuillere implementation')
-  const { default: cuillere, call } = cuillereImplementation
+  const { default: cuillere } = cuillereImplementation
 
   const cllr = cuillere()
 

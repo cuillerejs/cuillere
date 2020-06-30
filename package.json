@@ -10,19 +10,22 @@
     "postgres-apollo-plugin"
   ],
   "devDependencies": {
-    "@types/jest": "^25.1.3",
-    "@typescript-eslint/eslint-plugin": "^2.21.0",
-    "@typescript-eslint/parser": "^2.21.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.20.1",
-    "ts-jest": "^25.2.1",
-    "typescript": "^3.8"
+    "@types/jest": "^26.0.3",
+    "@typescript-eslint/eslint-plugin": "^3.5.0",
+    "@typescript-eslint/parser": "^3.5.0",
+    "eslint": "^7.3.1",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jest": "^23.17.1",
+    "esm": "^3.2.25",
+    "jest": "^26.1.0",
+    "ts-jest": "^26.1.1",
+    "typescript": "^3.9.5"
   },
   "dependencies": {
-    "eslint-plugin-jest": "^23.7.0",
-    "jest": "^25.1.0",
-    "koa": "^2.11.0",
-    "pg": "^7.18.1"
+    "apollo-server-koa": "^2.15.1",
+    "graphql": "~14",
+    "koa": "^2.13.0",
+    "pg": "^8"
   }
 }

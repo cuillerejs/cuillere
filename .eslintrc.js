@@ -43,8 +43,8 @@ module.exports = {
     ],
     "rules": {
         "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/member-delimiter-style": ["error", {
             "multiline": {
                 "delimiter": "none",
@@ -57,19 +57,24 @@ module.exports = {
         }],
         "arrow-parens": [2, "as-needed", { "requireForBlockBody": true }],
         "consistent-return": "off",
+        "func-names": "off",
         "implicit-arrow-linebreak": "off",
         "import/extensions": ["error", {
             "ts": "never"
         }],
+        "import/no-extraneous-dependencies": "off",
         "import/prefer-default-export": "off",
         "max-classes-per-file": "off",
         "max-len":["error", { code: 160 }],
         "no-await-in-loop": "off",
         "no-console": "off",
         "no-continue": "off",
+        "no-dupe-class-members": "off",
+        "no-multi-assign": "off",
         "no-multiple-empty-lines": ["warn", { "max": 1 }],
         "no-new-wrappers": "off",
         "no-param-reassign": ["error", { "props": false }],
+        "no-plusplus": "off",
         'no-restricted-syntax': [
             'error',
             {
@@ -91,13 +96,9 @@ module.exports = {
             },
         ],
         "no-shadow": "off",
+        "no-use-before-define": "off",
         "object-curly-newline": ["error", { "consistent": true }],
         "require-yield": "off",
         "semi": ["error", "never"],
-        "no-dupe-class-members": "off",
-        "import/no-extraneous-dependencies": "off",
-        "no-multi-assign": "off",
-        "no-plusplus": "off",
-        "func-names": "off"
     }
 };

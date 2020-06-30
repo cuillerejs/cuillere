@@ -7,7 +7,10 @@ interface Resolver {
 export const makeResolverFactory = (cllr: Cuillere) => (fn: Resolver): Resolver =>
   (obj, args, ctx: CuillereContext, info) => {
     const res = fn(obj, args, ctx, info)
-    return isGenerator(res) ? (ctx.cuillere ?? cllr.ctx(ctx)).execute(res as any) : res
+    if (!isGenerator(res)) return res
+    // Copy function name on generator for stacktrace
+    res['name'] = fn.name // eslint-disable-line dot-notation
+    return (ctx.cuillere ?? cllr.ctx(ctx)).start(res as any)
   }
 
 export const makeResolversTreeFactory = (cllr: Cuillere) => {

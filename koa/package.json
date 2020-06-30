@@ -20,7 +20,6 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "@cuillere/core": "^0.7.1",
-    "koa": "^2.11.0"
+    "@cuillere/core": "^0.7.1"
   }
 }

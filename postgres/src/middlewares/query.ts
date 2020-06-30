@@ -1,4 +1,4 @@
-import { Middleware, Operation } from '@cuillere/core'
+import { Middleware, OperationObject } from '@cuillere/core'
 import { QueryResult } from 'pg'
 import { QueryConfig } from '../client-manager'
 
@@ -18,7 +18,7 @@ export function setQueryHandler(ctx: any, queryHandler: QueryHandler) {
 
 const QUERY_HANDLER = Symbol('QUERY_HANDLER')
 
-interface Query extends Operation {
+interface Query extends OperationObject {
   kind: 'query'
   config: QueryConfig
 }
