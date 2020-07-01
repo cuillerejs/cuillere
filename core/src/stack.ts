@@ -216,6 +216,7 @@ export class Stack {
 
             this.#currentFrame.result = { hasError: false }
           } catch (e) {
+            this.captureStackTrace(e)
             this.#currentFrame.result = { hasError: true, error: e }
             this.#currentFrame.done = true
             this.shift()
@@ -241,6 +242,29 @@ export class Stack {
         return this
       },
     }
+  }
+
+  captureStackTrace(e: any) {
+    if (!e.stack) return
+    const stack = e.stack.split('\n')
+
+    let i = 0
+    while (stack[i] && !/^ +at .+\.next \(.+\)$/.test(stack[i])) i++
+    if (i === stack.length) return
+    const nextsStart = i
+
+    do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
+    const nextsEnd = i
+
+    const newFrames = []
+    for (let frame = this.#currentFrame.previous; frame !== this.#rootFrame; frame = frame.previous) {
+      if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}>`)
+      else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'}`)
+    }
+
+    stack.splice(nextsStart, nextsEnd - nextsStart, ...newFrames)
+
+    e.stack = stack.join('\n')
   }
 
   get result() {
