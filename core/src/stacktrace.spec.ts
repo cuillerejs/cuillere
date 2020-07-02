@@ -20,7 +20,7 @@ describe('stacktrace', () => {
     }
 
     expect(stack[0]).toBe('TypeError: test')
-    expect(stack[1]).toMatch(/^ +at test \(.+\)$/)
+    expect(stack[1]).toMatch(/^ +at test \(.+\/stacktrace\.spec\.ts:.+\)$/)
     expect(stack[2]).toMatch(/^ +at Stack.execute \(.+\)$/)
   })
 
@@ -41,7 +41,7 @@ describe('stacktrace', () => {
     }
 
     expect(stack[0]).toBe('TypeError: test')
-    expect(stack[1]).toMatch(/^ +at throwTypeError \(.+\)$/)
+    expect(stack[1]).toMatch(/^ +at throwTypeError \(.+\/stacktrace\.spec\.ts:.+\)$/)
     expect(stack[2]).toBe('    at test (<anonymous>:0:0)')
     expect(stack[3]).toMatch(/^ +at Stack.execute \(.+\)$/)
   })
@@ -63,7 +63,7 @@ describe('stacktrace', () => {
     }
 
     expect(stack[0]).toBe('TypeError: test')
-    expect(stack[1]).toMatch(/^ +at throwTypeError \(.+\)$/)
+    expect(stack[1]).toMatch(/^ +at throwTypeError \(.+\/stacktrace\.spec\.ts:.+\)$/)
     expect(stack[2]).toBe('    at <anonymous generator> (<anonymous>:0:0)')
     expect(stack[3]).toMatch(/^ +at Stack.execute \(.+\)$/)
   })
@@ -91,7 +91,7 @@ describe('stacktrace', () => {
     }
 
     expect(stack[0]).toBe('TypeError: test')
-    expect(stack[1]).toMatch(/^ +at throwTypeError \(.+\)$/)
+    expect(stack[1]).toMatch(/^ +at throwTypeError \(.+\/stacktrace\.spec\.ts:.+\)$/)
     expect(stack[2]).toBe('    at <yield test> (<anonymous>:0:0)')
     expect(stack[3]).toBe('    at test (<anonymous>:0:0)')
     expect(stack[4]).toMatch(/^ +at Stack.execute \(.+\)$/)
@@ -119,5 +119,28 @@ describe('stacktrace', () => {
     expect(stack[1]).toMatch(/^ +at <yield test> \(.+\/stacktrace\.spec\.ts:.+\)$/)
     expect(stack[2]).toBe('    at test (<anonymous>:0:0)')
     expect(stack[3]).toMatch(/^ +at Stack.execute \(.+\)$/)
+  })
+
+  it('should capture stack for core errors', async () => {
+    function* test() {
+      yield yieldNull()
+    }
+
+    function* yieldNull() {
+      yield null
+    }
+
+    let stack: string[]
+    try {
+      await cllr.call(test)
+    } catch (e) {
+      stack = e.stack.split('\n')
+    }
+
+    expect(stack[0]).toBe('TypeError: null operation is forbidden')
+    expect(stack[1]).toBe('    at <yield null> (<anonymous>:0:0)')
+    expect(stack[2]).toMatch(/^ +at yieldNull \(.+\/stacktrace\.spec\.ts:.+\)$/)
+    expect(stack[3]).toBe('    at test (<anonymous:0:0>)')
+    expect(stack[4]).toMatch(/^ +at Stack.execute \(.+\)$/)
   })
 })
