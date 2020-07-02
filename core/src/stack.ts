@@ -250,7 +250,7 @@ export class Stack {
     if (!Object.isExtensible(e)) return
 
     if (e[captured]) return
-    e[captured] = true
+    Object.defineProperty(e, captured, { value: true, enumerable: false })
 
     if (!e.stack) return
 
@@ -264,9 +264,13 @@ export class Stack {
     do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
     const nextsEnd = i
 
+    if (this.#currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
+      stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
+    }
+
     const newFrames = []
     for (let frame = this.#currentFrame.previous; frame !== this.#rootFrame; frame = frame.previous) {
-      if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}>`)
+      if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<anonymous>:0:0)`)
       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<anonymous>:0:0)`)
     }
 
