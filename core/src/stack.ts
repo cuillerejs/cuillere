@@ -1,6 +1,6 @@
 import { FilteredHandler } from './middlewares'
 import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, execute, validateOperation, isOperationObject } from './operations'
-import { error, unrecognizedOperation, CancellationError } from './errors'
+import { error, unrecognizedOperation, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
 
 export class Stack {
@@ -106,6 +106,8 @@ export class Stack {
       const gen = func(...args)
 
       if (!isGenerator(gen)) throw new TypeError('call: function did not return a Generator')
+
+      gen.name = func.name
 
       return new StackFrame(gen, curFrame)
     },
@@ -245,7 +247,13 @@ export class Stack {
   }
 
   captureStackTrace(e: any) {
+    if (!Object.isExtensible(e)) return
+
+    if (e[captured]) return
+    e[captured] = true
+
     if (!e.stack) return
+
     const stack = e.stack.split('\n')
 
     let i = 0
@@ -259,7 +267,7 @@ export class Stack {
     const newFrames = []
     for (let frame = this.#currentFrame.previous; frame !== this.#rootFrame; frame = frame.previous) {
       if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}>`)
-      else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'}`)
+      else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<anonymous>:0:0)`)
     }
 
     stack.splice(nextsStart, nextsEnd - nextsStart, ...newFrames)
