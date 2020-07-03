@@ -68,33 +68,6 @@ describe('run', () => {
       expect(await cllr.call(test3)).toEqual(['test1', 'test2'])
     })
 
-    it('should throw error for undefined start operation', async () => {
-      await expect(cllr.start(undefined))
-        .rejects.toStrictEqual(new TypeError('undefined operation is forbidden'))
-    })
-
-    it('should throw error for undefined operation', async () => {
-      await expect(cllr.call(function* () { yield undefined }))
-        .rejects.toStrictEqual(new TypeError('undefined operation is forbidden'))
-    })
-
-    it('should throw error for undefined wrapped operation', async () => {
-      await expect(cllr.call(function* () { yield { kind: 'test', operation: undefined } }))
-        .rejects.toStrictEqual(new TypeError('undefined operation is forbidden'))
-    })
-
-    it('should throw error for null operation', async () => {
-      await cllr.call(function* () {
-        try {
-          yield null
-          throw Error('should have thrown error')
-        } catch (e) {
-          // eslint-disable-next-line jest/no-try-expect
-          expect(e).toHaveProperty('message', 'null operation is forbidden')
-        }
-      })
-    })
-
     it('should throw error from async generator with no yield (bug suspicion)', async () => {
       const error = new Error('test')
       await expect(cllr.call(function* () {
