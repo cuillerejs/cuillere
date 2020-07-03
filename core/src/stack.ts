@@ -48,6 +48,7 @@ export class Stack {
     try {
       this.#currentFrame = this.stackFrameFor(this.validateOperation(value), this.#currentFrame)
     } catch (e) {
+      this.captureCoreStackTrace(e, value)
       this.#currentFrame.result = { hasError: true, error: e }
     }
   }
@@ -271,16 +272,24 @@ export class Stack {
      },
    }
 
-   captureGeneratorStackTrace(e: any) {
-     if (!Object.isExtensible(e)) return
+   captureCoreStackTrace = Stack.captureStackTrace((stack, value: any) => {
+     const handleIndex = stack.findIndex(frame => /^ +at Stack.handle \(.+\)$/.test(frame))
+     if (handleIndex === -1) return
 
-     if (e[captured]) return
-     Object.defineProperty(e, captured, { value: true, enumerable: false })
+     stack.splice(
+       handleIndex + 1, 0,
+       `    at <yield ${Stack.operationString(value)}> (<unknown>)`,
+       ...this.getFrames(this.#currentFrame),
+     )
+   })
 
-     if (!e.stack) return
+   static operationString(value: any): string {
+     if (value === undefined || value === null || !isOperation(value)) return `${value}`
+     if (!isOperationObject(value)) return value.name ? `${value.name}()` : 'anonymous generator'
+     return value.kind
+   }
 
-     const stack = e.stack.split('\n')
-
+   captureGeneratorStackTrace = Stack.captureStackTrace((stack) => {
      let i = 0
      while (stack[i] && !/^ +at .+\.next \(.+\)$/.test(stack[i])) i++
      if (i === stack.length) return
@@ -293,15 +302,33 @@ export class Stack {
        stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
      }
 
-     const newFrames = []
-     for (let frame = this.#currentFrame.previous; frame !== this.#rootFrame; frame = frame.previous) {
-       if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<anonymous>:0:0)`)
-       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<anonymous>:0:0)`)
+     stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
+   })
+
+   static captureStackTrace(updateStack: (stack: string[], ...args: any[]) => void) {
+     return (e: any, ...args: any[]) => {
+       if (!Object.isExtensible(e)) return
+
+       if (e[captured]) return
+       Object.defineProperty(e, captured, { value: true, enumerable: false })
+
+       if (!e.stack) return
+
+       const stack = e.stack.split('\n')
+
+       updateStack(stack, ...args)
+
+       e.stack = stack.join('\n')
      }
+   }
 
-     stack.splice(nextsStart, nextsEnd - nextsStart, ...newFrames)
-
-     e.stack = stack.join('\n')
+   getFrames(firstFrame: StackFrame) {
+     const newFrames = []
+     for (let frame = firstFrame; frame !== this.#rootFrame; frame = frame.previous) {
+       if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
+       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
+     }
+     return newFrames
    }
 
    get result() {

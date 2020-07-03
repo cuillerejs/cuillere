@@ -39,7 +39,8 @@ describe('validation', () => {
       yield null
     }
 
-    await expect(cllr.call(test)).rejects.toStrictEqual('null operation is forbidden')
+    await expect(cllr.call(test))
+      .rejects.toStrictEqual(new TypeError('null operation is forbidden'))
   })
 
   describe('terminal', () => {
