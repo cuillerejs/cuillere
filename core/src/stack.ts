@@ -48,7 +48,7 @@ export class Stack {
     try {
       this.#currentFrame = this.stackFrameFor(this.validateOperation(value), this.#currentFrame)
     } catch (e) {
-      this.captureCoreStackTrace(e, value)
+      this.captureCoreStackTrace(e)
       this.#currentFrame.result = { hasError: true, error: e }
     }
   }
@@ -272,22 +272,15 @@ export class Stack {
      },
    }
 
-   captureCoreStackTrace = Stack.captureStackTrace((stack, value: any) => {
+   captureCoreStackTrace = Stack.captureStackTrace((stack) => {
      const handleIndex = stack.findIndex(frame => /^ +at Stack.handle \(.+\)$/.test(frame))
      if (handleIndex === -1) return
 
      stack.splice(
        handleIndex + 1, 0,
-       `    at <yield ${Stack.operationString(value)}> (<unknown>)`,
        ...this.getFrames(this.#currentFrame),
      )
    })
-
-   static operationString(value: any): string {
-     if (value === undefined || value === null || !isOperation(value)) return `${value}`
-     if (!isOperationObject(value)) return value.name ? `${value.name}()` : 'anonymous generator'
-     return value.kind
-   }
 
    captureGeneratorStackTrace = Stack.captureStackTrace((stack) => {
      let i = 0
@@ -305,8 +298,8 @@ export class Stack {
      stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
    })
 
-   static captureStackTrace(updateStack: (stack: string[], ...args: any[]) => void) {
-     return (e: any, ...args: any[]) => {
+   static captureStackTrace(updateStack: (stack: string[]) => void) {
+     return (e: any) => {
        if (!Object.isExtensible(e)) return
 
        if (e[captured]) return
@@ -316,7 +309,7 @@ export class Stack {
 
        const stack = e.stack.split('\n')
 
-       updateStack(stack, ...args)
+       updateStack(stack)
 
        e.stack = stack.join('\n')
      }

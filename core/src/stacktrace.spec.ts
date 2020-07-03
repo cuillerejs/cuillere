@@ -140,9 +140,22 @@ describe('stacktrace', () => {
     expect(stack[0]).toBe('TypeError: null operation is forbidden')
     expect(stack[1]).toMatch(/^ +at Stack.validateOperation \(.+\)$/)
     expect(stack[2]).toMatch(/^ +at Stack.handle \(.+\)$/)
-    expect(stack[3]).toBe('    at <yield null> (<unknown>)')
-    expect(stack[4]).toBe('    at <anonymous generator> (<unknown>)')
-    expect(stack[5]).toBe('    at test (<unknown>)')
-    expect(stack[6]).toMatch(/^ +at Stack.execute \(.+\)$/)
+    expect(stack[3]).toBe('    at <anonymous generator> (<unknown>)')
+    expect(stack[4]).toBe('    at test (<unknown>)')
+    expect(stack[5]).toMatch(/^ +at Stack.execute \(.+\)$/)
+  })
+
+  it('should not capture stack for start errors', async () => {
+    let stack: string[]
+    try {
+      await cllr.start(null)
+    } catch (e) {
+      stack = e.stack.split('\n')
+    }
+
+    expect(stack[0]).toBe('TypeError: null operation is forbidden')
+    expect(stack[1]).toMatch(/^ +at Stack.validateOperation \(.+\)$/)
+    expect(stack[2]).toMatch(/^ +at Stack.handle \(.+\)$/)
+    expect(stack[3]).toMatch(/^ +at Stack.start \(.+\)$/)
   })
 })
