@@ -218,7 +218,7 @@ export class Stack {
 
             this.#currentFrame.result = { hasError: false }
           } catch (e) {
-            this.captureStackTrace(e)
+            this.captureGeneratorStackTrace(e)
             this.#currentFrame.result = { hasError: true, error: e }
             this.#currentFrame.done = true
             this.shift()
@@ -246,7 +246,7 @@ export class Stack {
     }
   }
 
-  captureStackTrace(e: any) {
+  captureGeneratorStackTrace(e: any) {
     if (!Object.isExtensible(e)) return
 
     if (e[captured]) return

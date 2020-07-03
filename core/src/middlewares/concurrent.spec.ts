@@ -45,10 +45,9 @@ describe('concurrent', () => {
 
     it('should cancel all operations on first fail', async () => {
       let called = false
-      const e = new Error('test')
 
       function* f1() {
-        throw e
+        throw { error: 'test' }
       }
 
       async function* f2() {
@@ -60,7 +59,7 @@ describe('concurrent', () => {
         called = true
       }
 
-      await expect(cllr.start(all([call(f1), call(f2)]))).rejects.toBe(e)
+      await expect(cllr.start(all([call(f1), call(f2)]))).rejects.toEqual({ error: 'test', errors: [] })
       expect(called).toBe(false)
     })
   })
