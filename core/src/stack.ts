@@ -1,6 +1,9 @@
 import { FilteredHandler } from './middlewares'
-import { Operation, OperationObject, Wrapper, Execute, CallOperation, isNext, execute, validateOperation, isOperationObject } from './operations'
-import { error, unrecognizedOperation, CancellationError } from './errors'
+import {
+  Operation, OperationObject, Wrapper, Execute, CallOperation,
+  isNext, execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal,
+} from './operations'
+import { error, unrecognizedOperation, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
 
 export class Stack {
@@ -43,9 +46,9 @@ export class Stack {
 
   handle(value: any) {
     try {
-      // FIXME additional validations on start operation
-      this.#currentFrame = this.stackFrameFor(validateOperation(value), this.#currentFrame)
+      this.#currentFrame = this.stackFrameFor(this.validateOperation(value), this.#currentFrame)
     } catch (e) {
+      this.captureCoreStackTrace(e)
       this.#currentFrame.result = { hasError: true, error: e }
     }
   }
@@ -106,6 +109,8 @@ export class Stack {
       const gen = func(...args)
 
       if (!isGenerator(gen)) throw new TypeError('call: function did not return a Generator')
+
+      gen.name = func.name
 
       return new StackFrame(gen, curFrame)
     },
@@ -216,6 +221,7 @@ export class Stack {
 
             this.#currentFrame.result = { hasError: false }
           } catch (e) {
+            this.captureGeneratorStackTrace(e)
             this.#currentFrame.result = { hasError: true, error: e }
             this.#currentFrame.done = true
             this.shift()
@@ -243,9 +249,84 @@ export class Stack {
     }
   }
 
-  get result() {
-    return this.#result
+  validateOperation(value: any): Operation {
+    if (value === undefined || value === null) throw new TypeError(`${value} operation is forbidden`)
+
+    if (!isOperation(value)) throw new TypeError(`${value} is neither an operation nor a generator`)
+
+    if (isWrapper(value)) this.validateOperation(value.operation)
+
+    if (isOperationObject(value)) this.validators[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+
+    // FIXME additional validations when stack is starting (on rootFrame)
+
+    return value
   }
+
+   validators: Record<string, (operation: OperationObject) => void> = {
+     terminal({ operation }: Wrapper) {
+       if (isFork(operation)) throw new TypeError('terminal forks are forbidden')
+       if (isDefer(operation)) throw new TypeError('terminal defers are forbidden')
+       if (isRecover(operation)) throw new TypeError('terminal recovers are forbidden')
+       if (isTerminal(operation)) throw new TypeError('terminals cannot be nested')
+     },
+   }
+
+   captureCoreStackTrace = Stack.captureStackTrace((stack) => {
+     const handleIndex = stack.findIndex(frame => /^ +at Stack.handle \(.+\)$/.test(frame))
+     if (handleIndex === -1) return
+
+     stack.splice(
+       handleIndex + 1, 0,
+       ...this.getFrames(this.#currentFrame),
+     )
+   })
+
+   captureGeneratorStackTrace = Stack.captureStackTrace((stack) => {
+     let i = 0
+     while (stack[i] && !/^ +at .+\.next \(.+\)$/.test(stack[i])) i++
+     if (i === stack.length) return
+     const nextsStart = i
+
+     do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
+     const nextsEnd = i
+
+     if (this.#currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
+       stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
+     }
+
+     stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
+   })
+
+   static captureStackTrace(updateStack: (stack: string[]) => void) {
+     return (e: any) => {
+       if (!Object.isExtensible(e)) return
+
+       if (e[captured]) return
+       Object.defineProperty(e, captured, { value: true, enumerable: false })
+
+       if (!e.stack) return
+
+       const stack = e.stack.split('\n')
+
+       updateStack(stack)
+
+       e.stack = stack.join('\n')
+     }
+   }
+
+   getFrames(firstFrame: StackFrame) {
+     const newFrames = []
+     for (let frame = firstFrame; frame !== this.#rootFrame; frame = frame.previous) {
+       if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
+       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
+     }
+     return newFrames
+   }
+
+   get result() {
+     return this.#result
+   }
 }
 
 export class Task {

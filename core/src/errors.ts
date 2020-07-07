@@ -1,3 +1,5 @@
+export const captured = Symbol('captured')
+
 const formatMessage = (message: string, ...args: any[]) => `cuillere: ${message}${args.map(arg => JSON.stringify(arg, null, 2)).join(' ')}`
 
 export const error = (message: string, ...args: any[]) => new Error(formatMessage(message, ...args))

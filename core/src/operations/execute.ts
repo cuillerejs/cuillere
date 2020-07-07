@@ -6,8 +6,5 @@ export interface Execute<R = any> extends OperationObject {
 }
 
 export function execute<R = any>(gen: Generator<R, Operation>): Execute {
-  return {
-    kind: 'execute',
-    gen,
-  }
+  return { kind: 'execute', gen }
 }

@@ -7,9 +7,5 @@ export interface CallOperation extends OperationObject {
 }
 
 export function call<Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args): CallOperation {
-  return {
-    kind: 'call',
-    func,
-    args,
-  }
+  return { kind: 'call', func, args }
 }
