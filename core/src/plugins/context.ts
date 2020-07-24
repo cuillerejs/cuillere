@@ -1,26 +1,32 @@
-import { Middleware } from './plugin'
+import { Plugin } from './plugin'
 import { OperationObject } from '../operations'
 
-export const contextMiddleware = (): Middleware => ({
-  * get({ key }: Get, ctx) {
-    return ctx[key]
-  },
+const namespace = '@cuillere/context'
 
-  * set({ key, value }: Set, ctx) {
-    ctx[key] = value
+export const contextPlugin = (): Plugin => ({
+  namespace,
+
+  handlers: {
+    * get({ key }: Get, ctx) {
+      return ctx[key]
+    },
+
+    * set({ key, value }: Set, ctx) {
+      ctx[key] = value
+    },
   },
 })
 
 export function get(key: ContextKey): Get {
   return {
-    kind: 'get',
+    kind: `${namespace}/get`,
     key,
   }
 }
 
 export function set(key: ContextKey, value: any): Set {
   return {
-    kind: 'set',
+    kind: `${namespace}/set`,
     key,
     value,
   }

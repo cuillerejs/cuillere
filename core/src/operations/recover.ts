@@ -1,9 +1,11 @@
-import { OperationObject, isOfKind } from './operation'
+import { OperationObject, isOfKind, coreNamespace } from './operation'
 
-const recoverOperation: OperationObject = Object.freeze({ kind: 'recover' })
+const kind = `${coreNamespace}/recover`
+
+const recoverOperation: OperationObject = Object.freeze({ kind })
 
 export function recover() {
   return recoverOperation
 }
 
-export const isRecover = isOfKind('recover')
+export const isRecover = isOfKind(kind)

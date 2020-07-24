@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import { Middleware, concurrentMiddleware, contextMiddleware, FilteredHandler, Handler } from './plugins'
+import { Plugin, concurrentPlugin, contextPlugin, HandlerDescriptor } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
 import { call, start, Operation } from './operations'
 import { Stack } from './stack'
@@ -11,25 +11,24 @@ export interface Cuillere {
   execute: <R>(gen: Generator<R, Operation>) => Promise<R>
 }
 
-export default function cuillere(...pMws: Middleware[]): Cuillere {
+export default function cuillere(...pPlugins: Plugin[]): Cuillere {
   const instances = new WeakMap<any, Cuillere>()
 
-  const mws = pMws.concat([
-    concurrentMiddleware(),
-    contextMiddleware(),
+  const plugins = pPlugins.concat([
+    concurrentPlugin(),
+    contextPlugin(),
   ])
 
-  const handlers: Record<string, FilteredHandler[]> = {}
+  const handlers: Record<string, HandlerDescriptor[]> = {}
 
-  const pushHandler = (kind: string) => (handler: Handler) => {
-    if (!handlers[kind]) handlers[kind] = []
-    handlers[kind].push(typeof handler === 'function' ? { handle: handler, filter: () => true } : handler)
-  }
+  for (const plugin of plugins) {
+    Object.entries(plugin.handlers).forEach(([kind, handler]) => {
+      const namespace = typeof handler === 'function' ? plugin.namespace : (handler.namespace ?? plugin.namespace)
+      const nsKind = `${namespace}/${kind}`
 
-  for (const mw of mws) {
-    Object.entries(mw).forEach(([kind, handler]) => {
-      if (Array.isArray(handler)) handler.forEach(pushHandler(kind))
-      else pushHandler(kind)(handler)
+      if (!handlers[nsKind]) handlers[nsKind] = []
+
+      handlers[nsKind].push(typeof handler === 'function' ? { handle: handler } : handler)
     })
   }
 

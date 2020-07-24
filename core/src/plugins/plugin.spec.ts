@@ -1,6 +1,6 @@
-import cuillere, { Cuillere, Middleware, next } from '..'
+import cuillere, { Cuillere, Plugin, next } from '..'
 
-describe('middleware', () => {
+describe('plugin', () => {
   const test = async (cllr: Cuillere, expected = 'test') => {
     function* func() {
       return 'test'
@@ -8,48 +8,89 @@ describe('middleware', () => {
     expect(await cllr.call(func)).toBe(expected)
   }
 
-  it('should work with no middlwares', async () => {
+  it('should work with no plugins', async () => {
     const cllr = cuillere()
     await test(cllr)
   })
 
-  it('should call middlewares for call operation', async () => {
-    const middleware1Fn = jest.fn()
-    const middleware1: Middleware = {
-      async* call(operation) {
-        middleware1Fn()
-        return yield next(operation)
+  it('should call plugins for call operation', async () => {
+    const plugin1Fn = jest.fn()
+    const plugin1: Plugin = {
+      namespace: '@cuillere/test',
+
+      handlers: {
+        call: {
+          namespace: '@cuillere/core',
+          * handle(operation) {
+            plugin1Fn()
+            return yield next(operation)
+          },
+        },
       },
     }
 
-    const middleware2Fn = jest.fn()
-    const middleware2: Middleware = {
-      async* call(operation) {
-        middleware2Fn()
-        return yield next(operation)
+    const plugin2Fn = jest.fn()
+    const plugin2: Plugin = {
+      namespace: '@cuillere/test',
+
+      handlers: {
+        call: {
+          namespace: '@cuillere/core',
+          * handle(operation) {
+            plugin2Fn()
+            return yield next(operation)
+          },
+        },
       },
     }
 
-    const cllr = cuillere(middleware1, middleware2)
+    const cllr = cuillere(plugin1, plugin2)
 
     await test(cllr)
-    expect(middleware1Fn).toBeCalled()
-    expect(middleware2Fn).toBeCalled()
+    expect(plugin1Fn).toBeCalled()
+    expect(plugin2Fn).toBeCalled()
   })
 
-  it('should call middlewares in right ordrer', async () => {
-    const middleware1: Middleware = { async* call(operation) { return `expected ${yield next(operation)}` } }
-    const middleware2: Middleware = { async* call(operation) { return `returned ${yield next(operation)}` } }
-    const middleware3: Middleware = { async* call() { return 'value' } }
+  it('should call plugins in right ordrer', async () => {
+    const plugin1: Plugin = {
+      namespace: '@cuillere/test',
 
-    const cllr = cuillere(middleware1, middleware2, middleware3)
+      handlers: {
+        call: {
+          namespace: '@cuillere/core',
+          * handle(operation) { return `expected ${yield next(operation)}` },
+        },
+      },
+    }
+    const plugin2: Plugin = {
+      namespace: '@cuillere/test',
+
+      handlers: {
+        call: {
+          namespace: '@cuillere/core',
+          * handle(operation) { return `returned ${yield next(operation)}` },
+        },
+      },
+    }
+    const plugin3: Plugin = {
+      namespace: '@cuillere/test1',
+
+      handlers: {
+        call: {
+          namespace: '@cuillere/core',
+          * handle() { return 'value' },
+        },
+      },
+    }
+
+    const cllr = cuillere(plugin1, plugin2, plugin3)
 
     await test(cllr, 'expected returned value')
   })
 
   // SKIPPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
-  it.skip('should be able to catch exception from middleware', async () => {
-    const throwOperation = () => ({ kind: 'throw' })
+  it.skip('should be able to catch exception from plugin', async () => {
+    const throwOperation = () => ({ kind: '@cuillere/test/throw' })
     const error = new Error('test')
     let catched: Error
 
@@ -61,13 +102,16 @@ describe('middleware', () => {
       }
     }
 
-    const middleware: Middleware = {
-      async* throw() {
-        throw error
+    const plugin: Plugin = {
+      namespace: '@cuillere/test',
+      handlers: {
+        async* throw() {
+          throw error
+        },
       },
     }
 
-    await expect(cuillere(middleware).call(test)).resolves.toBeUndefined()
+    await expect(cuillere(plugin).call(test)).resolves.toBeUndefined()
     expect(catched).toBe(error)
   })
 })

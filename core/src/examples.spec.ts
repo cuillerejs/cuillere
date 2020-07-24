@@ -1,17 +1,20 @@
-import cuillere, { Middleware } from '.'
+import cuillere, { Plugin } from '.'
 
 describe('examples', () => {
-  it('promise middleware with custom operations', async () => {
-    const awaitFunc = (func, ...args: any[]) => ({ kind: 'await', func, args })
+  it('promise plugin with custom operations', async () => {
+    const awaitFunc = (func, ...args: any[]) => ({ kind: '@cuillere/promise/await', func, args })
 
-    // The promise middleware
-    const promiseMiddleware: Middleware = {
-      async* await(operation: any) {
-        return operation.func(...operation.args)
+    // The promise plugin
+    const promisePlugin: Plugin = {
+      namespace: '@cuillere/promise',
+      handlers: {
+        async* await(operation: any) {
+          return operation.func(...operation.args)
+        },
       },
     }
 
-    const cllr = cuillere(promiseMiddleware)
+    const cllr = cuillere(promisePlugin)
 
     // Some fake api
     const get = id => Promise.resolve({ id })

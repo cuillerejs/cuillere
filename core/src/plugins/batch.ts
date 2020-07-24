@@ -5,7 +5,7 @@ import { fork } from '../operations/fork'
 import { Task } from '../stack'
 import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
-import { Middleware } from './plugin'
+import { Plugin } from './plugin'
 
 interface BatchOptions {
   timeout?: number
@@ -22,40 +22,45 @@ export function batched<Args extends any[] = any[], R = any>(
   return (...args: Args) => call(batchedFunc, ...args)
 }
 
-export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware<Context> => ({
-  call: {
-    filter: isBatchedCall,
-    async* handle(operation: CallOperation, ctx) {
-      const batchKey = operation.func[BATCH_KEY](...operation.args)
+export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => ({
+  namespace: '@cuillere/batch',
 
-      if (!batchKey) {
-        const [result] = (yield operation.func(operation.args)) as any[]
-        return result
-      }
+  handlers: {
+    call: {
+      namespace: '@cuillere/core',
+      filter: isBatchedCall,
+      async* handle(operation: CallOperation, ctx) {
+        const batchKey = operation.func[BATCH_KEY](...operation.args)
 
-      if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
+        if (!batchKey) {
+          const [result] = (yield operation.func(operation.args)) as any[]
+          return result
+        }
 
-      let entry: BatchEntry
-      if (ctx[BATCH_CTX].has(batchKey)) {
-        entry = ctx[BATCH_CTX].get(batchKey)
-      } else {
-        const [result, resolve] = executablePromise<any[]>()
-        entry = { resolves: [], rejects: [], args: [], func: operation.func, result }
-        ctx[BATCH_CTX].set(batchKey, entry)
+        if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
-        const task: Task = yield fork(delayOperation, executeBatch(batchKey), timeout)
-        resolve(task.result)
-      }
+        let entry: BatchEntry
+        if (ctx[BATCH_CTX].has(batchKey)) {
+          entry = ctx[BATCH_CTX].get(batchKey)
+        } else {
+          const [result, resolve] = executablePromise<any[]>()
+          entry = { resolves: [], rejects: [], args: [], func: operation.func, result }
+          ctx[BATCH_CTX].set(batchKey, entry)
 
-      const index = entry.args.push(operation.args) - 1
-      return (await entry.result)[index]
+          const task: Task = yield fork(delayOperation, executeBatch(batchKey), timeout)
+          resolve(task.result)
+        }
+
+        const index = entry.args.push(operation.args) - 1
+        return (await entry.result)[index]
+      },
     },
-  },
 
-  async* executeBatch(operation: ExecuteBatch, ctx) {
-    const entry = ctx[BATCH_CTX].get(operation.batchKey)
-    ctx[BATCH_CTX].delete(operation.batchKey)
-    return yield entry.func(...entry.args)
+    async* execute(operation: ExecuteBatch, ctx) {
+      const entry = ctx[BATCH_CTX].get(operation.batchKey)
+      ctx[BATCH_CTX].delete(operation.batchKey)
+      return yield entry.func(...entry.args)
+    },
   },
 })
 
@@ -88,7 +93,7 @@ interface ExecuteBatch extends OperationObject {
 
 function executeBatch(batchKey: any): ExecuteBatch {
   return {
-    kind: 'executeBatch',
+    kind: '@cuillere/batch/execute',
     batchKey,
   }
 }

@@ -1,7 +1,7 @@
 import cuillere, { get, set } from '..'
 import { Cuillere } from '../cuillere'
 
-describe('middlewares', () => {
+describe('plugins', () => {
   let cllr: Cuillere
 
   beforeEach(() => {

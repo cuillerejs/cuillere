@@ -1,13 +1,17 @@
 import { OperationObject, Operation } from '../operations'
 import { GeneratorFunction } from '../generator'
 
-export type Handle<Context = any> = GeneratorFunction<[OperationObject, Context], any, Operation>
+export type HandleFunction<Context = any> = GeneratorFunction<[OperationObject, Context], any, Operation>
 
-export interface FilteredHandler<Context = any> {
+export interface HandlerDescriptor<Context = any> {
   filter?: (operation: OperationObject, ctx: Context) => boolean
-  handle: Handle<Context>
+  handle: HandleFunction<Context>
+  namespace?: string
 }
 
-export type Handler<Context = any> = Handle<Context> | FilteredHandler<Context>
+export type Handler<Context = any> = HandleFunction<Context> | HandlerDescriptor<Context>
 
-export type Middleware<Context = any> = Record<string, Handler<Context> | Handler<Context>[]>
+export interface Plugin<Context = any> {
+  handlers: Record<string, Handler<Context>>
+  namespace: string
+}
