@@ -1,4 +1,4 @@
-import { Middleware } from './middleware'
+import { Middleware } from './plugin'
 import { OperationObject } from '../operations'
 
 export const contextMiddleware = (): Middleware => ({

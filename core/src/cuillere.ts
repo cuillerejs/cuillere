@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import { Middleware, concurrentMiddleware, contextMiddleware, FilteredHandler, Handler } from './middlewares'
+import { Middleware, concurrentMiddleware, contextMiddleware, FilteredHandler, Handler } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
 import { call, start, Operation } from './operations'
 import { Stack } from './stack'

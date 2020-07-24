@@ -5,7 +5,7 @@ import { fork } from '../operations/fork'
 import { Task } from '../stack'
 import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
-import { Middleware } from './middleware'
+import { Middleware } from './plugin'
 
 interface BatchOptions {
   timeout?: number

@@ -1,4 +1,4 @@
-import { FilteredHandler } from './middlewares'
+import { FilteredHandler } from './plugins'
 import {
   Operation, OperationObject, Wrapper, Execute, CallOperation,
   isNext, execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal,
