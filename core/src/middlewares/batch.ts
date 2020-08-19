@@ -22,10 +22,10 @@ export function batched<Args extends any[] = any[], R = any>(
   return (...args: Args) => call(batchedFunc, ...args)
 }
 
-export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => ({
+export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware<Context> => ({
   call: {
     filter: isBatchedCall,
-    async* handle(operation: CallOperation, ctx: Context) {
+    async* handle(operation: CallOperation, ctx) {
       const batchKey = operation.func[BATCH_KEY](...operation.args)
 
       if (!batchKey) {
@@ -52,7 +52,7 @@ export const batchMiddelware = ({ timeout }: BatchOptions = {}): Middleware => (
     },
   },
 
-  async* executeBatch(operation: any, ctx: Context) {
+  async* executeBatch(operation: ExecuteBatch, ctx) {
     const entry = ctx[BATCH_CTX].get(operation.batchKey)
     ctx[BATCH_CTX].delete(operation.batchKey)
     return yield entry.func(...entry.args)
@@ -92,4 +92,3 @@ function executeBatch(batchKey: any): ExecuteBatch {
     batchKey,
   }
 }
-
