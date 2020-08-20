@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
-import { Plugin, concurrentPlugin, contextPlugin, HandlerDescriptor } from './plugins'
+import { HandlerDescriptor, Plugin, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
-import { call, start, Operation } from './operations'
+import { Operation, call, start } from './operations'
 import { Stack } from './stack'
 
 export interface Cuillere {
@@ -15,6 +15,7 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
   const instances = new WeakMap<any, Cuillere>()
 
   const plugins = pPlugins.concat([
+    batchPlugin(),
     concurrentPlugin(),
     contextPlugin(),
   ])

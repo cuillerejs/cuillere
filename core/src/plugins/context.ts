@@ -18,18 +18,11 @@ export const contextPlugin = (): Plugin => ({
 })
 
 export function get(key: ContextKey): Get {
-  return {
-    kind: `${namespace}/get`,
-    key,
-  }
+  return { kind: `${namespace}/get`, key }
 }
 
 export function set(key: ContextKey, value: any): Set {
-  return {
-    kind: `${namespace}/set`,
-    key,
-    value,
-  }
+  return { kind: `${namespace}/set`, key, value }
 }
 
 export interface Get extends OperationObject {
