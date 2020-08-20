@@ -22,8 +22,10 @@ export function batched<Args extends any[] = any[], R = any>(
   return (...args: Args) => call(batchedFunc, ...args)
 }
 
+const namespace = '@cuillere/batch'
+
 export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => ({
-  namespace: '@cuillere/batch',
+  namespace,
 
   handlers: {
     call: {
@@ -93,7 +95,7 @@ interface ExecuteBatch extends OperationObject {
 
 function executeBatch(batchKey: any): ExecuteBatch {
   return {
-    kind: '@cuillere/batch/execute',
+    kind: `${namespace}/execute`,
     batchKey,
   }
 }
