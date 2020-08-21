@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import { HandlerDescriptor, Plugin, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
 import { Operation, call, start } from './operations'
@@ -39,7 +38,8 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
 
       if (!handlers[nsKind]) handlers[nsKind] = []
 
-      handlers[nsKind].push(typeof handler === 'function' ? { handle: handler } : handler)
+      if (Array.isArray(handler)) handlers[nsKind].push(...handler)
+      else handlers[nsKind].push(typeof handler === 'function' ? { handle: handler } : handler)
     })
   }
 

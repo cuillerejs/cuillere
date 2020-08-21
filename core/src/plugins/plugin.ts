@@ -8,7 +8,7 @@ export interface HandlerDescriptor<Context = any> {
   handle: HandleFunction<Context>
 }
 
-export type Handler<Context = any> = HandleFunction<Context> | HandlerDescriptor<Context>
+export type Handler<Context = any> = HandleFunction<Context> | HandlerDescriptor<Context> | HandlerDescriptor<Context>[]
 
 export interface Plugin<Context = any> {
   handlers: Record<string, Handler<Context>>
