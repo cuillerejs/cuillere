@@ -1,4 +1,4 @@
-import cuillere, { defer, recover } from '..'
+import cuillere, { defer, generator, recover } from '..'
 
 describe('recover', () => {
   it('should recover from error', async () => {
@@ -108,6 +108,7 @@ describe('recover', () => {
 
     function* test() {
       yield defer(function* () {
+        yield generator() // Checks that recover doesn't return the previous result
         recovered = yield recover()
       })
     }
