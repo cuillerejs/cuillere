@@ -11,6 +11,8 @@ export interface Cuillere {
   execute: <R>(gen: Generator<R, Operation>) => Promise<R>
 }
 
+const namespacePrefix = '@'
+
 export default function cuillere(...pPlugins: Plugin[]): Cuillere {
   const instances = new WeakMap<any, Cuillere>()
 
@@ -23,9 +25,17 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
   const handlers: Record<string, HandlerDescriptor[]> = {}
 
   for (const plugin of plugins) {
+    const pluginHasNamespace = 'namespace' in plugin
+
+    if (pluginHasNamespace && !plugin.namespace) throw TypeError('FIXME')
+
     Object.entries(plugin.handlers).forEach(([kind, handler]) => {
-      const namespace = typeof handler === 'function' ? plugin.namespace : (handler.namespace ?? plugin.namespace)
-      const nsKind = `${namespace}/${kind}`
+      let nsKind: string
+      if (pluginHasNamespace) nsKind = kind.startsWith(namespacePrefix) ? kind : `${plugin.namespace}/${kind}`
+      else {
+        if (!kind.startsWith(namespacePrefix)) throw TypeError(`Plugin without namespace must have only qualified handlers, found "${kind}"`)
+        nsKind = kind
+      }
 
       if (!handlers[nsKind]) handlers[nsKind] = []
 

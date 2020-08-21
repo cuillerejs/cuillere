@@ -1,7 +1,5 @@
 import { GeneratorFunction } from '../generator'
-import { Operation, OperationObject } from '../operations/operation'
-import { CallOperation, call } from '../operations/call'
-import { fork } from '../operations/fork'
+import { CallOperation, Operation, OperationObject, call, fork } from '../operations'
 import { Task } from '../stack'
 import { executablePromise } from '../utils/promise'
 import { delayOperation } from '../utils/delay'
@@ -28,9 +26,9 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => 
   namespace,
 
   handlers: {
-    call: {
-      namespace: '@cuillere/core',
-      filter: isBatchedCall,
+    '@cuillere/core/call': {
+      filter({ func }: CallOperation): boolean { return func[BATCHED] },
+
       async* handle(operation: CallOperation, ctx) {
         const batchKey = operation.func[BATCH_KEY](...operation.args)
 
@@ -86,8 +84,6 @@ interface BatchEntry {
 interface Context {
   [BATCH_CTX]?: Map<any, BatchEntry>
 }
-
-const isBatchedCall = (operation: any): operation is CallOperation => operation.func[BATCHED]
 
 interface ExecuteBatch extends OperationObject {
   batchKey: any

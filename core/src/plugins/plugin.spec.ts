@@ -16,15 +16,10 @@ describe('plugin', () => {
   it('should call plugins for call operation', async () => {
     const plugin1Fn = jest.fn()
     const plugin1: Plugin = {
-      namespace: '@cuillere/test',
-
       handlers: {
-        call: {
-          namespace: '@cuillere/core',
-          * handle(operation) {
-            plugin1Fn()
-            return yield next(operation)
-          },
+        * '@cuillere/core/call'(operation) {
+          plugin1Fn()
+          return yield next(operation)
         },
       },
     }
@@ -34,12 +29,9 @@ describe('plugin', () => {
       namespace: '@cuillere/test',
 
       handlers: {
-        call: {
-          namespace: '@cuillere/core',
-          * handle(operation) {
-            plugin2Fn()
-            return yield next(operation)
-          },
+        * '@cuillere/core/call'(operation) {
+          plugin2Fn()
+          return yield next(operation)
         },
       },
     }
@@ -53,22 +45,16 @@ describe('plugin', () => {
 
   it('should call plugins in right ordrer', async () => {
     const plugin1: Plugin = {
-      namespace: '@cuillere/test',
-
       handlers: {
-        call: {
-          namespace: '@cuillere/core',
-          * handle(operation) { return `expected ${yield next(operation)}` },
+        * '@cuillere/core/call'(operation) {
+          return `expected ${yield next(operation)}`
         },
       },
     }
     const plugin2: Plugin = {
-      namespace: '@cuillere/test',
-
       handlers: {
-        call: {
-          namespace: '@cuillere/core',
-          * handle(operation) { return `returned ${yield next(operation)}` },
+        * '@cuillere/core/call'(operation) {
+          return `returned ${yield next(operation)}`
         },
       },
     }
@@ -76,9 +62,8 @@ describe('plugin', () => {
       namespace: '@cuillere/test1',
 
       handlers: {
-        call: {
-          namespace: '@cuillere/core',
-          * handle() { return 'value' },
+        * '@cuillere/core/call'() {
+          return 'value'
         },
       },
     }
