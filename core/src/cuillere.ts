@@ -1,4 +1,4 @@
-import { HandlerDescriptor, Plugin, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
+import { HandlerDescriptor, Plugin, Validator, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
 import { Operation, call, start } from './operations'
 import { Stack } from './stack'
@@ -22,6 +22,7 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
   ])
 
   const handlers: Record<string, HandlerDescriptor[]> = {}
+  const validators: Record<string, Validator> = {}
 
   for (const plugin of plugins) {
     const pluginHasNamespace = 'namespace' in plugin
@@ -44,8 +45,18 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
       else handlers[nsKind].push(typeof handler === 'function' ? { handle: handler } : handler)
     })
 
-    if (!pluginHasNamespace && 'validators' in plugin && Object.keys(plugin.validators).length > 0) {
-      throw TypeError('FIXME')
+    if ('validators' in plugin) {
+      const pluginValidators = Object.entries(plugin.validators)
+
+      if (!pluginHasNamespace && pluginValidators.length > 0) {
+        throw TypeError('FIXME')
+      }
+
+      pluginValidators.forEach(([kind, validator]) => {
+        if (kind.startsWith(namespacePrefix)) throw TypeError('ERROR')
+
+        validators[`${plugin.namespace}/${kind}`] = validator
+      })
     }
   }
 
