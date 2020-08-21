@@ -1,4 +1,4 @@
-import { HandlerDescriptor } from './plugins'
+import { HandlerDescriptor, Validator } from './plugins'
 import {
   Operation, OperationObject, Wrapper, Execute, CallOperation,
   isNext, execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
@@ -11,6 +11,8 @@ export class Stack {
 
   #ctx: any
 
+  #validators?: Record<string, Validator>
+
   #rootFrame = new StackFrame(null, null)
 
   #currentFrame = this.#rootFrame
@@ -21,9 +23,10 @@ export class Stack {
 
   #canceled = false
 
-  constructor(handlers: Record<string, HandlerDescriptor[]>, ctx: any) {
+  constructor(handlers: Record<string, HandlerDescriptor[]>, ctx: any, validators?: Record<string, Validator>) {
     this.#handlers = handlers
     this.#ctx = ctx
+    this.#validators = validators
   }
 
   start(value: any) {
@@ -122,7 +125,7 @@ export class Stack {
     },
 
     [`${coreNamespace}/fork`]: ({ operation }: Wrapper, curFrame) => {
-      curFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx).start(operation))
+      curFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx, this.#validators).start(operation))
 
       return curFrame
     },
@@ -256,77 +259,80 @@ export class Stack {
 
     if (isWrapper(value)) this.validateOperation(value.operation)
 
-    if (isOperationObject(value)) this.validators[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+    if (isOperationObject(value)) {
+      this.coreValidators[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+      this.#validators?.[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+    }
 
     // FIXME additional validations when stack is starting (on rootFrame)
 
     return value
   }
 
-   validators: Record<string, (operation: OperationObject) => void> = {
-     [`${coreNamespace}/terminal`]({ operation }: Wrapper) {
-       if (isFork(operation)) throw new TypeError('terminal forks are forbidden')
-       if (isDefer(operation)) throw new TypeError('terminal defers are forbidden')
-       if (isRecover(operation)) throw new TypeError('terminal recovers are forbidden')
-       if (isTerminal(operation)) throw new TypeError('terminals cannot be nested')
-     },
-   }
+  coreValidators: Record<string, (operation: OperationObject) => void> = {
+    [`${coreNamespace}/terminal`]({ operation }: Wrapper) {
+      if (isFork(operation)) throw new TypeError('terminal forks are forbidden')
+      if (isDefer(operation)) throw new TypeError('terminal defers are forbidden')
+      if (isRecover(operation)) throw new TypeError('terminal recovers are forbidden')
+      if (isTerminal(operation)) throw new TypeError('terminals cannot be nested')
+    },
+  }
 
-   captureCoreStackTrace = Stack.captureStackTrace((stack) => {
-     const handleIndex = stack.findIndex(frame => /^ +at Stack.handle \(.+\)$/.test(frame))
-     if (handleIndex === -1) return
+  captureCoreStackTrace = Stack.captureStackTrace((stack) => {
+    const handleIndex = stack.findIndex(frame => /^ +at Stack.handle \(.+\)$/.test(frame))
+    if (handleIndex === -1) return
 
-     stack.splice(
-       handleIndex + 1, 0,
-       ...this.getFrames(this.#currentFrame),
-     )
-   })
+    stack.splice(
+      handleIndex + 1, 0,
+      ...this.getFrames(this.#currentFrame),
+    )
+  })
 
-   captureGeneratorStackTrace = Stack.captureStackTrace((stack) => {
-     let i = 0
-     while (stack[i] && !/^ +at .+\.next \(.+\)$/.test(stack[i])) i++
-     if (i === stack.length) return
-     const nextsStart = i
+  captureGeneratorStackTrace = Stack.captureStackTrace((stack) => {
+    let i = 0
+    while (stack[i] && !/^ +at .+\.next \(.+\)$/.test(stack[i])) i++
+    if (i === stack.length) return
+    const nextsStart = i
 
-     do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
-     const nextsEnd = i
+    do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
+    const nextsEnd = i
 
-     if (this.#currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
-       stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
-     }
+    if (this.#currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
+      stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
+    }
 
-     stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
-   })
+    stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
+  })
 
-   static captureStackTrace(updateStack: (stack: string[]) => void) {
-     return (e: any) => {
-       if (!Object.isExtensible(e)) return
+  static captureStackTrace(updateStack: (stack: string[]) => void) {
+    return (e: any) => {
+      if (!Object.isExtensible(e)) return
 
-       if (e[captured]) return
-       Object.defineProperty(e, captured, { value: true, enumerable: false })
+      if (e[captured]) return
+      Object.defineProperty(e, captured, { value: true, enumerable: false })
 
-       if (!e.stack) return
+      if (!e.stack) return
 
-       const stack = e.stack.split('\n')
+      const stack = e.stack.split('\n')
 
-       updateStack(stack)
+      updateStack(stack)
 
-       e.stack = stack.join('\n')
-     }
-   }
+      e.stack = stack.join('\n')
+    }
+  }
 
-   getFrames(firstFrame: StackFrame) {
-     const newFrames = []
-     for (let frame = firstFrame; frame !== this.#rootFrame; frame = frame.previous) {
-       if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
-       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
-     }
-     return newFrames
-   }
+  getFrames(firstFrame: StackFrame) {
+    const newFrames = []
+    for (let frame = firstFrame; frame !== this.#rootFrame; frame = frame.previous) {
+      if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
+      else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
+    }
+    return newFrames
+  }
 
-   get result() {
-     return this.#result
-   }
+  get result() {
+    return this.#result
+  }
 }
 
 export class Task {

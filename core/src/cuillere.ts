@@ -26,7 +26,9 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
   for (const plugin of plugins) {
     const pluginHasNamespace = 'namespace' in plugin
 
-    if (pluginHasNamespace && !plugin.namespace) throw TypeError('FIXME')
+    if (pluginHasNamespace && !plugin.namespace.startsWith(namespacePrefix)) {
+      throw TypeError(`Plugin namespace should start with ${namespacePrefix}, found ${plugin.namespace}`)
+    }
 
     Object.entries(plugin.handlers).forEach(([kind, handler]) => {
       let nsKind: string

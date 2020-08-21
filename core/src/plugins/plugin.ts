@@ -13,4 +13,7 @@ export type Handler<Context = any> = HandleFunction<Context> | HandlerDescriptor
 export interface Plugin<Context = any> {
   handlers: Record<string, Handler<Context>>
   namespace?: string
+  validators?: Record<string, Validator>
 }
+
+export type Validator = (operation: OperationObject) => void
