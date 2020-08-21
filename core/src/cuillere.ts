@@ -43,6 +43,10 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
       if (Array.isArray(handler)) handlers[nsKind].push(...handler)
       else handlers[nsKind].push(typeof handler === 'function' ? { handle: handler } : handler)
     })
+
+    if (!pluginHasNamespace && 'validators' in plugin && Object.keys(plugin.validators).length > 0) {
+      throw TypeError('FIXME')
+    }
   }
 
   const make = (pCtx?: any) => {
