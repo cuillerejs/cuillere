@@ -49,11 +49,11 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
       const pluginValidators = Object.entries(plugin.validators)
 
       if (!pluginHasNamespace && pluginValidators.length > 0) {
-        throw TypeError('FIXME')
+        throw TypeError('Plugin without namespace must not have validators')
       }
 
       pluginValidators.forEach(([kind, validator]) => {
-        if (kind.startsWith(namespacePrefix)) throw TypeError('ERROR')
+        if (kind.startsWith(namespacePrefix)) throw TypeError(`Qualified validators are forbidden, found "${kind}"`)
 
         validators[`${plugin.namespace}/${kind}`] = validator
       })

@@ -99,4 +99,58 @@ describe('plugin', () => {
     await expect(cuillere(plugin).call(test)).resolves.toBeUndefined()
     expect(catched).toBe(error)
   })
+
+  it('should not allow unqualified handlers on plugins w/o namespace', () => {
+    let catched: any
+    try {
+      cuillere({
+        handlers: {
+          * test() {
+            // unqualified handler
+          },
+        },
+      })
+    } catch (e) {
+      catched = e
+    }
+
+    expect(catched).toStrictEqual(TypeError('Plugin without namespace must have only qualified handlers, found "test"'))
+  })
+
+  it('should not allow validators on plugins w/o namespace', () => {
+    let catched: any
+    try {
+      cuillere({
+        handlers: {},
+        validators: {
+          test() {
+            // validator
+          },
+        },
+      })
+    } catch (e) {
+      catched = e
+    }
+
+    expect(catched).toStrictEqual(TypeError('Plugin without namespace must not have validators'))
+  })
+
+  it('should not allow qualified validators', () => {
+    let catched: any
+    try {
+      cuillere({
+        namespace: '@cuillere/test',
+        handlers: {},
+        validators: {
+          '@cuillere/core/call'() {
+            // validator
+          },
+        },
+      })
+    } catch (e) {
+      catched = e
+    }
+
+    expect(catched).toStrictEqual(TypeError('Qualified validators are forbidden, found "@cuillere/core/call"'))
+  })
 })
