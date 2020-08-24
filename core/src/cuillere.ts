@@ -48,9 +48,7 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
     if ('validators' in plugin) {
       const pluginValidators = Object.entries(plugin.validators)
 
-      if (!pluginHasNamespace && pluginValidators.length > 0) {
-        throw TypeError('Plugin without namespace must not have validators')
-      }
+      if (!pluginHasNamespace && pluginValidators.length > 0) throw TypeError('Plugin without namespace must not have validators')
 
       pluginValidators.forEach(([kind, validator]) => {
         if (kind.startsWith(namespacePrefix)) throw TypeError(`Qualified validators are forbidden, found "${kind}"`)
@@ -68,8 +66,8 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
     const cllr: Cuillere = {
       ctx: make,
       start: handlers.start
-        ? operation => new Stack(handlers, ctx).start(start(operation)).result
-        : operation => new Stack(handlers, ctx).start(operation).result,
+        ? operation => new Stack(handlers, ctx, validators).start(start(operation)).result
+        : operation => new Stack(handlers, ctx, validators).start(operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(gen),
     }
