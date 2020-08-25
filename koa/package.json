@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/koa",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "main": "index.js",
   "license": "Apache-2.0",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
@@ -20,6 +20,6 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "@cuillere/core": "^0.8.0"
+    "@cuillere/core": "^0.9.0"
   }
 }

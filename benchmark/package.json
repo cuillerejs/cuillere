@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "private": true,
   "devDependencies": {
-    "@cuillere/core": "^0.8.0",
+    "@cuillere/core": "^0.9.0",
     "benny": "^3.6.14"
   },
   "scripts": {
