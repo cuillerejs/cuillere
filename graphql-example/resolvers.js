@@ -1,8 +1,8 @@
 import cuillere from '@cuillere/core'
 import { makeResolversTreeFactory } from '@cuillere/graphql'
-import { queryMiddleware, query } from '@cuillere/postgres'
+import { queryPlugin, query } from '@cuillere/postgres'
 
-const cllr = cuillere(queryMiddleware())
+const cllr = cuillere(queryPlugin())
 
 const makeResolversTree = makeResolversTreeFactory(cllr)
 
