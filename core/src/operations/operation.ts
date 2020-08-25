@@ -28,3 +28,4 @@ export function isWrapper(operation: Operation): operation is Wrapper {
   return 'operation' in operation
 }
 
+export const coreNamespace = '@cuillere/core'

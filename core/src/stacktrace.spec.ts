@@ -70,13 +70,16 @@ describe('stacktrace', () => {
 
   it('should have yield frame for handler', async () => {
     const cllr = cuillere({
-      * test() {
-        yield throwTypeError()
+      namespace: '@cuillere/test',
+      handlers: {
+        * test() {
+          yield throwTypeError()
+        },
       },
     })
 
     function* test() {
-      yield { kind: 'test' }
+      yield { kind: '@cuillere/test/test' }
     }
 
     function* throwTypeError() {
@@ -92,20 +95,23 @@ describe('stacktrace', () => {
 
     expect(stack[0]).toBe('TypeError: test')
     expect(stack[1]).toMatch(/^ +at throwTypeError \(.+\/stacktrace\.spec\.ts:.+\)$/)
-    expect(stack[2]).toBe('    at <yield test> (<unknown>)')
+    expect(stack[2]).toBe('    at <yield @cuillere/test/test> (<unknown>)')
     expect(stack[3]).toBe('    at test (<unknown>)')
     expect(stack[4]).toMatch(/^ +at Stack.execute \(.+\)$/)
   })
 
   it('should have top yield frame for handler', async () => {
     const cllr = cuillere({
-      * test() {
-        throw new TypeError('test')
+      namespace: '@cuillere/test',
+      handlers: {
+        * test() {
+          throw new TypeError('test')
+        },
       },
     })
 
     function* test() {
-      yield { kind: 'test' }
+      yield { kind: '@cuillere/test/test' }
     }
 
     let stack: string[]
@@ -116,7 +122,7 @@ describe('stacktrace', () => {
     }
 
     expect(stack[0]).toBe('TypeError: test')
-    expect(stack[1]).toMatch(/^ +at <yield test> \(.+\/stacktrace\.spec\.ts:.+\)$/)
+    expect(stack[1]).toMatch(/^ +at <yield @cuillere\/test\/test> \(.+\/stacktrace\.spec\.ts:.+\)$/)
     expect(stack[2]).toBe('    at test (<unknown>)')
     expect(stack[3]).toMatch(/^ +at Stack.execute \(.+\)$/)
   })

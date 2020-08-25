@@ -1,7 +1,7 @@
 import cuillere from '@cuillere/core'
 
-export const makeRequestHandlerFactory = (...middlewares) => {
-  const cllr = cuillere(...middlewares)
+export const makeRequestHandlerFactory = (...plugins) => {
+  const cllr = cuillere(...plugins)
 
   return fn => (ctx, ...args) => cllr.ctx(ctx).call(fn, ...args)
 }

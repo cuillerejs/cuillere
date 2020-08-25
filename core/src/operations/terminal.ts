@@ -1,7 +1,9 @@
-import { Operation, Wrapper, isOfKind } from './operation'
+import { Operation, Wrapper, isOfKind, coreNamespace } from './operation'
+
+const kind = `${coreNamespace}/terminal`
 
 export function terminal(operation: Operation): Wrapper {
-  return { kind: 'terminal', operation }
+  return { kind, operation }
 }
 
-export const isTerminal = isOfKind<Wrapper>('terminal')
+export const isTerminal = isOfKind<Wrapper>(kind)

@@ -1,10 +1,10 @@
 import { GeneratorFunction, get, call } from '@cuillere/core'
 import type { ApolloServerPlugin } from 'apollo-server-plugin-base'
-import { ProviderMiddlewareOptions, TransactionManagerOptions, PoolProvider, TransactionManager, setQueryHandler } from '@cuillere/postgres'
+import { ProviderPluginOptions, TransactionManagerOptions, PoolProvider, TransactionManager, setQueryHandler } from '@cuillere/postgres'
 import { Client } from 'pg'
 
 export const CuillerePostgresApolloPlugin = (
-  options: ProviderMiddlewareOptions,
+  options: ProviderPluginOptions,
   transactionOptions: TransactionManagerOptions,
 ): ApolloServerPlugin => {
   const provider = options.poolProvider ?? new PoolProvider(...options.poolConfigs)

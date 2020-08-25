@@ -8,13 +8,13 @@
   </a>
 </p>
 
-> cuillere is an asynchronous execution framework based on generator functions and middlewares.
+> cuillere is an extensible asynchronous execution framework based on generator functions.
 
 **🚧 cuillere is still in early development stage, the API may change at any time.**
 
 ## Why ?
 
-The goal of cuillere is to abstract some inevitable technical complexity (such as managing database transactions) in middlewares, and keep business code as simple and focused as possible.
+The goal of cuillere is to abstract some inevitable technical complexity (such as managing database transactions) in plugins, and keep business code as simple and focused as possible.
 
 ## Usage
 
@@ -22,12 +22,12 @@ In this example we use cuillere to manage the connection to a PostgreSQL databas
 
 ```js
 const cuillere = require('@cuillere/core')
-const { poolMiddleware, transactionMiddleware, queryMiddleware } = require('@cuillere/postgres')
+const { poolPlugin, transactionPlugin, queryPlugin } = require('@cuillere/postgres')
 
 const cllr = cuillere(
-  poolMiddleware({ /* postgres config */ }), // Manages connection pool
-  transactionMiddleware(), // Manages transactions
-  queryMiddleware() // Executes queries
+  poolPlugin({ /* postgres config */ }), // Manages connection pool
+  transactionPlugin(), // Manages transactions
+  queryPlugin() // Executes queries
 )
 
 const addUserAddress = (userId, address, setDefault) => cllr.call(function*() {

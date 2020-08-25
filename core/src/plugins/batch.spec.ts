@@ -1,4 +1,4 @@
-import cuillere, { CallOperation, Cuillere, batched, batchMiddelware } from '..'
+import cuillere, { CallOperation, Cuillere, batched, batchPlugin } from '..'
 import { callable } from '../operations'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
@@ -14,7 +14,7 @@ describe('batch', () => {
   let fn: (...args: any[]) => CallOperation
 
   beforeEach(() => {
-    cllr = cuillere(batchMiddelware({ timeout: 0 }))
+    cllr = cuillere(batchPlugin({ timeout: 0 }))
     mock.mockClear()
     fn = batched(function* fn(...args: any[]) {
       mock(...args)
@@ -76,7 +76,7 @@ describe('batch', () => {
   })
 
   it('should not debounce batch calls', async () => {
-    cllr = cuillere(batchMiddelware({ timeout: 30 }))
+    cllr = cuillere(batchPlugin({ timeout: 30 }))
 
     await Promise.all([
       cllr.start(fn(1)),

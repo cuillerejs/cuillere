@@ -1,7 +1,6 @@
-/* eslint-disable no-param-reassign */
-import { Middleware, concurrentMiddleware, contextMiddleware, FilteredHandler, Handler } from './middlewares'
+import { HandlerDescriptor, Plugin, Validator, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
-import { call, start, Operation } from './operations'
+import { Operation, call, start } from './operations'
 import { Stack } from './stack'
 
 export interface Cuillere {
@@ -11,26 +10,52 @@ export interface Cuillere {
   execute: <R>(gen: Generator<R, Operation>) => Promise<R>
 }
 
-export default function cuillere(...pMws: Middleware[]): Cuillere {
+const namespacePrefix = '@'
+
+export default function cuillere(...pPlugins: Plugin[]): Cuillere {
   const instances = new WeakMap<any, Cuillere>()
 
-  const mws = pMws.concat([
-    concurrentMiddleware(),
-    contextMiddleware(),
+  const plugins = pPlugins.concat([
+    batchPlugin(),
+    concurrentPlugin(),
+    contextPlugin(),
   ])
 
-  const handlers: Record<string, FilteredHandler[]> = {}
+  const handlers: Record<string, HandlerDescriptor[]> = {}
+  const validators: Record<string, Validator> = {}
 
-  const pushHandler = (kind: string) => (handler: Handler) => {
-    if (!handlers[kind]) handlers[kind] = []
-    handlers[kind].push(typeof handler === 'function' ? { handle: handler, filter: () => true } : handler)
-  }
+  for (const plugin of plugins) {
+    const pluginHasNamespace = 'namespace' in plugin
 
-  for (const mw of mws) {
-    Object.entries(mw).forEach(([kind, handler]) => {
-      if (Array.isArray(handler)) handler.forEach(pushHandler(kind))
-      else pushHandler(kind)(handler)
+    if (pluginHasNamespace && !plugin.namespace.startsWith(namespacePrefix)) {
+      throw TypeError(`Plugin namespace should start with ${namespacePrefix}, found ${plugin.namespace}`)
+    }
+
+    Object.entries(plugin.handlers).forEach(([kind, handler]) => {
+      let nsKind: string
+      if (pluginHasNamespace) nsKind = kind.startsWith(namespacePrefix) ? kind : `${plugin.namespace}/${kind}`
+      else {
+        if (!kind.startsWith(namespacePrefix)) throw TypeError(`Plugin without namespace must have only qualified handlers, found "${kind}"`)
+        nsKind = kind
+      }
+
+      if (!handlers[nsKind]) handlers[nsKind] = []
+
+      if (Array.isArray(handler)) handlers[nsKind].push(...handler)
+      else handlers[nsKind].push(typeof handler === 'function' ? { handle: handler } : handler)
     })
+
+    if ('validators' in plugin) {
+      const pluginValidators = Object.entries(plugin.validators)
+
+      if (!pluginHasNamespace && pluginValidators.length > 0) throw TypeError('Plugin without namespace must not have validators')
+
+      pluginValidators.forEach(([kind, validator]) => {
+        if (kind.startsWith(namespacePrefix)) throw TypeError(`Qualified validators are forbidden, found "${kind}"`)
+
+        validators[`${plugin.namespace}/${kind}`] = validator
+      })
+    }
   }
 
   const make = (pCtx?: any) => {
@@ -41,8 +66,8 @@ export default function cuillere(...pMws: Middleware[]): Cuillere {
     const cllr: Cuillere = {
       ctx: make,
       start: handlers.start
-        ? operation => new Stack(handlers, ctx).start(start(operation)).result
-        : operation => new Stack(handlers, ctx).start(operation).result,
+        ? operation => new Stack(handlers, ctx, validators).start(start(operation)).result
+        : operation => new Stack(handlers, ctx, validators).start(operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(gen),
     }

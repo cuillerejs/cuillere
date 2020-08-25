@@ -1,15 +1,17 @@
-import { FilteredHandler } from './middlewares'
+import { HandlerDescriptor, Validator } from './plugins'
 import {
   Operation, OperationObject, Wrapper, Execute, CallOperation,
-  isNext, execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal,
+  isNext, execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
 } from './operations'
 import { error, unrecognizedOperation, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
 
 export class Stack {
-  #handlers: Record<string, FilteredHandler[]>
+  #handlers: Record<string, HandlerDescriptor[]>
 
   #ctx: any
+
+  #validators?: Record<string, Validator>
 
   #rootFrame = new StackFrame(null, null)
 
@@ -21,9 +23,10 @@ export class Stack {
 
   #canceled = false
 
-  constructor(handlers: Record<string, FilteredHandler[]>, ctx: any) {
+  constructor(handlers: Record<string, HandlerDescriptor[]>, ctx: any, validators?: Record<string, Validator>) {
     this.#handlers = handlers
     this.#ctx = ctx
+    this.#validators = validators
   }
 
   start(value: any) {
@@ -54,7 +57,7 @@ export class Stack {
   }
 
   stackFrameFor(pOperation: Operation, curFrame: StackFrame): StackFrame {
-    let handlers: FilteredHandler[]
+    let handlers: HandlerDescriptor[]
     let handlerIndex = 0
     let operation = pOperation
 
@@ -73,7 +76,7 @@ export class Stack {
       // Equivalent to isGenerator(operation) but gives priority to the OperationObject
       if (!isOperationObject(operation)) {
         // No handler for generator execution, directly put it on the stack
-        if (!this.#handlers.execute) return new StackFrame(operation, curFrame)
+        if (!this.#handlers['@cuillere/core/execute']) return new StackFrame(operation, curFrame)
 
         operation = execute(operation)
       }
@@ -85,7 +88,7 @@ export class Stack {
     }
 
     for (; handlerIndex < handlers.length; handlerIndex++) {
-      if (handlers[handlerIndex].filter(operation, this.#ctx)) break
+      if (!handlers[handlerIndex].filter || handlers[handlerIndex].filter(operation, this.#ctx)) break
     }
 
     // No handler left for this kind of operation
@@ -103,7 +106,7 @@ export class Stack {
   }
 
   coreHandlers: Record<string, (operation: Operation, curFrame: StackFrame) => StackFrame> = {
-    call: ({ func, args }: CallOperation, curFrame) => {
+    [`${coreNamespace}/call`]: ({ func, args }: CallOperation, curFrame) => {
       if (!func) throw new TypeError(`call: cannot call ${func}`)
 
       const gen = func(...args)
@@ -115,27 +118,27 @@ export class Stack {
       return new StackFrame(gen, curFrame)
     },
 
-    execute: ({ gen }: Execute, curFrame) => {
+    [`${coreNamespace}/execute`]: ({ gen }: Execute, curFrame) => {
       if (!isGenerator(gen)) throw new TypeError(`execute: ${gen} is not a Generator`)
 
       return new StackFrame(gen, curFrame)
     },
 
-    fork: ({ operation }: Wrapper, curFrame) => {
-      curFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx).start(operation))
+    [`${coreNamespace}/fork`]: ({ operation }: Wrapper, curFrame) => {
+      curFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx, this.#validators).start(operation))
 
       return curFrame
     },
 
-    start: ({ operation }: Wrapper, curFrame) => this.stackFrameFor(operation, curFrame),
+    [`${coreNamespace}/start`]: ({ operation }: Wrapper, curFrame) => this.stackFrameFor(operation, curFrame),
 
-    defer: ({ operation }: Wrapper, curFrame) => {
+    [`${coreNamespace}/defer`]: ({ operation }: Wrapper, curFrame) => {
       curFrame.defers.unshift(operation)
 
       return curFrame
     },
 
-    recover: (_operation, curFrame) => {
+    [`${coreNamespace}/recover`]: (_operation, curFrame) => {
       if (curFrame.previous.done && curFrame.previous.result.hasError) {
         curFrame.result = { hasError: false, value: curFrame.previous.result.error }
         curFrame.previous.result.hasError = false
@@ -145,13 +148,13 @@ export class Stack {
       return curFrame
     },
 
-    terminal: ({ operation }: Wrapper, curFrame) => {
+    [`${coreNamespace}/terminal`]: ({ operation }: Wrapper, curFrame) => {
       curFrame.terminate()
 
       return this.stackFrameFor(operation, curFrame.previous)
     },
 
-    generator: (_operation, curFrame) => {
+    [`${coreNamespace}/generator`]: (_operation, curFrame) => {
       curFrame.result.value = curFrame.gen
 
       return curFrame
@@ -256,77 +259,80 @@ export class Stack {
 
     if (isWrapper(value)) this.validateOperation(value.operation)
 
-    if (isOperationObject(value)) this.validators[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+    if (isOperationObject(value)) {
+      this.coreValidators[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+      this.#validators?.[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+    }
 
     // FIXME additional validations when stack is starting (on rootFrame)
 
     return value
   }
 
-   validators: Record<string, (operation: OperationObject) => void> = {
-     terminal({ operation }: Wrapper) {
-       if (isFork(operation)) throw new TypeError('terminal forks are forbidden')
-       if (isDefer(operation)) throw new TypeError('terminal defers are forbidden')
-       if (isRecover(operation)) throw new TypeError('terminal recovers are forbidden')
-       if (isTerminal(operation)) throw new TypeError('terminals cannot be nested')
-     },
-   }
+  coreValidators: Record<string, (operation: OperationObject) => void> = {
+    [`${coreNamespace}/terminal`]({ operation }: Wrapper) {
+      if (isFork(operation)) throw new TypeError('terminal forks are forbidden')
+      if (isDefer(operation)) throw new TypeError('terminal defers are forbidden')
+      if (isRecover(operation)) throw new TypeError('terminal recovers are forbidden')
+      if (isTerminal(operation)) throw new TypeError('terminals cannot be nested')
+    },
+  }
 
-   captureCoreStackTrace = Stack.captureStackTrace((stack) => {
-     const handleIndex = stack.findIndex(frame => /^ +at Stack.handle \(.+\)$/.test(frame))
-     if (handleIndex === -1) return
+  captureCoreStackTrace = Stack.captureStackTrace((stack) => {
+    const handleIndex = stack.findIndex(frame => /^ +at Stack.handle \(.+\)$/.test(frame))
+    if (handleIndex === -1) return
 
-     stack.splice(
-       handleIndex + 1, 0,
-       ...this.getFrames(this.#currentFrame),
-     )
-   })
+    stack.splice(
+      handleIndex + 1, 0,
+      ...this.getFrames(this.#currentFrame),
+    )
+  })
 
-   captureGeneratorStackTrace = Stack.captureStackTrace((stack) => {
-     let i = 0
-     while (stack[i] && !/^ +at .+\.next \(.+\)$/.test(stack[i])) i++
-     if (i === stack.length) return
-     const nextsStart = i
+  captureGeneratorStackTrace = Stack.captureStackTrace((stack) => {
+    let i = 0
+    while (stack[i] && !/^ +at .+\.next \(.+\)$/.test(stack[i])) i++
+    if (i === stack.length) return
+    const nextsStart = i
 
-     do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
-     const nextsEnd = i
+    do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
+    const nextsEnd = i
 
-     if (this.#currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
-       stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
-     }
+    if (this.#currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
+      stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
+    }
 
-     stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
-   })
+    stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
+  })
 
-   static captureStackTrace(updateStack: (stack: string[]) => void) {
-     return (e: any) => {
-       if (!Object.isExtensible(e)) return
+  static captureStackTrace(updateStack: (stack: string[]) => void) {
+    return (e: any) => {
+      if (!Object.isExtensible(e)) return
 
-       if (e[captured]) return
-       Object.defineProperty(e, captured, { value: true, enumerable: false })
+      if (e[captured]) return
+      Object.defineProperty(e, captured, { value: true, enumerable: false })
 
-       if (!e.stack) return
+      if (!e.stack) return
 
-       const stack = e.stack.split('\n')
+      const stack = e.stack.split('\n')
 
-       updateStack(stack)
+      updateStack(stack)
 
-       e.stack = stack.join('\n')
-     }
-   }
+      e.stack = stack.join('\n')
+    }
+  }
 
-   getFrames(firstFrame: StackFrame) {
-     const newFrames = []
-     for (let frame = firstFrame; frame !== this.#rootFrame; frame = frame.previous) {
-       if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
-       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
-     }
-     return newFrames
-   }
+  getFrames(firstFrame: StackFrame) {
+    const newFrames = []
+    for (let frame = firstFrame; frame !== this.#rootFrame; frame = frame.previous) {
+      if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
+      else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
+    }
+    return newFrames
+  }
 
-   get result() {
-     return this.#result
-   }
+  get result() {
+    return this.#result
+  }
 }
 
 export class Task {
@@ -381,11 +387,11 @@ class StackFrame {
 class HandlerStackFrame extends StackFrame {
   kind: string
 
-  handlers: FilteredHandler[]
+  handlers: HandlerDescriptor[]
 
   index: number
 
-  constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, handlers: FilteredHandler[], index: number) {
+  constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, handlers: HandlerDescriptor[], index: number) {
     super(gen, previous)
     this.kind = kind
     this.handlers = handlers

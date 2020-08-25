@@ -6,7 +6,7 @@ describe('callable', () => {
     }
 
     const test = callable((message: string): TestOperation => ({
-      kind: 'test',
+      kind: '@cuillere/test/test',
       message,
     }))
 
@@ -14,8 +14,11 @@ describe('callable', () => {
 
     beforeEach(() => {
       cllr = cuillere({
-        * test({ message }: TestOperation) {
-          return `this is a test: "${message}"`
+        namespace: '@cuillere/test',
+        handlers: {
+          * test({ message }: TestOperation) {
+            return `this is a test: "${message}"`
+          },
         },
       })
     })

@@ -1,4 +1,5 @@
 import cuillere, { Cuillere, defer, fork, recover, terminal } from '.'
+import { OperationObject } from './operations'
 
 describe('validation', () => {
   let cllr: Cuillere
@@ -75,5 +76,36 @@ describe('validation', () => {
 
       await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminals cannot be nested'))
     })
+  })
+
+  it('should allow custom validators', async () => {
+    let catched: any
+
+    interface TestOperation extends OperationObject {
+      answer: 42
+    }
+
+    await cuillere({
+      namespace: '@cuillere/test',
+      handlers: {
+        * test({ answer }: TestOperation) {
+          return answer
+        },
+      },
+      validators: {
+        test({ answer }: TestOperation) {
+          if (answer !== 42) throw TypeError('answer should be 42')
+        },
+      },
+    }).call(function* test() {
+      yield { kind: '@cuillere/test/test', answer: 42 }
+      try {
+        yield { kind: '@cuillere/test/test', answer: 666 }
+      } catch (e) {
+        catched = e
+      }
+    })
+
+    expect(catched).toStrictEqual(TypeError('answer should be 42'))
   })
 })
