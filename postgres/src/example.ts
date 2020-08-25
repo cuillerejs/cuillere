@@ -1,7 +1,5 @@
 import cuillere from '@cuillere/core'
-import { query } from './index'
-import { transactionMiddleware, queryMiddleware } from './middlewares'
-import { PoolProvider } from './pool-provider'
+import { PoolProvider, transactionPlugin, queryPlugin, query } from '.'
 
 const poolProvider = new PoolProvider(
   {
@@ -21,8 +19,8 @@ const poolProvider = new PoolProvider(
 )
 
 const cllr = cuillere(
-  transactionMiddleware({ poolProvider }),
-  queryMiddleware(),
+  transactionPlugin({ poolProvider }),
+  queryPlugin(),
 );
 
 (async () => {
