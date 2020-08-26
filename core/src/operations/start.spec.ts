@@ -1,4 +1,4 @@
-import cuillere, { get, next } from '..'
+import cuillere, { get, delegate } from '..'
 
 describe('start', () => {
   it('should call start handler once at startup', async () => {
@@ -6,7 +6,7 @@ describe('start', () => {
       handlers: {
         * '@cuillere/core/start'(operation, ctx) {
           ctx.value = 'started'
-          return yield next(operation)
+          yield delegate(operation)
         },
       },
     }).call(function* test() {
