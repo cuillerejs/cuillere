@@ -7,8 +7,8 @@ function* callableGenerator() {
   yield terminal(yield generator())
 }
 
-type Callable<Args extends any[] = any[], T extends OperationObject = OperationObject> = (...args: Args) => T & Generator<void, OperationObject>
-
-export function callable<Args extends any[] = any[], T extends OperationObject = OperationObject>(factory: (...args: Args) => T): Callable<Args, T> {
+export function callable<Args extends any[] = any[], T extends OperationObject = OperationObject>(
+  factory: (...args: Args) => T,
+): (...args: Args) => T & Generator<void, OperationObject> {
   return (...args: Args) => Object.assign(callableGenerator(), factory(...args))
 }
