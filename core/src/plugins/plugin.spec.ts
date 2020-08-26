@@ -41,8 +41,7 @@ describe('plugin', () => {
     expect(plugin2Fn).toBeCalled()
   })
 
-  // SKIPPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
-  it.skip('should be able to catch exception from plugin', async () => {
+  it('should be able to catch exception from plugin (https://bugs.chromium.org/p/v8/issues/detail?id=10238)', async () => {
     const error = new Error('test')
     let catched: Error
 
