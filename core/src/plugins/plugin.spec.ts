@@ -26,8 +26,6 @@ describe('plugin', () => {
 
     const plugin2Fn = jest.fn()
     const plugin2: Plugin = {
-      namespace: '@cuillere/test',
-
       handlers: {
         * '@cuillere/core/call'(operation) {
           plugin2Fn()
@@ -43,45 +41,14 @@ describe('plugin', () => {
     expect(plugin2Fn).toBeCalled()
   })
 
-  it('should call plugins in right ordrer', async () => {
-    const plugin1: Plugin = {
-      handlers: {
-        * '@cuillere/core/call'(operation) {
-          return `expected ${yield next(operation)}`
-        },
-      },
-    }
-    const plugin2: Plugin = {
-      handlers: {
-        * '@cuillere/core/call'(operation) {
-          return `returned ${yield next(operation)}`
-        },
-      },
-    }
-    const plugin3: Plugin = {
-      namespace: '@cuillere/test1',
-
-      handlers: {
-        * '@cuillere/core/call'() {
-          return 'value'
-        },
-      },
-    }
-
-    const cllr = cuillere(plugin1, plugin2, plugin3)
-
-    await test(cllr, 'expected returned value')
-  })
-
   // SKIPPED: waiting for node bug resolution : https://github.com/nodejs/node/issues/31867
   it.skip('should be able to catch exception from plugin', async () => {
-    const throwOperation = () => ({ kind: '@cuillere/test/throw' })
     const error = new Error('test')
     let catched: Error
 
     async function* test() {
       try {
-        yield throwOperation()
+        yield { kind: '@cuillere/test/throw' }
       } catch (e) {
         catched = e
       }

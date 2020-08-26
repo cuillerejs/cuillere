@@ -146,14 +146,16 @@ export class Stack {
       return curFrame
     },
 
-    [`${coreNamespace}/next`]: ({ operation }: NextOperation, curFrame) => {
+    [`${coreNamespace}/next`]: ({ operation, terminal }: NextOperation, curFrame) => {
       if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
 
       const kind = isOperationObject(operation) ? operation.kind : `${coreNamespace}/execute`
 
       if (curFrame.kind !== kind) throw TypeError(`next: operation kind mismatch, expected "${curFrame.kind}", received "${kind}"`)
 
-      return this.stackFrameFor(operation, curFrame, curFrame.index + 1)
+      if (terminal) curFrame.terminate()
+
+      return this.stackFrameFor(operation, terminal ? curFrame.previous : curFrame, curFrame.index + 1)
     },
   }
 

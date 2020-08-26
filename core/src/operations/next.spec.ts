@@ -1,4 +1,5 @@
-import cuillere, { next } from '..'
+import cuillere, { Plugin, next } from '..'
+import { delegate } from './next'
 
 describe('next', () => {
   it('should not be allowed outside handlers', async () => {
@@ -32,5 +33,51 @@ describe('next', () => {
     ).start({ kind: '@cuillere/test/test' })
 
     expect(catched).toStrictEqual(new TypeError('next: operation kind mismatch, expected "@cuillere/test/test", received "@cuillere/test/test2"'))
+  })
+
+  it('should call handlers in right ordrer', async () => {
+    const plugin1: Plugin = {
+      handlers: {
+        * '@cuillere/test/test'(operation) {
+          return `1 ${yield next(operation)}`
+        },
+      },
+    }
+    const plugin2: Plugin = {
+      handlers: {
+        * '@cuillere/test/test'(operation) {
+          return `2 ${yield next(operation)}`
+        },
+      },
+    }
+    const plugin3: Plugin = {
+      handlers: {
+        * '@cuillere/test/test'() {
+          return '3'
+        },
+      },
+    }
+
+    await expect(cuillere(plugin1, plugin2, plugin3).start({ kind: '@cuillere/test/test' })).resolves.toBe('1 2 3')
+  })
+
+  it('should delegate to next handler', async () => {
+    const plugin1: Plugin = {
+      handlers: {
+        * '@cuillere/test/test'(operation) {
+          yield delegate(operation)
+          return 'should not be reached'
+        },
+      },
+    }
+    const plugin2: Plugin = {
+      handlers: {
+        * '@cuillere/test/test'() {
+          return 2
+        },
+      },
+    }
+
+    await expect(cuillere(plugin1, plugin2).start({ kind: '@cuillere/test/test' })).resolves.toBe(2)
   })
 })
