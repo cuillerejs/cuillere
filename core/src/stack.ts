@@ -66,9 +66,7 @@ export class Stack {
 
       operation = operation.operation
 
-      if (curFrame.kind !== operation.kind) {
-        throw error(`next: operation kind mismatch, expected "${curFrame.kind}", got "${operation.kind}"`)
-      }
+      if (curFrame.kind !== operation.kind) throw TypeError(`next: operation kind mismatch, expected "${curFrame.kind}", got "${operation.kind}"`)
 
       handlers = curFrame.handlers
       handlerIndex = curFrame.index + 1
@@ -76,7 +74,7 @@ export class Stack {
       // Equivalent to isGenerator(operation) but gives priority to the OperationObject
       if (!isOperationObject(operation)) {
         // No handler for generator execution, directly put it on the stack
-        if (!this.#handlers['@cuillere/core/execute']) return new StackFrame(operation, curFrame)
+        if (!(`${coreNamespace}/execute` in this.#handlers)) return new StackFrame(operation, curFrame)
 
         operation = execute(operation)
       }

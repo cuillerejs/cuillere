@@ -1,6 +1,6 @@
 import { HandlerDescriptor, Plugin, Validator, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
-import { Operation, call, start } from './operations'
+import { Operation, call, start, coreNamespace } from './operations'
 import { Stack } from './stack'
 
 export interface Cuillere {
@@ -65,7 +65,7 @@ export default function cuillere(...pPlugins: Plugin[]): Cuillere {
 
     const cllr: Cuillere = {
       ctx: make,
-      start: handlers.start
+      start: `${coreNamespace}/start` in handlers
         ? operation => new Stack(handlers, ctx, validators).start(start(operation)).result
         : operation => new Stack(handlers, ctx, validators).start(operation).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
