@@ -1,7 +1,6 @@
 export * from './call'
 export * from './callable'
 export * from './defer'
-export * from './delegate'
 export * from './execute'
 export * from './fork'
 export * from './generator'

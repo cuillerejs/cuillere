@@ -1,7 +1,7 @@
 import { HandlerDescriptor, Validator } from './plugins'
 import {
-  Operation, OperationObject, Wrapper, Execute, CallOperation,
-  isNext, execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
+  Operation, OperationObject, Wrapper, Execute, CallOperation, NextOperation,
+  execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
 } from './operations'
 import { error, unrecognizedOperation, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
@@ -56,35 +56,23 @@ export class Stack {
     }
   }
 
-  stackFrameFor(pOperation: Operation, curFrame: StackFrame): StackFrame {
-    let handlers: HandlerDescriptor[]
-    let handlerIndex = 0
+  stackFrameFor(pOperation: Operation, curFrame: StackFrame, handlerFirstIndex = 0): StackFrame {
     let operation = pOperation
 
-    if (isNext(operation)) {
-      if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
+    // Equivalent to isGenerator(operation) but gives priority to the OperationObject
+    if (!isOperationObject(operation)) {
+      // No handler for generator execution, directly put it on the stack
+      if (!(`${coreNamespace}/execute` in this.#handlers)) return new StackFrame(operation, curFrame)
 
-      operation = operation.operation
-
-      if (curFrame.kind !== operation.kind) throw TypeError(`next: operation kind mismatch, expected "${curFrame.kind}", got "${operation.kind}"`)
-
-      handlers = curFrame.handlers
-      handlerIndex = curFrame.index + 1
-    } else {
-      // Equivalent to isGenerator(operation) but gives priority to the OperationObject
-      if (!isOperationObject(operation)) {
-        // No handler for generator execution, directly put it on the stack
-        if (!(`${coreNamespace}/execute` in this.#handlers)) return new StackFrame(operation, curFrame)
-
-        operation = execute(operation)
-      }
-
-      handlers = this.#handlers[operation.kind]
-
-      // There is no handler for this kind of operation
-      if (!handlers) return this.handleCore(operation, curFrame)
+      operation = execute(operation)
     }
 
+    const handlers = this.#handlers[operation.kind]
+
+    // There is no handler for this kind of operation
+    if (!handlers) return this.handleCore(operation, curFrame)
+
+    let handlerIndex = handlerFirstIndex
     for (; handlerIndex < handlers.length; handlerIndex++) {
       if (!handlers[handlerIndex].filter || handlers[handlerIndex].filter(operation, this.#ctx)) break
     }
@@ -94,18 +82,18 @@ export class Stack {
 
     const gen = handlers[handlerIndex].handle(operation, this.#ctx)
 
-    return new HandlerStackFrame(gen, curFrame, operation.kind, handlers, handlerIndex)
+    return new HandlerStackFrame(gen, curFrame, operation.kind, handlerIndex)
   }
 
   handleCore(operation: OperationObject, curFrame: StackFrame): StackFrame {
-    if (!this.coreHandlers[operation.kind]) throw unrecognizedOperation(operation)
+    if (!(operation.kind in this.coreHandlers)) throw unrecognizedOperation(operation)
 
     return this.coreHandlers[operation.kind](operation, curFrame)
   }
 
   coreHandlers: Record<string, (operation: Operation, curFrame: StackFrame) => StackFrame> = {
     [`${coreNamespace}/call`]: ({ func, args }: CallOperation, curFrame) => {
-      if (!func) throw new TypeError(`call: cannot call ${func}`)
+      if (!func) throw new TypeError(`call: cannot call ${func}`) // FIXME improve and move to validator
 
       const gen = func(...args)
 
@@ -156,6 +144,18 @@ export class Stack {
       curFrame.result.value = curFrame.gen
 
       return curFrame
+    },
+
+    [`${coreNamespace}/next`]: ({ operation, terminal }: NextOperation, curFrame) => {
+      if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
+
+      const kind = isOperationObject(operation) ? operation.kind : `${coreNamespace}/execute`
+
+      if (curFrame.kind !== kind) throw TypeError(`next: operation kind mismatch, expected "${curFrame.kind}", received "${kind}"`)
+
+      if (terminal) curFrame.terminate()
+
+      return this.stackFrameFor(operation, terminal ? curFrame.previous : curFrame, curFrame.index + 1)
     },
   }
 
@@ -385,14 +385,11 @@ class StackFrame {
 class HandlerStackFrame extends StackFrame {
   kind: string
 
-  handlers: HandlerDescriptor[]
-
   index: number
 
-  constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, handlers: HandlerDescriptor[], index: number) {
+  constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, index: number) {
     super(gen, previous)
     this.kind = kind
-    this.handlers = handlers
     this.index = index
   }
 }
