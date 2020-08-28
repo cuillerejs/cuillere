@@ -67,6 +67,7 @@ module.exports = {
     'max-classes-per-file': 'off',
     'max-len': ['error', { code: 160 }],
     'no-await-in-loop': 'off',
+    'no-cond-assign': 'off',
     'no-console': 'off',
     'no-continue': 'off',
     'no-dupe-class-members': 'off',
