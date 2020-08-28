@@ -1,0 +1,14 @@
+{
+  "name": "@cuillere/apollo-server-postgres",
+  "version": "0.0.0",
+  "main": "lib/index.js",
+  "repository": "https://github.com/EmrysMyrddin/cuillere",
+  "author": {
+    "name": "Nicolas LEPAGE",
+    "url": "https://github.com/nlepage"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "apollo-server": "^2.16.1"
+  }
+}
