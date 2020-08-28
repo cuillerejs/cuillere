@@ -3,11 +3,20 @@ on: [push]
 
 jobs:
   build:
-    name: Build
+    name: Build and test
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2-beta
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup node 14
+        uses: actions/setup-node@v2-beta
         with:
           node-version: '14'
-      - run: node --version
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - name: Build core
+        run: yarn build
+        working-directory: ./core
+      - name: Test core
+        run: yarn test
+        working-directory: ./core
