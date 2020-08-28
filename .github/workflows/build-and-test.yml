@@ -20,3 +20,12 @@ jobs:
       - name: Test core
         run: yarn test
         working-directory: ./core
+      - name: Build graphql
+        run: yarn build
+        working-directory: ./graphql
+      - name: Build postgres
+        run: yarn build
+        working-directory: ./postgres
+      - name: Build postgres-apollo-plugin
+        run: yarn build
+        working-directory: ./postgres-apollo-plugin
