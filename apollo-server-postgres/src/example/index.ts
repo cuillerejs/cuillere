@@ -1,4 +1,4 @@
-import { CuillereApolloServerPostgres, CrudFactory, Crud, gql } from '..'
+import { CuillereApolloServerPostgres, Crud, gql } from '..'
 
 const typeDefs = gql`
   type Author {
