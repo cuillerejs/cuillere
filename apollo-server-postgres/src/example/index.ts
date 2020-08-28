@@ -60,5 +60,5 @@ const server = new CuillereApolloServerPostgres({
 export const { crud } = server
 
 server.listen().then(({ url }) => {
-  console.log(`🚀  Server ready at ${url}`)
+  console.log(`🚀 Server ready at ${url}`)
 })
