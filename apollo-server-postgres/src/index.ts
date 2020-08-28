@@ -13,13 +13,27 @@ type ApolloServerConfig = ApolloServerExpressConfig & {
   onHealthCheck?: (req: express.Request) => Promise<any>
 }
 
-interface CuillereApolloServerPostgresConfig {
-  pgPoolConfigs?: PoolConfig[]
+export interface BaseCrud<T = any> {
+  get(id: any): T
+  all(): T[]
+  list(criteria: any): T[]
+}
+
+export type Crud = Record<string, BaseCrud> & (<T>(name: string) => BaseCrud<T>)
+
+export interface CrudFactory<T = any> {
+  (params: { crud: BaseCrud<T> }): Record<string, (...args: any[]) => any>
+}
+
+export interface CuillereApolloServerPostgresConfig {
+  crud: Record<string, CrudFactory> | Record<string, CrudFactory>[]
+
+  pgPoolConfig?: PoolConfig | PoolConfig[]
   pgPoolProvider?: PoolProvider
 }
 
 export class CuillereApolloServerPostgres extends ApolloServer {
-  #pgPoolConfigs?: PoolConfig[]
+  #pgPoolConfig?: PoolConfig | PoolConfig[]
 
   #pgPoolProvider?: PoolProvider
 
@@ -28,7 +42,11 @@ export class CuillereApolloServerPostgres extends ApolloServer {
   ) {
     super(config)
 
-    this.#pgPoolConfigs = config.pgPoolConfigs
+    this.#pgPoolConfig = config.pgPoolConfig
     this.#pgPoolProvider = config.pgPoolProvider
+  }
+
+  get crud(): Record<string, BaseCrud> {
+    return this['asdsa.adas']
   }
 }
