@@ -13,16 +13,16 @@ type ApolloServerConfig = ApolloServerExpressConfig & {
   onHealthCheck?: (req: express.Request) => Promise<any>
 }
 
-export interface BaseCrud<T = any> {
-  get(id: any): T
-  all(): T[]
-  list(criteria: any): T[]
+export interface BaseCrud {
+  get(id: any): any
+  all(): any
+  list(criteria: any): any
 }
 
-export type Crud = Record<string, BaseCrud> & (<T>(name: string) => BaseCrud<T>)
+export type Crud = Record<string, BaseCrud>
 
-export interface CrudFactory<T = any> {
-  (params: { crud: BaseCrud<T> }): Record<string, (...args: any[]) => any>
+export interface CrudFactory {
+  (params: { crud: Crud }): Record<string, (...args: any[]) => any>
 }
 
 export interface CuillereApolloServerPostgresConfig {

@@ -21,7 +21,7 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     * books(_parent: any, _args: any, { crud }: { crud: Crud }) {
-      return yield crud<Book>('books').all()
+      return yield crud.books.all()
     },
   },
 
@@ -32,25 +32,19 @@ const resolvers = {
   },
 }
 
-const books: CrudFactory<Book> = ({ crud }) => ({
-  * listByAuthor(authorid) {
-    return crud.list({ authorid })
-  },
-})
-
-interface Book {
-  id: number
-  title: string
-  authorid: number
-}
-
 const server = new CuillereApolloServerPostgres({
   typeDefs,
 
   resolvers,
 
   crud: {
-    books,
+    books({ crud }) {
+      return {
+        * listByAuthor(authorid) {
+          return yield crud.books.list({ authorid })
+        },
+      }
+    },
   },
 
   pgPoolConfig: {
