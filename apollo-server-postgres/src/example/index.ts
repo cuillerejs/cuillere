@@ -14,7 +14,7 @@ const typeDefs = gql`
   }
 
   type Query {
-    books: [Book!]
+    books: [Book!] @role(is: "user") 
   }
 `
 
