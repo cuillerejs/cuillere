@@ -1,61 +1,37 @@
 import type { PoolClient } from 'pg'
-import { ClientManager, ClientManagerOptions } from './client-manager'
-import { rollback, commit, unsafeCommit } from './transactions'
 
-export interface TransactionManagerOptions extends ClientManagerOptions {
-  // FIXME prepared makes think of prepared statements, maybe another name ? twoPhase ?
-  prepared?: boolean
+export interface TransactionManager {
+  onConnect(client: PoolClient): Promise<void>
+  onSuccess(clients: PoolClient[]): Promise<void>
+  onError(clients: PoolClient[]): Promise<void>
 }
 
-export class TransactionManager extends ClientManager {
-  #doCommit: typeof commit
-
-  constructor(options: TransactionManagerOptions) {
-    super(options)
-    this.#doCommit = (options.prepared ?? true) ? commit : unsafeCommit
-  }
-
-  protected async createClient(name: string): Promise<PoolClient> {
-    const client = await super.createClient(name)
+export class DefaultTransactionManager implements TransactionManager {
+  async onConnect(client: PoolClient): Promise<void> { // eslint-disable-line class-methods-use-this
     await client.query('BEGIN')
-    return client
   }
 
-  public async transactional<T>(task: () => Promise<T>): Promise<T> {
-    try {
-      const result = await task()
-      await this.commit()
-      return result
-    } catch (err) {
-      await this.rollback()
-      throw err
-    }
+  async onSuccess(clients: PoolClient[]): Promise<void> { // eslint-disable-line class-methods-use-this
+    for (const client of clients) await client.query('COMMIT')
   }
 
-  public async* transactionalYield(value: any) {
-    try {
-      const result = yield value
-      await this.commit()
-      return result
-    } catch (err) {
-      await this.rollback()
-      throw err
-    }
+  async onError(clients: PoolClient[]): Promise<void> { // eslint-disable-line class-methods-use-this
+    await Promise.allSettled(clients.map(client => client.query('ROLLBACK')))
+  }
+}
+
+export class TwoPhaseTransactionManager implements TransactionManager {
+  private transactionsIds = new Map<PoolClient, string>()
+
+  async onConnect(client: PoolClient): Promise<void> { // eslint-disable-line class-methods-use-this
+    await client.query('BEGIN')
   }
 
-  async commit() {
-    try {
-      await this.#doCommit(await this.getClients())
-    } finally {
-      await this.release()
-    }
+  async onSuccess(clients: PoolClient[]): Promise<void> {
+    // FIXME
   }
 
-  async rollback() {
-    try {
-      await rollback(await this.getClients())
-    } finally {
-      await this.release(true)
-    }
+  async onError(clients: PoolClient[]): Promise<void> {
+    // FIXME
   }
 }

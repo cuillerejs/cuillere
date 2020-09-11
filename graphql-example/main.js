@@ -20,10 +20,7 @@ const server = new ApolloServer({
   ],
 })
 
-app.use((ctx, next) => {
-  ctx.state.cllrCtx = {}
-  return next()
-})
+// FIXME try koa middleware
 
 server.applyMiddleware({ app })
 
