@@ -1,15 +1,23 @@
-import { PoolClient, QueryConfig as PgQueryConfig } from 'pg'
-import { PoolProvider, DEFAULT_POOL } from './pool-provider'
+import type { PoolClient } from 'pg'
+import { PoolProvider, DEFAULT_POOL, PoolConfig } from './pool-provider'
 import { release } from './transactions'
+import { setQueryHandler } from './query-handler'
+import type { QueryConfig } from './query-config'
+import { setClientGetter } from './client-getter'
 
 export class ClientManager {
   private clients: Record<string, Promise<PoolClient>>
 
   private provider: PoolProvider
 
-  public constructor(provider: PoolProvider) {
-    this.provider = provider
+  public constructor(options: ClientManagerOptions) {
+    this.provider = options.poolProvider ?? new PoolProvider(options.poolConfig)
     this.clients = {}
+  }
+
+  public setupContext(ctx: any) {
+    setClientGetter(ctx, name => this.getClient(name))
+    setQueryHandler(ctx, query => this.query(query))
   }
 
   public async query(query: QueryConfig) {
@@ -56,9 +64,7 @@ export class ClientManager {
   }
 }
 
-export interface QueryConfig extends PgQueryConfig {
-  pool?: string
-  transaction?: {
-    manager?: 'none' | 'default'
-  }
+export interface ClientManagerOptions {
+  poolProvider?: PoolProvider
+  poolConfig?: PoolConfig | PoolConfig[]
 }

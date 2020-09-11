@@ -1,2 +1,2 @@
-export * from './query'
-export * from './providers'
+export * from './client'
+export * from './manager'

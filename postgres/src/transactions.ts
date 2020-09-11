@@ -1,4 +1,4 @@
-import { PoolClient } from 'pg'
+import type { PoolClient } from 'pg'
 import { chain, allSettled } from '@cuillere/core/lib/utils/promise'
 import uuid from './utils/uuid'
 
@@ -60,5 +60,4 @@ export const unsafeCommit = async (clients: Client[]) => {
   }
 }
 
-export const release = (clients: Client[], err?: Error | boolean) =>
-  chain(clients, async client => client.release(err))
+export const release = (clients: Client[], err?: Error | boolean) => chain(clients, async client => client.release(err))

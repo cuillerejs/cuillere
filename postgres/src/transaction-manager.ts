@@ -1,17 +1,17 @@
-import { PoolClient } from 'pg'
-import { ClientManager } from './client-manager'
+import type { PoolClient } from 'pg'
+import { ClientManager, ClientManagerOptions } from './client-manager'
 import { rollback, commit, unsafeCommit } from './transactions'
-import { PoolProvider } from './pool-provider'
 
-export interface TransactionManagerOptions {
+export interface TransactionManagerOptions extends ClientManagerOptions {
+  // FIXME prepared makes think of prepared statements, maybe another name ? twoPhase ?
   prepared?: boolean
 }
 
 export class TransactionManager extends ClientManager {
   #doCommit: typeof commit
 
-  constructor(provider: PoolProvider, options: TransactionManagerOptions = {}) {
-    super(provider)
+  constructor(options: TransactionManagerOptions) {
+    super(options)
     this.#doCommit = (options.prepared ?? true) ? commit : unsafeCommit
   }
 
@@ -32,9 +32,9 @@ export class TransactionManager extends ClientManager {
     }
   }
 
-  public async* transactionalYield(yieldValue: any) {
+  public async* transactionalYield(value: any) {
     try {
-      const result = yield yieldValue
+      const result = yield value
       await this.commit()
       return result
     } catch (err) {
