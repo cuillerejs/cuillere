@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg'
+import uuid from './utils/uuid'
 
 export interface TransactionManager {
   onConnect(client: PoolClient): Promise<void>
@@ -28,10 +29,28 @@ export class TwoPhaseTransactionManager implements TransactionManager {
   }
 
   async onSuccess(clients: PoolClient[]): Promise<void> {
-    // FIXME
+    // FIXME use Promise.all ?
+    for (const client of clients) {
+      const id = uuid()
+      await client.query(`PREPARE TRANSACTION '${id}'`)
+      this.transactionsIds.set(client, id)
+    }
+
+    // FIXME use Promise.all ?
+    for (const client of clients) {
+      if (!this.transactionsIds.has(client)) throw Error('no transaction id found for client')
+      await client.query(`COMMIT PREPARED '${this.transactionsIds.get(client)}'`)
+      this.transactionsIds.delete(client)
+    }
   }
 
   async onError(clients: PoolClient[]): Promise<void> {
-    // FIXME
+    await Promise.allSettled(clients.map(async (client) => {
+      if (this.transactionsIds.has(client)) {
+        await client.query(`ROLLBACK PREPARED '${this.transactionsIds.get(client)}'`)
+      } else {
+        await client.query('ROLLBACK')
+      }
+    }))
   }
 }

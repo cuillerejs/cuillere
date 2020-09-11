@@ -1,7 +1,7 @@
 import { Plugin, Wrapper, next } from '@cuillere/core'
 
-import { ClientManager, ClientManagerOptions } from '../client-manager'
-import { TransactionManager, TransactionManagerOptions } from '../transaction-manager'
+import { ClientManager } from '../client-manager'
+import { TransactionManager } from '../transaction-manager'
 
 export function clientManagerPlugin(options: ClientManagerOptions): Plugin {
   return managerPlugin(new ClientManager(options))
