@@ -10,6 +10,7 @@
     "@cuillere/core": "^0.9.0",
     "@cuillere/graphql": "^0.9.0",
     "@cuillere/postgres-apollo-plugin": "^0.9.0",
+    "@cuillere/postgres-koa-middleware": "^0.9.0",
     "apollo-server-koa": "^2.15.1",
     "koa": "^2.13.0",
     "pg": "^8"

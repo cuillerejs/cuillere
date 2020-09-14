@@ -2,21 +2,30 @@ import type { ApolloServerPlugin } from 'apollo-server-plugin-base'
 import { getClientManager, ClientManagerOptions } from '@cuillere/postgres'
 import { executablePromise } from '@cuillere/core/lib/utils/promise'
 
-export function CuillerePostgresApolloPlugin(options: ClientManagerOptions): ApolloServerPlugin {
+export interface PostgresApolloPluginOptions extends ClientManagerOptions {
+  contextKey?: string
+}
+
+export function PostgresApolloPlugin(options: PostgresApolloPluginOptions): ApolloServerPlugin {
+  const contextKey = options.contextKey ?? 'cuillere'
+
   return {
     requestDidStart() {
       let didEncounterErrors = false
 
       return {
+        // WORKAROUND: https://github.com/EmrysMyrddin/cuillere/issues/25
         didEncounterErrors() {
           didEncounterErrors = true
         },
 
-        executionDidStart({ context }) {
+        executionDidStart(reqCtx) {
+          if (contextKey in reqCtx.context && reqCtx.operation.operation !== 'mutation') return undefined
+
           const [task, resolve, reject] = executablePromise()
 
           getClientManager(options)
-            .execute(context, () => task)
+            .execute(reqCtx.context[contextKey] = {}, () => task)
             .catch(() => { /* Avoids unhandled promise rejection */ })
 
           return () => {

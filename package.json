@@ -2,11 +2,11 @@
   "private": true,
   "workspaces": [
     "core",
-    "koa",
     "graphql",
     "graphql-example",
     "postgres",
-    "postgres-apollo-plugin"
+    "postgres-apollo-plugin",
+    "postgres-koa-middleware"
   ],
   "devDependencies": {
     "@types/jest": "^26.0.3",

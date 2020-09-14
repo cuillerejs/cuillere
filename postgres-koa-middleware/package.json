@@ -1,19 +1,12 @@
 {
-  "name": "@cuillere/postgres-apollo-plugin",
+  "name": "@cuillere/postgres-koa-middleware",
   "version": "0.9.0",
   "main": "lib/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {
-    "name": "Valentin COCAUD",
-    "email": "v.cocaud@gmail.com",
-    "url": "https://github.com/EmrysMyrddin"
+    "name": "Nicolas LEPAGE",
+    "url": "https://github.com/nlepage"
   },
-  "contributors": [
-    {
-      "name": "Nicolas LEPAGE",
-      "url": "https://github.com/nlepage"
-    }
-  ],
   "license": "Apache-2.0",
   "files": [
     "src",
@@ -27,10 +20,9 @@
     "build": "yarn tsc"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.9.1",
     "@cuillere/postgres": "^0.9.0"
   },
   "devDependencies": {
-    "apollo-server-plugin-base": "^0.9.1"
+    "koa": "^2"
   }
 }

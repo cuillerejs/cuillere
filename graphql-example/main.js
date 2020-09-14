@@ -1,8 +1,17 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
-import { CuillerePostgresApolloPlugin } from '@cuillere/postgres-apollo-plugin'
+import { PostgresApolloPlugin } from '@cuillere/postgres-apollo-plugin'
+import { PoolProvider } from '@cuillere/postgres'
+import { PostgresKoaMiddleware } from '@cuillere/postgres-koa-middleware'
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
+
+const poolProvider = new PoolProvider({
+  database: 'postgres',
+  user: 'postgres',
+  password: 'password',
+  port: 54321,
+})
 
 const app = new Koa()
 
@@ -10,17 +19,10 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ ctx }) => ctx,
-  plugins: [
-    CuillerePostgresApolloPlugin({ poolConfig: {
-      database: 'postgres',
-      user: 'postgres',
-      password: 'password',
-      port: 54321,
-    } }),
-  ],
+  plugins: [PostgresApolloPlugin({ poolProvider })],
 })
 
-// FIXME try koa middleware
+app.use(PostgresKoaMiddleware({ poolProvider, transactionManager: 'none' }))
 
 server.applyMiddleware({ app })
 
