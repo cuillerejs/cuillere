@@ -36,22 +36,6 @@ class ClientManagerImpl implements ClientManager {
     this.#clients = {}
   }
 
-  // FIXME does this need to be public ?
-  public async query(query: QueryConfig) {
-    // FIXME change API ?
-    if (query.transaction?.manager === 'none') return this.#poolProvider.query(query)
-    return (await this.getClient(query.pool)).query(query)
-  }
-
-  // FIXME does this need to be public ?
-  public async getClient(name = DEFAULT_POOL) {
-    if (!(name in this.#clients)) {
-      this.#clients[name] = this.#poolProvider.connect(name)
-      await this.#transactionManager?.onConnect(await this.#clients[name])
-    }
-    return this.#clients[name]
-  }
-
   public async execute(ctx: any, task: () => Promise<any>) {
     let err: Error
     this.setupContext(ctx)
@@ -85,6 +69,20 @@ class ClientManagerImpl implements ClientManager {
     setQueryHandler(ctx, query => this.query(query))
   }
 
+  private async query(query: QueryConfig) {
+    // FIXME change API ?
+    if (query.transaction?.manager === 'none') return this.#poolProvider.query(query)
+    return (await this.getClient(query.pool)).query(query)
+  }
+
+  private async getClient(name = DEFAULT_POOL) {
+    if (!(name in this.#clients)) {
+      this.#clients[name] = this.#poolProvider.connect(name)
+      await this.#transactionManager?.onConnect(await this.#clients[name])
+    }
+    return this.#clients[name]
+  }
+
   private async onSuccess() {
     await this.#transactionManager?.onSuccess(await this.clients)
   }
@@ -93,7 +91,7 @@ class ClientManagerImpl implements ClientManager {
     await this.#transactionManager?.onError(await this.clients)
   }
 
-  private async release(err?: Error) {
+  private async release(err?: any) {
     for (const client of await this.clients) client.release(err)
     this.#clients = {}
   }

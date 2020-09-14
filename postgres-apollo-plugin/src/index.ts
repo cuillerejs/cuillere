@@ -1,27 +1,30 @@
 import type { ApolloServerPlugin } from 'apollo-server-plugin-base'
-import type { GraphQLError } from 'graphql'
 import { getClientManager, ClientManagerOptions } from '@cuillere/postgres'
 import { executablePromise } from '@cuillere/core/lib/utils/promise'
 
-export const CuillerePostgresApolloPlugin = (options: ClientManagerOptions): ApolloServerPlugin => ({
-  requestDidStart() {
-    let errors: readonly GraphQLError[]
+export function CuillerePostgresApolloPlugin(options: ClientManagerOptions): ApolloServerPlugin {
+  return {
+    requestDidStart() {
+      let didEncounterErrors = false
 
-    return {
-      didEncounterErrors(reqCtx) {
-        errors = reqCtx.errors
-      },
+      return {
+        didEncounterErrors() {
+          didEncounterErrors = true
+        },
 
-      executionDidStart({ context }) {
-        const [task, resolve, reject] = executablePromise()
+        executionDidStart({ context }) {
+          const [task, resolve, reject] = executablePromise()
 
-        getClientManager(options).execute(context, () => task)
+          getClientManager(options)
+            .execute(context, () => task)
+            .catch(() => { /* Avoids unhandled promise rejection */ })
 
-        return () => {
-          if (errors) reject(errors)
-          else resolve()
-        }
-      },
-    }
-  },
-})
+          return () => {
+            if (didEncounterErrors) reject(true)
+            else resolve()
+          }
+        },
+      }
+    },
+  }
+}

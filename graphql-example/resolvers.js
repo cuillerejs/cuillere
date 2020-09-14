@@ -31,8 +31,6 @@ export const resolvers = makeResolversTree({
       })
       return updated && updated.name
     },
-    wait: async () => {
-      await new Promise(resolve => setTimeout(resolve, 5000))
-    },
+    wait: async () => new Promise(resolve => setTimeout(resolve, 5000)),
   },
 })

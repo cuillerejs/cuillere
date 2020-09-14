@@ -16,7 +16,7 @@ export function getTransactionManager(type = 'default'): TransactionManager {
   }
 }
 
-export class DefaultTransactionManager implements TransactionManager {
+class DefaultTransactionManager implements TransactionManager {
   async onConnect(client: PoolClient): Promise<void> { // eslint-disable-line class-methods-use-this
     await client.query('BEGIN')
   }
@@ -30,7 +30,7 @@ export class DefaultTransactionManager implements TransactionManager {
   }
 }
 
-export class TwoPhaseTransactionManager implements TransactionManager {
+class TwoPhaseTransactionManager implements TransactionManager {
   private transactionsIds = new Map<PoolClient, string>()
 
   async onConnect(client: PoolClient): Promise<void> { // eslint-disable-line class-methods-use-this
