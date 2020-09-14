@@ -7,6 +7,15 @@ export interface TransactionManager {
   onError(clients: PoolClient[]): Promise<void>
 }
 
+export function getTransactionManager(type = 'default'): TransactionManager {
+  switch (type) {
+    case 'none': return null
+    case 'default': return new DefaultTransactionManager()
+    case 'two-phase': return new TwoPhaseTransactionManager()
+    default: throw TypeError(`Unknown transaction manager type "${type}"`)
+  }
+}
+
 export class DefaultTransactionManager implements TransactionManager {
   async onConnect(client: PoolClient): Promise<void> { // eslint-disable-line class-methods-use-this
     await client.query('BEGIN')

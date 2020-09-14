@@ -1,35 +1,55 @@
 import type { PoolClient } from 'pg'
-import { PoolProvider, DEFAULT_POOL } from './pool-provider'
+import { PoolProvider, DEFAULT_POOL, PoolConfig } from './pool-provider'
 import { setQueryHandler } from './query-handler'
 import type { QueryConfig } from './query-config'
 import { setClientGetter } from './client-getter'
-import { TransactionManager } from './transaction-manager'
+import { TransactionManager, getTransactionManager } from './transaction-manager'
 
-export class ClientManager {
-  private provider: PoolProvider
+export function getClientManager(options: ClientManagerOptions): ClientManager {
+  const poolProvider = options.poolProvider ?? new PoolProvider(options.poolConfig)
+  if (!poolProvider) throw TypeError('Client manager needs one of poolConfig or poolProvider')
+  return new ClientManagerImpl(poolProvider, getTransactionManager(options.transactionManager))
+}
 
-  private transactionManager: TransactionManager
+export interface ClientManagerOptions {
+  poolConfig?: PoolConfig | PoolConfig[]
+  poolProvider?: PoolProvider
+  transactionManager?: 'none' | 'default' | 'two-phase'
+}
 
-  private clients: Record<string, Promise<PoolClient>>
+export interface ClientManager {
+  execute(ctx: any, task: () => Promise<any>): Promise<void>
+  executeYield(ctx: any, value: any): AsyncGenerator<any, void, any>
+  end(): Promise<void>
+}
 
-  public constructor(provider: PoolProvider, transactionManager: TransactionManager) {
-    this.provider = provider
-    this.transactionManager = transactionManager
-    this.clients = {}
+class ClientManagerImpl implements ClientManager {
+  #poolProvider: PoolProvider
+
+  #transactionManager: TransactionManager
+
+  #clients: Record<string, Promise<PoolClient>>
+
+  constructor(poolProvider: PoolProvider, transactionManager: TransactionManager) {
+    this.#poolProvider = poolProvider
+    this.#transactionManager = transactionManager
+    this.#clients = {}
   }
 
+  // FIXME does this need to be public ?
   public async query(query: QueryConfig) {
     // FIXME change API ?
-    if (query.transaction?.manager === 'none') return this.provider.query(query)
+    if (query.transaction?.manager === 'none') return this.#poolProvider.query(query)
     return (await this.getClient(query.pool)).query(query)
   }
 
+  // FIXME does this need to be public ?
   public async getClient(name = DEFAULT_POOL) {
-    if (!(name in this.clients)) {
-      this.clients[name] = this.provider.connect(name)
-      await this.transactionManager?.onConnect(await this.clients[name])
+    if (!(name in this.#clients)) {
+      this.#clients[name] = this.#poolProvider.connect(name)
+      await this.#transactionManager?.onConnect(await this.#clients[name])
     }
-    return this.clients[name]
+    return this.#clients[name]
   }
 
   public async execute(ctx: any, task: () => Promise<any>) {
@@ -46,11 +66,11 @@ export class ClientManager {
     }
   }
 
-  public async* executeYield(ctx: any, value: any) {
+  public async* executeYield(ctx: any, task: any) {
     let err: Error
     this.setupContext(ctx)
     try {
-      yield value
+      yield task
       await this.onSuccess()
     } catch (e) {
       err = e
@@ -66,23 +86,23 @@ export class ClientManager {
   }
 
   private async onSuccess() {
-    await this.transactionManager?.onSuccess(await this.getClients())
+    await this.#transactionManager?.onSuccess(await this.clients)
   }
 
   private async onError() {
-    await this.transactionManager?.onError(await this.getClients())
+    await this.#transactionManager?.onError(await this.clients)
   }
 
   private async release(err?: Error) {
-    for (const client of await this.getClients()) client.release(err)
-    this.clients = {}
+    for (const client of await this.clients) client.release(err)
+    this.#clients = {}
   }
 
-  private getClients() {
-    return Promise.all(Object.values(this.clients))
+  private get clients() {
+    return Promise.all(Object.values(this.#clients))
   }
 
   public end() {
-    return this.provider.end()
+    return this.#poolProvider.end()
   }
 }

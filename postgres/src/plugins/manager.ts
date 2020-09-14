@@ -1,22 +1,12 @@
-import { Plugin, Wrapper, next } from '@cuillere/core'
+import { Plugin, next } from '@cuillere/core'
 
-import { ClientManager } from '../client-manager'
-import { TransactionManager } from '../transaction-manager'
+import { getClientManager, ClientManagerOptions } from '../client-manager'
 
-export function clientManagerPlugin(options: ClientManagerOptions): Plugin {
-  return managerPlugin(new ClientManager(options))
-}
-
-export function transactionManagerPlugin(options: TransactionManagerOptions): Plugin {
-  return managerPlugin(new TransactionManager(options))
-}
-
-function managerPlugin(manager: ClientManager): Plugin {
+export function managerPlugin(options: ClientManagerOptions): Plugin {
   return {
     handlers: {
-      async* '@cuillere/core/start'(operation: Wrapper, ctx) {
-        manager.setupContext(ctx)
-        return yield* manager.transactionalYield(next(operation))
+      async* '@cuillere/core/start'(operation, ctx) {
+        return yield* getClientManager(options).executeYield(ctx, next(operation))
       },
     },
   }
