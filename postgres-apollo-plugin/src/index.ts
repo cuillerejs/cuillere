@@ -1,16 +1,26 @@
 import type { ApolloServerPlugin } from 'apollo-server-plugin-base'
-import type { TransactionManagerOptions } from '@cuillere/postgres'
-import { TransactionManager } from '@cuillere/postgres'
+import type { GraphQLError } from 'graphql'
+import { getClientManager, ClientManagerOptions } from '@cuillere/postgres'
+import { executablePromise } from '@cuillere/core/lib/utils/promise'
 
-export const CuillerePostgresApolloPlugin = (options: TransactionManagerOptions): ApolloServerPlugin => ({
+export const CuillerePostgresApolloPlugin = (options: ClientManagerOptions): ApolloServerPlugin => ({
   requestDidStart() {
-    let shouldRollback = false
+    let errors: readonly GraphQLError[]
+
     return {
-      didEncounterErrors() { shouldRollback = true },
+      didEncounterErrors(reqCtx) {
+        errors = reqCtx.errors
+      },
+
       executionDidStart({ context }) {
-        const manager = new TransactionManager(options)
-        manager.setupContext(context)
-        return () => (shouldRollback ? manager.rollback() : manager.commit())
+        const [task, resolve, reject] = executablePromise()
+
+        getClientManager(options).execute(context, () => task)
+
+        return () => {
+          if (errors) reject(errors)
+          else resolve()
+        }
       },
     }
   },
