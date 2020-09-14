@@ -24,6 +24,8 @@ export function PostgresApolloPlugin(options: PostgresApolloPluginOptions): Apol
 
           const [task, resolve, reject] = executablePromise()
 
+          // FIXME no transactionManager if no mutation
+
           getClientManager(options)
             .execute(reqCtx.context[contextKey] = {}, () => task)
             .catch(() => { /* Avoids unhandled promise rejection */ })
