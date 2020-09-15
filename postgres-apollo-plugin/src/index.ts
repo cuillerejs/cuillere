@@ -20,13 +20,13 @@ export function PostgresApolloPlugin(options: PostgresApolloPluginOptions): Apol
         },
 
         executionDidStart(reqCtx) {
-          if (contextKey in reqCtx.context && reqCtx.operation.operation !== 'mutation') return undefined
+          const isMutation = reqCtx.operation.operation === 'mutation'
+
+          if (contextKey in reqCtx.context && !isMutation) return undefined
 
           const [task, resolve, reject] = executablePromise()
 
-          // FIXME no transactionManager if no mutation
-
-          getClientManager(options)
+          getClientManager({ ...options, transactionManager: isMutation ? options.transactionManager : 'none' })
             .execute(reqCtx.context[contextKey] = {}, () => task)
             .catch(() => { /* Avoids unhandled promise rejection */ })
 
