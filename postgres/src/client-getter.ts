@@ -6,8 +6,8 @@ export function getClientGetter(ctx: any): ClientGetter {
   return ctx[CLIENT_GETTER]
 }
 
-export function setClientGetter(ctx: any, queryHandler: ClientGetter) {
-  ctx[CLIENT_GETTER] = queryHandler
+export function setClientGetter(ctx: any, clientGetter: ClientGetter) {
+  ctx[CLIENT_GETTER] = clientGetter
 }
 
 export interface ClientGetter {
