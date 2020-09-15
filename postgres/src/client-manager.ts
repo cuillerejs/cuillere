@@ -18,8 +18,8 @@ export interface ClientManagerOptions {
 }
 
 export interface ClientManager {
-  execute(ctx: any, task: () => Promise<any>): Promise<void>
-  executeYield(ctx: any, value: any): AsyncGenerator<any, void, any>
+  execute(ctx: any, task: () => Promise<any>): Promise<any>
+  executeYield(ctx: any, value: any): AsyncGenerator<any, any, any>
   end(): Promise<void>
 }
 
@@ -37,28 +37,28 @@ class ClientManagerImpl implements ClientManager {
   }
 
   public async execute(ctx: any, task: () => Promise<any>) {
-    let err: Error
+    let err: any
     this.setupContext(ctx)
     try {
-      await task()
-      await this.onSuccess()
+      const result = await task()
+      await this.onSuccess(result)
+      return result
     } catch (e) {
-      err = e
-      await this.onError()
+      await this.onError(err = e)
     } finally {
       await this.release(err)
     }
   }
 
   public async* executeYield(ctx: any, task: any) {
-    let err: Error
+    let err: any
     this.setupContext(ctx)
     try {
-      yield task
-      await this.onSuccess()
+      const result = yield task
+      await this.onSuccess(result)
+      return result
     } catch (e) {
-      err = e
-      await this.onError()
+      await this.onError(err = e)
     } finally {
       await this.release(err)
     }
@@ -75,20 +75,20 @@ class ClientManagerImpl implements ClientManager {
     return (await this.getClient(query.pool)).query(query)
   }
 
-  private async getClient(name = DEFAULT_POOL) {
+  private getClient(name = DEFAULT_POOL) {
     if (!(name in this.#clients)) {
       this.#clients[name] = this.#poolProvider.connect(name)
-      await this.#transactionManager?.onConnect(await this.#clients[name])
+      if (this.#transactionManager) this.#clients[name] = this.#transactionManager.onConnect(this.#clients[name])
     }
     return this.#clients[name]
   }
 
-  private async onSuccess() {
-    await this.#transactionManager?.onSuccess(await this.clients)
+  private async onSuccess(result: any) {
+    await this.#transactionManager?.onSuccess(await this.clients, result)
   }
 
-  private async onError() {
-    await this.#transactionManager?.onError(await this.clients)
+  private async onError(error: any) {
+    await this.#transactionManager?.onError(await this.clients, error)
   }
 
   private async release(err?: any) {

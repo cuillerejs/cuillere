@@ -2,9 +2,9 @@ import type { PoolClient } from 'pg'
 import uuid from './utils/uuid'
 
 export interface TransactionManager {
-  onConnect(client: PoolClient): Promise<void>
-  onSuccess(clients: PoolClient[]): Promise<void>
-  onError(clients: PoolClient[]): Promise<void>
+  onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient>
+  onSuccess(clients: PoolClient[], result: any): Promise<void>
+  onError(clients: PoolClient[], error: any): Promise<void>
 }
 
 export function getTransactionManager(type = 'default'): TransactionManager {
@@ -17,8 +17,10 @@ export function getTransactionManager(type = 'default'): TransactionManager {
 }
 
 class DefaultTransactionManager implements TransactionManager {
-  async onConnect(client: PoolClient): Promise<void> { // eslint-disable-line class-methods-use-this
+  async onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
+    const client = await clientPromise
     await client.query('BEGIN')
+    return client
   }
 
   async onSuccess(clients: PoolClient[]): Promise<void> { // eslint-disable-line class-methods-use-this
@@ -33,8 +35,10 @@ class DefaultTransactionManager implements TransactionManager {
 class TwoPhaseTransactionManager implements TransactionManager {
   private transactionsIds = new Map<PoolClient, string>()
 
-  async onConnect(client: PoolClient): Promise<void> { // eslint-disable-line class-methods-use-this
+  async onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
+    const client = await clientPromise
     await client.query('BEGIN')
+    return client
   }
 
   async onSuccess(clients: PoolClient[]): Promise<void> {
