@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres-apollo-plugin",
-  "version": "0.9.0",
+  "version": "0.10.0-beta.1",
   "main": "lib/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {
@@ -27,8 +27,8 @@
     "build": "yarn tsc"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.9.1",
-    "@cuillere/postgres": "^0.9.0"
+    "@cuillere/core": "^0.10.0-beta.1",
+    "@cuillere/postgres": "^0.10.0-beta.1"
   },
   "devDependencies": {
     "apollo-server-plugin-base": "^0.9.1"
