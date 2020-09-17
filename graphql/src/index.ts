@@ -26,7 +26,7 @@ const makeResolverFactory = (cllr: Cuillere, getContext: (ctx: any) => any) => (
     if (!res || !isGenerator(res)) return res
 
     // Copy function name on generator for stacktrace
-    res['name'] = fn.name // eslint-disable-line dot-notation
+    res.name = fn.name
 
     return cllr.ctx(getContext(ctx)).start(res)
   }
