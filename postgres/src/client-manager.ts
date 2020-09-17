@@ -72,8 +72,7 @@ class ClientManagerImpl implements ClientManager {
   }
 
   private async query(query: QueryConfig) {
-    // FIXME change API ?
-    if (query.transaction?.manager === 'none') return this.#poolProvider.query(query)
+    if (query.usePoolQuery) return this.#poolProvider.query(query)
     return (await this.getClient(query.pool)).query(query)
   }
 

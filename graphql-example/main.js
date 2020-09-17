@@ -22,7 +22,7 @@ const server = new ApolloServer({
   plugins: [PostgresApolloPlugin({ poolProvider })],
 })
 
-app.use(PostgresKoaMiddleware({ poolProvider, transactionManager: 'none' }))
+app.use(PostgresKoaMiddleware({ poolProvider, transactionManager: 'read-only' }))
 
 server.applyMiddleware({ app })
 
