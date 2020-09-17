@@ -35,7 +35,7 @@ class DefaultTransactionManager implements TransactionManager {
 class TwoPhaseTransactionManager implements TransactionManager {
   #preparedIds = new Map<PoolClient, string>()
 
-  #commiteds = new Set<PoolClient>()
+  #committed = false
 
   async onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
     const client = await clientPromise
@@ -50,39 +50,40 @@ class TwoPhaseTransactionManager implements TransactionManager {
       this.#preparedIds.set(client, id)
     }
 
+    this.#committed = true
+
     const results = await Promise.allSettled(clients.map(async (client) => {
       try {
         await client.query(`COMMIT PREPARED '${this.#preparedIds.get(client)}'`)
-        this.#commiteds.add(client)
       } catch (e) {
-        console.error(`Commit prepared transaction ${this.#preparedIds.get(client)} failed`, e)
+        console.error(`Prepared transaction ${this.#preparedIds.get(client)} commit failed`, e)
         throw e
-      } finally {
-        this.#preparedIds.delete(client)
       }
     }))
 
     if (results.some(result => result.status === 'rejected')) throw Error('One or more prepared transaction commit failed')
   }
 
-  async onError(clients: PoolClient[]): Promise<void> {
-    const results = await Promise.allSettled(clients.map(async (client) => {
-      if (this.#commiteds.has(client)) return
+  async onError(clients: PoolClient[], error: any): Promise<void> {
+    if (this.#committed) return
 
+    const results = await Promise.allSettled(clients.map(async (client) => {
       if (this.#preparedIds.has(client)) {
         try {
           await client.query(`ROLLBACK PREPARED '${this.#preparedIds.get(client)}'`)
         } catch (e) {
-          console.error(`Rollback prepared transaction ${this.#preparedIds.get(client)} failed`, e)
+          console.error(`Prepared transaction ${this.#preparedIds.get(client)} rollback failed`, e)
           throw e
-        } finally {
-          this.#preparedIds.delete(client)
         }
       } else {
         await client.query('ROLLBACK')
       }
     }))
 
-    if (results.some(result => result.status === 'rejected')) throw Error('One or more transaction rollback failed')
+    if (results.some(result => result.status === 'rejected')) {
+      const e = Error('One or more transaction rollback failed')
+      e.stack += `\nRollback caused by: ${error.stack}`
+      throw e
+    }
   }
 }
