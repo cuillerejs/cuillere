@@ -1,11 +1,12 @@
-import { Pool, PoolConfig as PgPoolConfig, PoolClient, QueryResult } from 'pg'
-import { QueryConfig } from './client-manager'
+import { Pool } from 'pg'
+import type { PoolConfig as PgPoolConfig, PoolClient, QueryResult } from 'pg'
+import type { QueryConfig } from './query-config'
 
 export class PoolProvider {
   private pools: Record<string, Pool>
 
-  constructor(...poolConfigs: PoolConfig[]) {
-    this.pools = makePools(poolConfigs)
+  constructor(poolConfig: PoolConfig | PoolConfig[]) {
+    this.pools = makePools([].concat(poolConfig))
   }
 
   async connect(name = DEFAULT_POOL): Promise<PoolClient> {
@@ -38,14 +39,12 @@ export interface PoolConfig extends PgPoolConfig {
 const makePools = (poolConfigs: PoolConfig[]): Record<string, Pool> => {
   if (poolConfigs.length <= 1) {
     const [poolConfig] = poolConfigs
-    const name = (poolConfig && poolConfig.name) || DEFAULT_POOL
+    const name = (poolConfig?.name) ?? DEFAULT_POOL
     return { [name]: new Pool(poolConfig) }
   }
 
-  const pools: Record<string, Pool> = {}
-  poolConfigs.forEach(({ name, ...poolConfig }) => {
+  return Object.fromEntries(poolConfigs.map(({ name, ...poolConfig }) => {
     if (!name) throw new TypeError('Each pool config should have a name')
-    pools[name] = new Pool(poolConfig)
-  })
-  return pools
+    return [name, new Pool(poolConfig)]
+  }))
 }

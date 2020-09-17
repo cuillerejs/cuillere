@@ -1,33 +1,41 @@
-import { GeneratorFunction, get, call } from '@cuillere/core'
 import type { ApolloServerPlugin } from 'apollo-server-plugin-base'
-import { ProviderPluginOptions, TransactionManagerOptions, PoolProvider, TransactionManager, setQueryHandler } from '@cuillere/postgres'
-import { Client } from 'pg'
+import { getClientManager, ClientManagerOptions } from '@cuillere/postgres'
+import { executablePromise } from '@cuillere/core/lib/utils/promise'
 
-export const CuillerePostgresApolloPlugin = (
-  options: ProviderPluginOptions,
-  transactionOptions: TransactionManagerOptions,
-): ApolloServerPlugin => {
-  const provider = options.poolProvider ?? new PoolProvider(...options.poolConfigs)
+export interface PostgresApolloPluginOptions extends ClientManagerOptions {
+  contextKey?: string
+}
 
-  return ({
+export function PostgresApolloPlugin(options: PostgresApolloPluginOptions): ApolloServerPlugin {
+  const contextKey = options.contextKey ?? 'cuillere'
+
+  return {
     requestDidStart() {
-      let shouldRollback = false
+      let didEncounterErrors = false
+
       return {
-        didEncounterErrors() { shouldRollback = true },
-        executionDidStart({ context }) {
-          const manager = new TransactionManager(provider, transactionOptions)
-          setQueryHandler(context, query => manager.query(query))
-          context.getClient = (pool: string) => manager.getClient(pool)
-          return () => (shouldRollback ? manager.rollback() : manager.commit())
+        // WORKAROUND: https://github.com/EmrysMyrddin/cuillere/issues/25
+        didEncounterErrors() {
+          didEncounterErrors = true
+        },
+
+        executionDidStart(reqCtx) {
+          const isMutation = reqCtx.operation.operation === 'mutation'
+
+          if (contextKey in reqCtx.context && !isMutation) return undefined
+
+          const [task, resolve, reject] = executablePromise()
+
+          getClientManager({ ...options, transactionManager: isMutation ? options.transactionManager : 'none' })
+            .execute(reqCtx.context[contextKey] = {}, () => task)
+            .catch(() => { /* Avoids unhandled promise rejection */ })
+
+          return () => {
+            if (didEncounterErrors) reject(true)
+            else resolve()
+          }
         },
       }
     },
-  })
+  }
 }
-
-const getClientImpl: GeneratorFunction<[string], Client> = async function* getClient(name: string) {
-  const getClientFn = yield get('getClient')
-  return getClientFn(name)
-}
-
-export const getClient = (name: string) => call(getClientImpl, name)

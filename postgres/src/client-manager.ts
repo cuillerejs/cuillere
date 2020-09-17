@@ -1,64 +1,107 @@
-import { PoolClient, QueryConfig as PgQueryConfig } from 'pg'
-import { PoolProvider, DEFAULT_POOL } from './pool-provider'
-import { release } from './transactions'
+import type { PoolClient } from 'pg'
+import { PoolProvider, DEFAULT_POOL, PoolConfig } from './pool-provider'
+import { setQueryHandler } from './query-handler'
+import type { QueryConfig } from './query-config'
+import { setClientGetter } from './client-getter'
+import { TransactionManager, getTransactionManager } from './transaction-manager'
 
-export class ClientManager {
-  private clients: Record<string, Promise<PoolClient>>
+export function getClientManager(options: ClientManagerOptions): ClientManager {
+  const poolProvider = options.poolProvider ?? new PoolProvider(options.poolConfig)
+  if (!poolProvider) throw TypeError('Client manager needs one of poolConfig or poolProvider')
+  return new ClientManagerImpl(poolProvider, getTransactionManager(options.transactionManager))
+}
 
-  private provider: PoolProvider
+export interface ClientManagerOptions {
+  poolConfig?: PoolConfig | PoolConfig[]
+  poolProvider?: PoolProvider
+  transactionManager?: 'none' | 'default' | 'two-phase'
+}
 
-  public constructor(provider: PoolProvider) {
-    this.provider = provider
-    this.clients = {}
+export interface ClientManager {
+  execute<T = any>(ctx: any, task: () => Promise<T>): Promise<T>
+  executeYield(ctx: any, value: any): AsyncGenerator<any, any, any>
+  end(): Promise<void>
+}
+
+class ClientManagerImpl implements ClientManager {
+  #poolProvider: PoolProvider
+
+  #transactionManager: TransactionManager
+
+  #clients: Record<string, Promise<PoolClient>>
+
+  constructor(poolProvider: PoolProvider, transactionManager: TransactionManager) {
+    this.#poolProvider = poolProvider
+    this.#transactionManager = transactionManager
+    this.#clients = {}
   }
 
-  public async query(query: QueryConfig) {
-    if (query.transaction?.manager === 'none') return this.provider.query(query)
+  public async execute(ctx: any, task: () => Promise<any>) {
+    let err: any
+    this.setupContext(ctx)
+    try {
+      const result = await task()
+      await this.onSuccess(result)
+      return result
+    } catch (e) {
+      await this.onError(err = e)
+      throw e
+    } finally {
+      await this.release(err)
+    }
+  }
+
+  public async* executeYield(ctx: any, task: any) {
+    let err: any
+    this.setupContext(ctx)
+    try {
+      const result = yield task
+      await this.onSuccess(result)
+      return result
+    } catch (e) {
+      await this.onError(err = e)
+      throw e
+    } finally {
+      await this.release(err)
+    }
+  }
+
+  private setupContext(ctx: any) {
+    setClientGetter(ctx, name => this.getClient(name))
+    setQueryHandler(ctx, query => this.query(query))
+  }
+
+  private async query(query: QueryConfig) {
+    if (query.usePoolQuery) return this.#poolProvider.query(query)
     return (await this.getClient(query.pool)).query(query)
   }
 
-  public getClient(name = DEFAULT_POOL) {
-    if (!this.clients[name]) this.clients[name] = this.createClient(name)
-    return this.clients[name]
-  }
-
-  protected async createClient(name: string) {
-    return this.provider.connect(name)
-  }
-
-  protected getClients() {
-    return Promise.all(Object.values(this.clients))
-  }
-
-  public async release(isError?: boolean) {
-    await release(await this.getClients(), isError)
-    this.clients = {}
-  }
-
-  public async transactional<T>(task: () => Promise<T>): Promise<T> {
-    try {
-      return await task()
-    } finally {
-      await this.release()
+  private getClient(name = DEFAULT_POOL) {
+    if (!(name in this.#clients)) {
+      this.#clients[name] = this.#poolProvider.connect(name)
+      if (this.#transactionManager) this.#clients[name] = this.#transactionManager.onConnect(this.#clients[name])
     }
+    return this.#clients[name]
   }
 
-  public async* transactionalYield(yieldValue: any) {
-    try {
-      return yield yieldValue
-    } finally {
-      await this.release()
-    }
+  private async onSuccess(result: any) {
+    await this.#transactionManager?.onSuccess(await this.clients, result)
   }
 
-  public async end() {
-    return this.provider.end()
+  private async onError(error: any) {
+    await this.#transactionManager?.onError(await this.clients, error)
   }
-}
 
-export interface QueryConfig extends PgQueryConfig {
-  pool?: string
-  transaction?: {
-    manager?: 'none' | 'default'
+  private async release(err?: any) {
+    for (const client of await this.clients) client.release(err)
+    this.#clients = {}
+  }
+
+  private get clients() {
+    return Promise.all(Object.values(this.#clients))
+  }
+
+  public end() {
+    return this.#poolProvider.end()
   }
 }

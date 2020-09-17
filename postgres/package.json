@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres",
-  "version": "0.9.0",
+  "version": "0.10.0-beta.3",
   "main": "lib/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {
@@ -29,7 +29,7 @@
     "nodeversion": "node --version"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.9.0",
+    "@cuillere/core": "^0.10.0-beta.1",
     "pg": "^8"
   }
 }
