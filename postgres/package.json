@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres",
-  "version": "0.10.0-beta.2",
+  "version": "0.10.0-beta.3",
   "main": "lib/index.js",
   "repository": "https://github.com/EmrysMyrddin/cuillere",
   "author": {

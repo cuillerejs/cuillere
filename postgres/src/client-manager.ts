@@ -45,6 +45,7 @@ class ClientManagerImpl implements ClientManager {
       return result
     } catch (e) {
       await this.onError(err = e)
+      throw e
     } finally {
       await this.release(err)
     }
@@ -59,6 +60,7 @@ class ClientManagerImpl implements ClientManager {
       return result
     } catch (e) {
       await this.onError(err = e)
+      throw e
     } finally {
       await this.release(err)
     }
