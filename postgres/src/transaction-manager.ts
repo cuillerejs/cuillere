@@ -62,11 +62,11 @@ class TwoPhaseTransactionManager implements TransactionManager {
       }
     }))
 
-    if (results.some(result => result.status === 'rejected')) throw Error('One or more prepared commit failed')
+    if (results.some(result => result.status === 'rejected')) throw Error('One or more prepared transaction commit failed')
   }
 
   async onError(clients: PoolClient[]): Promise<void> {
-    await Promise.all(clients.map(async (client) => {
+    const results = await Promise.allSettled(clients.map(async (client) => {
       if (this.#commiteds.has(client)) return
 
       if (this.#preparedIds.has(client)) {
@@ -82,5 +82,7 @@ class TwoPhaseTransactionManager implements TransactionManager {
         await client.query('ROLLBACK')
       }
     }))
+
+    if (results.some(result => result.status === 'rejected')) throw Error('One or more transaction rollback failed')
   }
 }
