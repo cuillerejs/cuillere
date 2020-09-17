@@ -33,7 +33,9 @@ class DefaultTransactionManager implements TransactionManager {
 }
 
 class TwoPhaseTransactionManager implements TransactionManager {
-  private transactionsIds = new Map<PoolClient, string>()
+  #preparedIds = new Map<PoolClient, string>()
+
+  #commiteds = new Set<PoolClient>()
 
   async onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
     const client = await clientPromise
@@ -42,25 +44,40 @@ class TwoPhaseTransactionManager implements TransactionManager {
   }
 
   async onSuccess(clients: PoolClient[]): Promise<void> {
-    // FIXME use Promise.all ?
     for (const client of clients) {
       const id = uuid()
       await client.query(`PREPARE TRANSACTION '${id}'`)
-      this.transactionsIds.set(client, id)
+      this.#preparedIds.set(client, id)
     }
 
-    // FIXME use Promise.all ?
-    for (const client of clients) {
-      if (!this.transactionsIds.has(client)) throw Error('no transaction id found for client')
-      await client.query(`COMMIT PREPARED '${this.transactionsIds.get(client)}'`)
-      this.transactionsIds.delete(client)
-    }
+    const results = await Promise.allSettled(clients.map(async (client) => {
+      try {
+        await client.query(`COMMIT PREPARED '${this.#preparedIds.get(client)}'`)
+        this.#commiteds.add(client)
+      } catch (e) {
+        console.error(`Commit prepared transaction ${this.#preparedIds.get(client)} failed`, e)
+        throw e
+      } finally {
+        this.#preparedIds.delete(client)
+      }
+    }))
+
+    if (results.some(result => result.status === 'rejected')) throw Error('One or more prepared commit failed')
   }
 
   async onError(clients: PoolClient[]): Promise<void> {
-    await Promise.allSettled(clients.map(async (client) => {
-      if (this.transactionsIds.has(client)) {
-        await client.query(`ROLLBACK PREPARED '${this.transactionsIds.get(client)}'`)
+    await Promise.all(clients.map(async (client) => {
+      if (this.#commiteds.has(client)) return
+
+      if (this.#preparedIds.has(client)) {
+        try {
+          await client.query(`ROLLBACK PREPARED '${this.#preparedIds.get(client)}'`)
+        } catch (e) {
+          console.error(`Rollback prepared transaction ${this.#preparedIds.get(client)} failed`, e)
+          throw e
+        } finally {
+          this.#preparedIds.delete(client)
+        }
       } else {
         await client.query('ROLLBACK')
       }
