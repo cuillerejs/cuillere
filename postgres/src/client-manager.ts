@@ -18,7 +18,7 @@ export interface ClientManagerOptions {
 }
 
 export interface ClientManager {
-  execute(ctx: any, task: () => Promise<any>): Promise<any>
+  execute<T = any>(ctx: any, task: () => Promise<T>): Promise<T>
   executeYield(ctx: any, value: any): AsyncGenerator<any, any, any>
   end(): Promise<void>
 }
