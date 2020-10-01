@@ -32,3 +32,9 @@ jobs:
       - name: Build postgres-koa-middleware
         run: yarn build
         working-directory: ./postgres-koa-middleware
+      - name: Build channels
+        run: yarn build
+        working-directory: ./channels
+      - name: Test channels
+        run: yarn test
+        working-directory: ./channels
