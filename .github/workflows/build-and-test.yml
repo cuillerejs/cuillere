@@ -29,3 +29,6 @@ jobs:
       - name: Build postgres-apollo-plugin
         run: yarn build
         working-directory: ./postgres-apollo-plugin
+      - name: Build postgres-koa-middleware
+        run: yarn build
+        working-directory: ./postgres-koa-middleware
