@@ -1,0 +1,28 @@
+{
+  "name": "@cuillere/mariadb",
+  "version": "0.10.0",
+  "main": "lib/index.js",
+  "repository": "https://github.com/cuillerejs/cuillere",
+  "author": {
+    "name": "Nicolas LEPAGE",
+    "url": "https://github.com/nlepage"
+  },
+  "license": "Apache-2.0",
+  "files": [
+    "src",
+    "lib",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "rm -rf lib",
+    "lint": "yarn eslint --ext .ts src",
+    "prebuild": "yarn clean && yarn lint",
+    "build": "yarn tsc",
+    "example": "node lib/example",
+    "nodeversion": "node --version"
+  },
+  "peerDependencies": {
+    "@cuillere/core": "^0.10.0",
+    "mariadb": "^2"
+  }
+}

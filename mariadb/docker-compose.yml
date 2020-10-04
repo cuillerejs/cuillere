@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  postgres1:
+    image: postgres
+    ports:
+      - 54321:5432
+    command: "-c max_prepared_transactions=20"
+  postgres2:
+    image: postgres
+    ports:
+      - 54322:5432
+    command: "-c max_prepared_transactions=20"
