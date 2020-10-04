@@ -14,7 +14,7 @@ export function PostgresApolloPlugin(options: PostgresApolloPluginOptions): Apol
       let didEncounterErrors = false
 
       return {
-        // WORKAROUND: https://github.com/EmrysMyrddin/cuillere/issues/25
+        // WORKAROUND: https://github.com/cuillerejs/cuillere/issues/25
         didEncounterErrors() {
           didEncounterErrors = true
         },

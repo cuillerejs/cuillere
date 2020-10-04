@@ -2,7 +2,7 @@
   "name": "@cuillere/core",
   "version": "0.10.0",
   "main": "lib/index.js",
-  "repository": "https://github.com/EmrysMyrddin/cuillere",
+  "repository": "https://github.com/cuillerejs/cuillere",
   "author": {
     "name": "Valentin COCAUD",
     "email": "v.cocaud@gmail.com",

@@ -69,7 +69,7 @@ yarn add @cuillere/core
 
 ## 🤝 Contributing
 
-Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/EmrysMyrddin/cuillere/issues).
+Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/cuillerejs/cuillere/issues).
 
 ## Show your support
 
