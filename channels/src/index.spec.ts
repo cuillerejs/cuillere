@@ -143,7 +143,7 @@ describe('channels', () => {
   })
 
   it('should select 2', async () => {
-    async function* test() {
+    function* test() {
       const ch1 = yield chan()
       const ch2 = yield chan()
 
@@ -170,5 +170,33 @@ describe('channels', () => {
     }
 
     await cllr.call(test)
+  })
+
+  it('should select with callbacks', async () => {
+    let sent
+    let received
+
+    function* test() {
+      const ch1 = yield chan()
+      const ch2 = yield chan()
+      const ch3 = yield chan()
+
+      yield fork(function* () {
+        yield select(
+          [send(ch2, 'ch2'), () => { sent = 'ch2' }],
+          [send(ch3, 'ch3'), () => { sent = 'ch3' }],
+        )
+      })
+
+      yield select(
+        [recv(ch1), function* (v) { received = v }],
+        [recv(ch2), function* (v) { received = v }],
+      )
+    }
+
+    await cllr.call(test)
+
+    expect(sent).toBe('ch2')
+    expect(received).toBe('ch2')
   })
 })

@@ -1,4 +1,4 @@
-import { GeneratorFunction, Plugin, OperationObject, delegate, execute, isGenerator, isOfKind } from '@cuillere/core'
+import { Plugin, OperationObject, delegate, execute, isGenerator, isOfKind } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
@@ -59,8 +59,8 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
       },
 
       async* select({ cases }: Select, ctx) {
-        const simpleCases = cases.filter(isSimpleCase)
-        const indexes = new Map(cases.map((caze, i) => [caze, i]))
+        const simpleCases = cases.map(caze => (isCallbackCase(caze) ? caze[0] : caze))
+        const indexes = new Map(simpleCases.map((caze, i) => [caze, i]))
         const callbacks = new Map(cases.filter(isCallbackCase))
 
         const readyCases = simpleCases.filter((caze) => {
@@ -278,7 +278,7 @@ const DEFAULT = Symbol('DEFAULT')
 
 export type SimpleCase = Send | Recv | typeof DEFAULT
 
-export type CallbackCase = [SimpleCase, GeneratorFunction]
+export type CallbackCase = [SimpleCase, (...args: any[]) => any]
 
 export type Case = SimpleCase | CallbackCase
 
