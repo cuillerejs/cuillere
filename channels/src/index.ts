@@ -1,4 +1,4 @@
-import { Plugin, OperationObject, isOfKind, delegate } from '@cuillere/core'
+import { GeneratorFunction, Plugin, OperationObject, call, delegate, isOfKind, isGenerator, execute } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
@@ -59,9 +59,11 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
       },
 
       async* select({ cases }: Select, ctx) {
+        const simpleCases = cases.filter(isSimpleCase)
         const indexes = new Map(cases.map((caze, i) => [caze, i]))
+        const callbacks = new Map(cases.filter(isCallbackCase))
 
-        const readyCases = cases.filter((caze) => {
+        const readyCases = simpleCases.filter((caze) => {
           if (isDefault(caze)) return false
           if (isSend(caze)) return isSendReady(ctx, caze)
           if (isRecv(caze)) return isRecvReady(ctx, caze)
@@ -75,18 +77,24 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
           const index = indexes.get(caze)
           if (isSend(caze)) {
             syncSend(ctx, caze.chanKey, caze.value)
+            if (callbacks.has(caze)) yield* executeCallback(callbacks.get(caze))
             return [index]
           }
           if (isRecv(caze)) {
             const res = syncRecv(ctx, caze.chanKey)
-            return [index, caze.detail ? res : res[0]]
+            const ret = caze.detail ? res : res[0]
+            if (callbacks.has(caze)) yield* executeCallback(callbacks.get(caze), [ret])
+            return [index, ret]
           }
         }
 
-        if (indexes.has(DEFAULT)) return [indexes.get(DEFAULT)]
+        if (indexes.has(DEFAULT)) {
+          if (callbacks.has(DEFAULT)) yield* executeCallback(callbacks.get(DEFAULT))
+          return [indexes.get(DEFAULT)]
+        }
 
         const casesByChanKey = new Map<ChanKey, [Send[], Recv[]]>()
-        cases.forEach((caze) => {
+        for (const caze of simpleCases) {
           if (isDefault(caze)) return
           if (casesByChanKey.has(caze.chanKey)) {
             if (isSend(caze)) casesByChanKey.get(caze.chanKey)[0].push(caze)
@@ -95,7 +103,7 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
             if (isSend(caze)) casesByChanKey.set(caze.chanKey, [[caze], []])
             if (isRecv(caze)) casesByChanKey.set(caze.chanKey, [[], [caze]])
           }
-        })
+        }
 
         const [caze, res] = await new Promise<[Send] | [Recv, [any, boolean]]>((resolve) => {
           const resolvers: (Sender | Recver)[] = []
@@ -134,8 +142,15 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
         })
 
         const index = indexes.get(caze)
-        if (isSend(caze)) return [index]
-        if (isRecv(caze)) return [index, caze.detail ? res : res[0]]
+        if (isSend(caze)) {
+          if (callbacks.has(caze)) yield* executeCallback(callbacks.get(caze))
+          return [index]
+        }
+        if (isRecv(caze)) {
+          const ret = caze.detail ? res : res[0]
+          if (callbacks.has(caze)) yield* executeCallback(callbacks.get(caze), [ret])
+          return [index, ret]
+        }
         throw new TypeError('unknown case type')
       },
 
@@ -261,7 +276,15 @@ const doRecv = async (ctx: ChannelsContext, chanKey: ChanKey) => {
 
 const DEFAULT = Symbol('DEFAULT')
 
-export type Case = Send | Recv | typeof DEFAULT
+export type SimpleCase = Send | Recv | typeof DEFAULT
+
+export type CallbackCase = [SimpleCase, GeneratorFunction]
+
+export type Case = SimpleCase | CallbackCase
+
+const isSimpleCase = (caze: Case): caze is SimpleCase => !isCallbackCase(caze)
+
+const isCallbackCase = Array.isArray as (caze: Case) => caze is CallbackCase
 
 const isDefault = (caze: Case): caze is typeof DEFAULT => caze === DEFAULT
 
@@ -303,4 +326,15 @@ const syncSend = (ctx: ChannelsContext, chanKey: ChanKey, value: any): boolean =
   }
 
   return false
+}
+
+async function* executeCallback(callback: (...args: any[]) => any, args = []) {
+  const res = callback(...args)
+
+  if (isGenerator(res)) {
+    res.name = callback.name
+    yield execute(res)
+  } else {
+    await res
+  }
 }
