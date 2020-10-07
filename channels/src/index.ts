@@ -1,4 +1,4 @@
-import { GeneratorFunction, Plugin, OperationObject, call, delegate, isOfKind, isGenerator, execute } from '@cuillere/core'
+import { GeneratorFunction, Plugin, OperationObject, delegate, execute, isGenerator, isOfKind } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
