@@ -18,6 +18,8 @@ describe('generator', () => {
       expect(isGenerator({})).toBe(false)
       expect(isGenerator(true)).toBe(false)
       expect(isGenerator(false)).toBe(false)
+      expect(isGenerator(undefined)).toBe(false)
+      expect(isGenerator(null)).toBe(false)
     })
   })
 })
