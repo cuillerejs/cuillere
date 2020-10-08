@@ -282,8 +282,6 @@ export type CallbackCase = [SimpleCase, (...args: any[]) => any]
 
 export type Case = SimpleCase | CallbackCase
 
-const isSimpleCase = (caze: Case): caze is SimpleCase => !isCallbackCase(caze)
-
 const isCallbackCase = Array.isArray as (caze: Case) => caze is CallbackCase
 
 const isDefault = (caze: Case): caze is typeof DEFAULT => caze === DEFAULT
