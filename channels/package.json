@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/channels",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "main": "lib/index.js",
   "repository": "https://github.com/cuillerejs/cuillere",
   "author": {
@@ -8,13 +8,13 @@
     "url": "https://github.com/nlepage"
   },
   "license": "Apache-2.0",
+  "description": "@cuillere/channels implements Go-like channels for cuillere",
+  "homepage": "https://github.com/cuillerejs/cuillere/tree/master/channels",
   "scripts": {
     "test": "node ../node_modules/.bin/jest",
     "lint": "yarn eslint --ext .ts src",
     "prebuild": "yarn clean && yarn lint",
     "build": "yarn tsc",
-    "prewatch": "yarn clean",
-    "watch": "yarn tsc --watch",
     "clean": "rm -rf lib"
   },
   "files": [
