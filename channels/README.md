@@ -38,14 +38,97 @@ cuillere(channelsPlugin()).call(function* () {
   yield send(ch2, 'Arthur!')
 
   // Receive values from a channel
-  console.log(yield recv(ch2))
-  console.log(yield recv(ch2))
+  console.log(yield recv(ch2)) // Prints "Spoon!"
+  console.log(yield recv(ch2)) // Prints "Arthur!"
 })
 ```
 
-## Documentation
+## Getting started 🚀
 
-[API documentation](https://github.com/cuillerejs/cuillere/blob/master/channels/DOCS.md)
+### Forks
+
+Using `fork` from `@cuillere/core` allows to execute a function concurrently:
+
+```js
+import cuillere, { fork } from '@cuillere/core'
+
+function* say(s) {
+  for (let i = 0; i < 5; i++) {
+    yield sleep(100) // sleep doesn't really exist but can easily be implemented
+    console.log(s)
+  }
+}
+
+function* main() {
+  yield fork(say('world'))
+  yield say('hello')
+}
+
+cuillere.call(main)
+```
+
+`say('hello')` executes on the same stack than `main()`, while `say('world')` executes concurrently on a new stack.
+
+They may access shared memory, according to the rules of [JavaScript's event loop](https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoop).
+
+### Channels
+
+Channels are a conduit through which you can send and receive values with the `send()` and `recv()` operations:
+
+```js
+yield send(ch, v) // Send v to channel ch
+const v = yield recv(ch) // Receive from ch, and assign value to v
+```
+
+Channels must be created before use, using the `chan()` operation:
+
+```js
+const ch = yield chan()
+```
+
+By default, sends and receives block until the other side is ready. This allows forks to synchronize without using a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
+
+This example code sums the numbers in an array, distributing the work between two forks. Once both forks have completed their computation, it calculates the final result.
+
+```js
+import cuillere, { fork } from '@cuillere/core'
+import { channelsPlugin, chan, recv, send } from '@cuillere/channels'
+
+function* sum(numbers, ch) {
+  const result = numbers.reduce((a, b) => a + b, 0)
+  yield send(ch, result)
+}
+
+function* main() {
+  const numbers = [7, 2, 8, -9, 4, 0]
+
+  const ch = yield chan()
+  yield fork(sum(numbers.slice(0, 3), ch))
+  yield fork(sum(numbers.slice(3), ch))
+  const x = yield recv(ch)
+  const y = yield recv(ch)
+
+  console.log(x, y, x + y)
+}
+
+cuillere(channelsPlugin()).call(main)
+```
+
+### Buffered Channels
+
+TODO
+
+### Range and Close
+
+TODO
+
+### Select
+
+TODO
+
+### Default Selection
+
+TODO
 
 ## Examples
 
