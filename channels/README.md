@@ -198,7 +198,7 @@ function* fibonacci(ch, quit) {
   let x = 0
   let y = 1
   let stopped = false
-	while (!stopped) {
+  while (!stopped) {
     yield select(
       [send(ch, x), () => {
         y = (x + (x = y))
@@ -208,11 +208,11 @@ function* fibonacci(ch, quit) {
         stopped = true
       }],
     )
-	}
+  }
 }
 
 function* main() {
-	const ch = yield chan()
+  const ch = yield chan()
   const quit = yield chan()
   yield fork(function* () {
     for (let i = 0; i < 10; i++) {
@@ -220,7 +220,7 @@ function* main() {
     }
     yield send(quit, null)
   })
-	yield fibonacci(ch, quit)
+  yield fibonacci(ch, quit)
 }
 
 cuillere(channelsPlugin()).call(main)
@@ -250,10 +250,10 @@ import cuillere from '@cuillere/core'
 import { channelsPlugin, after, recv, select, tick } from '@cuillere/channels'
 
 function* main() {
-	const ticker = yield tick(100)
+  const ticker = yield tick(100)
   const boom = yield after(500)
   let stopped = false
-	while (!stopped) {
+  while (!stopped) {
     yield select(
       [recv(ticker), () => {
         console.log('tick.')
@@ -267,7 +267,7 @@ function* main() {
         yield sleep(50)
       }]
     )
-	}
+  }
 }
 
 cuillere(channelsPlugin()).call(main)
