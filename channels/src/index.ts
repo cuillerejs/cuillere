@@ -1,4 +1,4 @@
-import { Plugin, OperationObject, delegate, execute, isGenerator, isOfKind } from '@cuillere/core'
+import { Plugin, OperationObject, delegate, execute, fork, isGenerator, isOfKind } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
@@ -12,12 +12,12 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
         yield delegate(operation)
       },
 
-      * chan({ bufferSize }: Chan, ctx) {
-        const key = chanKey(bufferSize)
+      * chan({ bufferCapacity }: Chan, ctx) {
+        const key = chanKey(bufferCapacity)
 
         ctx[CHANS].set(key, {
-          buffer: Array(bufferSize),
-          bufferSize: 0,
+          buffer: Array(bufferCapacity),
+          bufferLength: 0,
           sendQ: new ChanQ(),
           recvQ: new ChanQ(),
           closed: false,
@@ -162,6 +162,26 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
           return value
         }))
       },
+
+      * after({ duration }: After) {
+        const ch = yield chan()
+        yield fork(async function* () {
+          await new Promise(resolve => setTimeout(resolve, duration))
+          yield send(ch, new Date())
+        })
+        return ch
+      },
+
+      * tick({ interval }: Tick) {
+        const ch = yield chan()
+        yield fork(async function* () {
+          while (true) {
+            await new Promise(resolve => setTimeout(resolve, interval))
+            yield send(ch, new Date())
+          }
+        })
+        return ch
+      },
     },
   }
 }
@@ -176,7 +196,7 @@ export type ChanKey = object // eslint-disable-line @typescript-eslint/ban-types
 
 interface ChanState {
   buffer: any[]
-  bufferSize: number
+  bufferLength: number
   sendQ: ChanQ<Sender>
   recvQ: ChanQ<Recver>
   closed: boolean
@@ -219,14 +239,14 @@ export interface ChanOperation extends OperationObject {
 }
 
 export interface Chan extends OperationObject {
-  bufferSize: number
+  bufferCapacity: number
 }
 
-export const chan = (bufferSize = 0): Chan => ({ kind: `${namespace}/chan`, bufferSize })
+export const chan = (bufferCapacity = 0): Chan => ({ kind: `${namespace}/chan`, bufferCapacity })
 
 let nextChanId = 1
 
-const chanKey = (bufferSize: number): ChanKey => new String(`chan #${nextChanId++} { bufferSize: ${bufferSize} }`)
+const chanKey = (bufferCapacity: number): ChanKey => new String(`chan #${nextChanId++} { bufferCapacity: ${bufferCapacity} }`)
 
 export const close = (chanKey: ChanKey): ChanOperation => ({ kind: `${namespace}/close`, chanKey })
 
@@ -242,19 +262,19 @@ const isRecv = isOfKind<Recv>(`${namespace}/recv`)
 
 const isRecvReady = (ctx: ChannelsContext, { chanKey }: Recv): boolean => {
   const ch = ctx[CHANS].get(chanKey)
-  return ch.bufferSize !== 0 || ch.sendQ.length() !== 0 || ch.closed
+  return ch.bufferLength !== 0 || ch.sendQ.length() !== 0 || ch.closed
 }
 
 const syncRecv = (ctx: ChannelsContext, chanKey: ChanKey): [any, boolean] => {
   const ch = ctx[CHANS].get(chanKey)
 
-  if (ch.bufferSize !== 0) {
+  if (ch.bufferLength !== 0) {
     const value = ch.buffer[0]
     ch.buffer.copyWithin(0, 1)
 
     const sender = ch.sendQ.shift()
-    if (sender) ch.buffer[ch.bufferSize - 1] = sender()
-    else ch.bufferSize--
+    if (sender) ch.buffer[ch.bufferLength - 1] = sender()
+    else ch.bufferLength--
 
     return [value, true]
   }
@@ -304,7 +324,7 @@ const isSend = isOfKind<Send>(`${namespace}/send`)
 const isSendReady = (ctx: ChannelsContext, { chanKey }: Send): boolean => {
   const ch = ctx[CHANS].get(chanKey)
   if (ch.closed) throw TypeError(`send on closed ${chanKey}`)
-  return ch.recvQ.length() !== 0 || ch.bufferSize !== ch.buffer.length
+  return ch.recvQ.length() !== 0 || ch.bufferLength !== ch.buffer.length
 }
 
 const syncSend = (ctx: ChannelsContext, chanKey: ChanKey, value: any): boolean => {
@@ -318,8 +338,8 @@ const syncSend = (ctx: ChannelsContext, chanKey: ChanKey, value: any): boolean =
     return true
   }
 
-  if (ch.bufferSize !== ch.buffer.length) {
-    ch.buffer[ch.bufferSize++] = value
+  if (ch.bufferLength !== ch.buffer.length) {
+    ch.buffer[ch.bufferLength++] = value
     return true
   }
 
@@ -336,3 +356,15 @@ async function* executeCallback(callback: (...args: any[]) => any, args = []) {
     await res
   }
 }
+
+export interface After extends OperationObject {
+  duration: number
+}
+
+export const after = (duration: number): After => ({ kind: `${namespace}/after`, duration })
+
+export interface Tick extends OperationObject {
+  interval: number
+}
+
+export const tick = (interval: number): Tick => ({ kind: `${namespace}/tick`, interval })
