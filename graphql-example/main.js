@@ -1,8 +1,7 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
-import { PostgresApolloPlugin } from '@cuillere/postgres-apollo-plugin'
-import { PoolProvider } from '@cuillere/postgres'
-import { PostgresKoaMiddleware } from '@cuillere/postgres-koa-middleware'
+import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager } from '@cuillere/core'
+import { PoolProvider, getClientManager } from '@cuillere/postgres'
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 
@@ -19,10 +18,37 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ ctx }) => ctx,
-  plugins: [PostgresApolloPlugin({ poolProvider })],
+  plugins: [
+    new ApolloServerPlugin({
+      context(reqCtx) {
+        return reqCtx.context.cuillere = {} // eslint-disable-line no-return-assign
+      },
+      taskManager(reqCtx) {
+        const isMutation = reqCtx.operation.operation === 'mutation'
+
+        if ('cuillere' in reqCtx.context && !isMutation) return null
+
+        return new AsyncTaskManager(
+          getClientManager({
+            poolProvider,
+            transactionManager: isMutation ? 'default' : 'read-only',
+          }),
+        )
+      },
+    }),
+  ],
 })
 
-app.use(PostgresKoaMiddleware({ poolProvider, transactionManager: 'read-only' }))
+app.use(KoaMiddleware({
+  context(ctx) {
+    return ctx.cuillere = {} // eslint-disable-line no-return-assign
+  },
+  taskManager() {
+    return new AsyncTaskManager(
+      getClientManager({ poolProvider, transactionManager: 'read-only' }),
+    )
+  },
+}))
 
 server.applyMiddleware({ app })
 

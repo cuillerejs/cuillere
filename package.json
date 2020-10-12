@@ -6,9 +6,7 @@
     "graphql",
     "graphql-example",
     "mariadb",
-    "postgres",
-    "postgres-apollo-plugin",
-    "postgres-koa-middleware"
+    "postgres"
   ],
   "devDependencies": {
     "@types/jest": "^26.0.3",

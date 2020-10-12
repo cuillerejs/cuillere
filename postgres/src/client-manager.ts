@@ -1,4 +1,6 @@
 import type { PoolClient } from 'pg'
+import type { TaskListener } from '@cuillere/core'
+
 import { PoolProvider, DEFAULT_POOL, PoolConfig } from './pool-provider'
 import { setQueryHandler } from './query-handler'
 import type { QueryConfig } from './query-config'
@@ -14,12 +16,10 @@ export function getClientManager(options: ClientManagerOptions): ClientManager {
 export interface ClientManagerOptions {
   poolConfig?: PoolConfig | PoolConfig[]
   poolProvider?: PoolProvider
-  transactionManager?: 'none' | 'default' | 'two-phase'
+  transactionManager?: 'none' | 'default' | 'two-phase' | 'read-only' // FIXME mutualize type with getTransactionManager
 }
 
-export interface ClientManager {
-  execute<T = any>(ctx: any, task: () => Promise<T>): Promise<T>
-  executeYield(ctx: any, value: any): AsyncGenerator<any, any, any>
+export interface ClientManager extends TaskListener {
   end(): Promise<void>
 }
 
@@ -36,37 +36,7 @@ class ClientManagerImpl implements ClientManager {
     this.#clients = {}
   }
 
-  public async execute(ctx: any, task: () => Promise<any>) {
-    let err: any
-    this.setupContext(ctx)
-    try {
-      const result = await task()
-      await this.onSuccess(result)
-      return result
-    } catch (e) {
-      await this.onError(err = e)
-      throw e
-    } finally {
-      await this.release(err)
-    }
-  }
-
-  public async* executeYield(ctx: any, task: any) {
-    let err: any
-    this.setupContext(ctx)
-    try {
-      const result = yield task
-      await this.onSuccess(result)
-      return result
-    } catch (e) {
-      await this.onError(err = e)
-      throw e
-    } finally {
-      await this.release(err)
-    }
-  }
-
-  private setupContext(ctx: any) {
+  initialize(ctx: any) {
     setClientGetter(ctx, name => this.getClient(name))
     setQueryHandler(ctx, query => this.query(query))
   }
@@ -79,20 +49,24 @@ class ClientManagerImpl implements ClientManager {
   private getClient(name = DEFAULT_POOL) {
     if (!(name in this.#clients)) {
       this.#clients[name] = this.#poolProvider.connect(name)
-      if (this.#transactionManager) this.#clients[name] = this.#transactionManager.onConnect(this.#clients[name])
+      if (this.#transactionManager) this.#clients[name] = this.#transactionManager.connect(this.#clients[name])
     }
     return this.#clients[name]
   }
 
-  private async onSuccess(result: any) {
-    await this.#transactionManager?.onSuccess(await this.clients, result)
+  async preComplete(result: any) {
+    await this.#transactionManager?.preComplete?.(await this.clients, result)
   }
 
-  private async onError(error: any) {
-    await this.#transactionManager?.onError(await this.clients, error)
+  async complete(result: any) {
+    await this.#transactionManager?.complete(await this.clients, result)
   }
 
-  private async release(err?: any) {
+  async error(error: any) {
+    await this.#transactionManager?.error(await this.clients, error)
+  }
+
+  async finalize(err?: any) {
     for (const client of await this.clients) client.release(err)
     this.#clients = {}
   }

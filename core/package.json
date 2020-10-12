@@ -29,6 +29,10 @@
     "lib",
     "LICENSE"
   ],
+  "devDependencies": {
+    "apollo-server-plugin-base": "^0.9.1",
+    "koa": "^2"
+  },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
