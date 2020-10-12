@@ -1,4 +1,4 @@
-import { Plugin, OperationObject, delegate, execute, isGenerator, isOfKind } from '@cuillere/core'
+import { Plugin, OperationObject, delegate, execute, fork, isGenerator, isOfKind } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
@@ -161,6 +161,26 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
           resolve()
           return value
         }))
+      },
+
+      * after({ duration }: After) {
+        const ch = yield chan()
+        yield fork(async function* () {
+          await new Promise(resolve => setTimeout(resolve, duration))
+          yield send(ch, new Date())
+        })
+        return ch
+      },
+
+      * tick({ interval }: Tick) {
+        const ch = yield chan()
+        yield fork(async function* () {
+          while (true) {
+            await new Promise(resolve => setTimeout(resolve, interval))
+            yield send(ch, new Date())
+          }
+        })
+        return ch
       },
     },
   }
@@ -336,3 +356,15 @@ async function* executeCallback(callback: (...args: any[]) => any, args = []) {
     await res
   }
 }
+
+export interface After extends OperationObject {
+  duration: number
+}
+
+export const after = (duration: number): After => ({ kind: `${namespace}/after`, duration })
+
+export interface Tick extends OperationObject {
+  interval: number
+}
+
+export const tick = (interval: number): Tick => ({ kind: `${namespace}/tick`, interval })
