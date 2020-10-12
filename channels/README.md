@@ -43,7 +43,7 @@ cuillere(channelsPlugin()).call(function* () {
 })
 ```
 
-## Documentation 📝
+## Getting started 🚀
 
 ### Forks
 
@@ -272,6 +272,10 @@ function* main() {
 
 cuillere(channelsPlugin()).call(main)
 ```
+
+## API
+
+For a full API documentation see [API.md](https://github.com/cuillerejs/cuillere/blob/master/channels/API.md)
 
 ## Examples
 
