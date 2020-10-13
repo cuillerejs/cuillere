@@ -3,10 +3,10 @@
   "workspaces": [
     "channels",
     "core",
-    "graphql-example",
     "mariadb",
     "postgres",
-    "server"
+    "server",
+    "server-example"
   ],
   "devDependencies": {
     "@types/jest": "^26.0.3",
