@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg'
-import type { TaskListener } from '@cuillere/core'
+import type { TaskListener } from '@cuillere/server'
 
 import { PoolProvider, DEFAULT_POOL, PoolConfig } from './pool-provider'
 import { setQueryHandler } from './query-handler'
