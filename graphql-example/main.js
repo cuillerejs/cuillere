@@ -1,6 +1,6 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
-import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager } from '@cuillere/core'
+import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager } from '@cuillere/server'
 import { PoolProvider, getClientManager } from '@cuillere/postgres'
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'

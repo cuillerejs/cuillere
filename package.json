@@ -6,7 +6,8 @@
     "graphql",
     "graphql-example",
     "mariadb",
-    "postgres"
+    "postgres",
+    "server"
   ],
   "devDependencies": {
     "@types/jest": "^26.0.3",

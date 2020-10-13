@@ -8,33 +8,43 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
       - name: Setup node 14
         uses: actions/setup-node@v2-beta
         with:
           node-version: '14'
+
       - name: Install dependencies
         run: yarn --frozen-lockfile
+
       - name: Build core
         run: yarn build
         working-directory: ./core
+
       - name: Test core
         run: yarn test
         working-directory: ./core
+
+      - name: Build server
+        run: yarn build
+        working-directory: ./server
+
       - name: Build graphql
         run: yarn build
         working-directory: ./graphql
+
+      - name: Build mariadb
+        run: yarn build
+        working-directory: ./mariadb
+
       - name: Build postgres
         run: yarn build
         working-directory: ./postgres
-      - name: Build postgres-apollo-plugin
-        run: yarn build
-        working-directory: ./postgres-apollo-plugin
-      - name: Build postgres-koa-middleware
-        run: yarn build
-        working-directory: ./postgres-koa-middleware
+
       - name: Build channels
         run: yarn build
         working-directory: ./channels
+
       - name: Test channels
         run: yarn test
         working-directory: ./channels

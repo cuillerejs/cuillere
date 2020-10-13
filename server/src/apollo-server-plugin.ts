@@ -1,5 +1,6 @@
 import type { ApolloServerPlugin as ApolloServerPluginBase, GraphQLRequestContextExecutionDidStart, BaseContext } from 'apollo-server-plugin-base'
-import { executablePromise } from './utils/promise'
+import { executablePromise } from '@cuillere/core/lib/utils/promise'
+
 import { AsyncTaskManager } from './task-manager'
 
 export interface ApolloServerPluginOptions {

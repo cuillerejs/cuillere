@@ -1,4 +1,4 @@
-import { Operation } from './operations'
+import type { Operation } from '@cuillere/core'
 
 class BaseTaskManager {
   #listeners: TaskListener[]

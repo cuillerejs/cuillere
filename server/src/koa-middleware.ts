@@ -1,4 +1,5 @@
 import type { Middleware, ParameterizedContext, DefaultState, DefaultContext } from 'koa'
+
 import { AsyncTaskManager } from './task-manager'
 
 export interface KoaMiddlewareOptions {
