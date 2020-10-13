@@ -6,15 +6,15 @@
   "scripts": {
     "start": "node ."
   },
-  "peerDependencies": {
-    "@cuillere/core": "^0.10.0",
-    "@cuillere/graphql": "^0.11.1",
-    "@cuillere/server": "^0.11.0",
-    "apollo-server-koa": "^2.15.1",
-    "koa": "^2.13.0",
+  "dependencies": {
+    "apollo-server-koa": "^2",
+    "graphql": "^14",
+    "graphql-iso-date": "^3.6.1",
+    "koa": "^2",
     "pg": "^8"
   },
-  "dependencies": {
-    "graphql-iso-date": "^3.6.1"
+  "peerDependencies": {
+    "@cuillere/core": "^0.10.0",
+    "@cuillere/server": "^0.11.0"
   }
 }

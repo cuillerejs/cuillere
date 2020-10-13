@@ -1,7 +1,6 @@
 import { GraphQLDate, GraphQLDateTime } from 'graphql-iso-date'
-
 import cuillere from '@cuillere/core'
-import { makeResolversFactory } from '@cuillere/graphql'
+import { makeResolversFactory } from '@cuillere/server'
 import { clientPlugin, query } from '@cuillere/postgres'
 
 const makeResolvers = makeResolversFactory(cuillere(clientPlugin()))

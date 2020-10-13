@@ -7,6 +7,17 @@
     "name": "Nicolas LEPAGE",
     "url": "https://github.com/nlepage"
   },
+  "contributors": [
+    {
+      "name": "Valentin COCAUD",
+      "email": "v.cocaud@gmail.com",
+      "url": "https://github.com/EmrysMyrddin"
+    },
+    {
+      "name": "Yoann PROT",
+      "url": "https://github.com/Taranys"
+    }
+  ],
   "license": "Apache-2.0",
   "files": [
     "src",
@@ -22,7 +33,12 @@
     "nodeversion": "node --version"
   },
   "devDependencies": {
-    "apollo-server-plugin-base": "^0.9.1",
+    "apollo-server-koa": "^2.15.1",
+    "apollo-server-plugin-base": "^0.9",
+    "graphql": "^14",
     "koa": "^2"
+  },
+  "peerDependencies": {
+    "graphql": "~14||~15"
   }
 }

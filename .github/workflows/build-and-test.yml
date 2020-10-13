@@ -29,10 +29,6 @@ jobs:
         run: yarn build
         working-directory: ./server
 
-      - name: Build graphql
-        run: yarn build
-        working-directory: ./graphql
-
       - name: Build mariadb
         run: yarn build
         working-directory: ./mariadb

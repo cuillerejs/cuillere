@@ -3,7 +3,6 @@
   "workspaces": [
     "channels",
     "core",
-    "graphql",
     "graphql-example",
     "mariadb",
     "postgres",
@@ -24,9 +23,6 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
-    "apollo-server-koa": "^2.15.1",
-    "graphql": "~14",
-    "koa": "^2.13.0",
     "mariadb": "^2",
     "pg": "^8"
   }
