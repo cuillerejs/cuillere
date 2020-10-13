@@ -70,15 +70,15 @@ describe('channels', () => {
       expect(yield recv(ch)).toBeUndefined()
       expect(yield recv(ch, true)).toEqual([undefined, false])
 
+      let catched: any
       try {
         yield send(ch, 4)
         throw new Error('should have thrown TypeError')
       } catch (e) {
-        expect(e).toBeInstanceOf(TypeError) // eslint-disable-line jest/no-try-expect
+        catched = e
       }
 
-      // WORKAROUND: see https://github.com/nodejs/node/issues/31867
-      return undefined
+      expect(catched).toBeInstanceOf(TypeError)
     }
 
     await cllr.call(test)
