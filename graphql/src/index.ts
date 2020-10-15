@@ -1,11 +1,14 @@
 import { Cuillere, isGenerator } from '@cuillere/core'
-import { IEnumResolver, IFieldResolver, IResolverObject, IResolverOptions, IResolvers } from 'apollo-server-koa'
-import { isScalarType, GraphQLScalarType, GraphQLFieldResolver } from 'graphql'
+import { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'apollo-server-koa'
+import { isScalarType, GraphQLFieldResolver } from 'graphql'
 
-type GqlResolvers = IResolvers<any, any> | IResolvers<any, any>[]
-type ResolverEntry = (() => any) | IResolverObject<any, any> | IResolverOptions<any, any> | GraphQLScalarType | IEnumResolver
+type OneOrMany<T> = T | T[]
 
-export const makeResolversFactory = (cllr: Cuillere, options?: GraphQLOptions): ((GqlResolvers) => IResolvers<any, any> | IResolvers<any, any>[]) => {
+export interface GraphQLOptions {
+  contextKey?: string
+}
+
+export const makeResolversFactory = (cllr: Cuillere, options?: GraphQLOptions): ((r: OneOrMany<IResolvers>) => OneOrMany<IResolvers>) => {
   const contextKey = options?.contextKey ?? 'cuillere'
   const getContext = (context: any) => context[contextKey]
 
@@ -14,41 +17,37 @@ export const makeResolversFactory = (cllr: Cuillere, options?: GraphQLOptions): 
   return applyToResolvers(resolverFactory)
 }
 
-function applyToResolvers(fn: (Resolver) => Resolver): (resolvers: IResolvers<any, any>) => IResolvers<any, any>;
-function applyToResolvers(fn: (Resolver) => Resolver): (resolvers: IResolvers<any, any>[]) => IResolvers<any, any>[];
-function applyToResolvers(fn: (Resolver) => Resolver): (resolvers: GqlResolvers) => GqlResolvers {
-  return (resolvers) => {
+function applyToResolvers(fn: FieldResolverWrapper): (resolvers: IResolvers) => IResolvers;
+function applyToResolvers(fn: FieldResolverWrapper): (resolvers: IResolvers[]) => IResolvers[];
+function applyToResolvers(fn: FieldResolverWrapper): (resolvers: OneOrMany<IResolvers>) => OneOrMany<IResolvers> {
+  return (resolvers: IResolvers | IResolvers[]) => {
     if (isResolverArray(resolvers)) {
       return resolvers.map(resolver => applyToResolvers(fn)(resolver))
     }
 
-    const entries = Object.entries(resolvers).map(([key, value]): [string, ResolverEntry] => {
-      if (isScalarType(value) || isResolverOptions(value) || isEnumResolver(value)) return [key, value]
-      if (typeof value === 'function') return [key, fn(value) as () => any]
+    // Usage of .reduce() to keep type inference
+    return Object.entries(resolvers).reduce((resolver: IResolvers, [key, value]) => {
+      if (isScalarType(value) || isResolverOptions(value) || isEnumResolver(value)) resolver[key] = value
+      else if (typeof value === 'function') resolver[key] = fn(value) as () => any
+      else resolver[key] = applyToObject(fn)(value)
 
-      return [key, applyToResolverObject(fn)(value)]
-    })
-
-    return Object.fromEntries(entries)
+      return resolver
+    }, {})
   }
 }
 
-type ResolverObjectEntry = IFieldResolver<any, any, any> | IResolverOptions<any, any> | IResolverObject<any, any>
-function applyToResolverObject(fn: (Resolver) => Resolver): (resolver: IResolverObject<any, any>) => IResolverObject<any, any> {
-  return (resolverObject) => {
-    const entries = Object.entries(resolverObject).map(([key, value]): [string, ResolverObjectEntry] => {
-      if (isResolverOptions(value)) return [key, value]
-      if (typeof value === 'function') return [key, fn(value) as () => any]
+function applyToObject(fn: FieldResolverWrapper): (resolvers: IResolverObject) => IResolverObject {
+  return resolverObject => Object.entries(resolverObject).reduce((resolver: IResolverObject, [key, value]) => {
+    if (isResolverOptions(value)) resolver[key] = value
+    else if (typeof value === 'function') resolver[key] = fn(value) as () => any
+    else resolver[key] = applyToObject(fn)(value)
 
-      return [key, applyToResolverObject(fn)(value)]
-    })
-
-    return Object.fromEntries(entries)
-  }
+    return resolver
+  }, {})
 }
 
-const makeResolverFactory = (cllr: Cuillere, getContext: (ctx: any) => any) => (fn: Resolver): Resolver =>
-  (obj, args, ctx, info) => {
+function makeResolverFactory(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
+  return (fn: GraphQLFieldResolver<any, any>) => (obj, args, ctx, info) => {
     const res = fn(obj, args, ctx, info)
 
     if (!res || !isGenerator(res)) return res
@@ -58,12 +57,9 @@ const makeResolverFactory = (cllr: Cuillere, getContext: (ctx: any) => any) => (
 
     return cllr.ctx(getContext(ctx)).start(res)
   }
-
-export interface GraphQLOptions {
-  contextKey?: string
 }
 
-type Resolver = GraphQLFieldResolver<any, any>
+type FieldResolverWrapper = (original: GraphQLFieldResolver<any, any>) => GraphQLFieldResolver<any, any>
 
 function isResolverArray(resolvers: IResolvers<any, any> | IResolvers<any, any>[]): resolvers is IResolvers<any, any>[] {
   return Array.isArray(resolvers)
