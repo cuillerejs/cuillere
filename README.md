@@ -69,7 +69,7 @@ yarn add @cuillere/core
 
 ## 🤝 Contributing
 
-Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/EmrysMyrddin/cuillere/issues).
+Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/cuillerejs/cuillere/issues).
 
 ## Show your support
 
@@ -77,7 +77,7 @@ Give a ⭐️ if this project helped you!
 
 ## 📝 License
 
-Copyright © 2019 [Valentin Cocaud](https://github.com/EmrysMyrddin).<br />
+Copyright © 2020 [CuillereJS](https://github.com/cuillerejs).<br />
 This project is [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html) licensed.
 
 ***

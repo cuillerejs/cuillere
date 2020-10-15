@@ -1,6 +1,7 @@
 {
   "private": true,
   "workspaces": [
+    "channels",
     "core",
     "graphql",
     "graphql-example",
