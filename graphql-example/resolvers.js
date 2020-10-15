@@ -1,15 +1,32 @@
 import cuillere from '@cuillere/core'
-import { makeResolversTreeFactory } from '@cuillere/graphql'
+import { makeResolversFactory } from '@cuillere/graphql'
 import { clientPlugin, query } from '@cuillere/postgres'
 
-const makeResolversTree = makeResolversTreeFactory(cuillere(clientPlugin()))
+const makeResolvers = makeResolversFactory(cuillere(clientPlugin()))
 
-export const resolvers = makeResolversTree({
+const simpleResolvers = {
   Query: {
     * hello(_, { name }) {
       const { rows: [{ now }] } = yield query({ text: 'SELECT NOW()' })
       return `Hello ${name} (${now})`
     },
+  },
+
+  Mutation: {
+    wait: async () => new Promise(resolve => setTimeout(resolve, 5000)),
+  },
+}
+
+const databaseResolvers = {
+  Mutation: {
+    * setupDatabase() {
+      yield query({ text: 'CREATE TABLE IF NOT EXISTS names (name varchar(250))' })
+    },
+  },
+}
+
+const namesResolvers = {
+  Query: {
     * all() {
       const res = yield query({ text: 'SELECT name from names' })
       return res.rows.map(({ name }) => name)
@@ -17,9 +34,6 @@ export const resolvers = makeResolversTree({
   },
 
   Mutation: {
-    * setupDatabase() {
-      yield query({ text: 'CREATE TABLE IF NOT EXISTS names (name varchar(250))' })
-    },
     * addName(_, { name }) {
       yield query({ text: 'INSERT INTO names VALUES ($1)', values: [name] })
       return name
@@ -31,6 +45,11 @@ export const resolvers = makeResolversTree({
       })
       return updated && updated.name
     },
-    wait: async () => new Promise(resolve => setTimeout(resolve, 5000)),
   },
-})
+}
+
+export const resolvers = makeResolvers([
+  databaseResolvers,
+  simpleResolvers,
+  namesResolvers,
+])
