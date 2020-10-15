@@ -27,7 +27,8 @@ function applyToResolvers(fn: FieldResolverWrapper): (resolvers: OneOrMany<IReso
 
     // Usage of .reduce() to keep type inference
     return Object.entries(resolvers).reduce((resolver: IResolvers, [key, value]) => {
-      if (isScalarType(value) || isResolverOptions(value) || isEnumResolver(value)) resolver[key] = value
+      if (isScalarType(value) || isEnumResolver(value)) resolver[key] = value
+      else if (isResolverOptions(value)) mapResolverOption(fn, value)
       else if (typeof value === 'function') resolver[key] = fn(value) as () => any
       else resolver[key] = applyToObject(fn)(value)
 
@@ -38,7 +39,7 @@ function applyToResolvers(fn: FieldResolverWrapper): (resolvers: OneOrMany<IReso
 
 function applyToObject(fn: FieldResolverWrapper): (resolvers: IResolverObject) => IResolverObject {
   return resolverObject => Object.entries(resolverObject).reduce((resolver: IResolverObject, [key, value]) => {
-    if (isResolverOptions(value)) resolver[key] = value
+    if (isResolverOptions(value)) resolver[key] = mapResolverOption(fn, value)
     else if (typeof value === 'function') resolver[key] = fn(value) as () => any
     else resolver[key] = applyToObject(fn)(value)
 
@@ -66,7 +67,15 @@ function isResolverArray(resolvers: IResolvers<any, any> | IResolvers<any, any>[
 }
 
 function isResolverOptions(value: any): value is IResolverOptions {
-  return 'resolve' in value
+  return '__resolveType' in value
+}
+
+function mapResolverOption(fn: FieldResolverWrapper, value: IResolverOptions) {
+  return {
+    ...value,
+    resolve: value.resolve ? fn(value.resolve) : value.resolve,
+    subscribe: value.subscribe ? fn(value.subscribe) : value.subscribe,
+  }
 }
 
 function isEnumResolver(value: any): value is IEnumResolver {
