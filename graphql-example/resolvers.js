@@ -1,3 +1,5 @@
+import { GraphQLDate, GraphQLDateTime } from 'graphql-iso-date'
+
 import cuillere from '@cuillere/core'
 import { makeResolversFactory } from '@cuillere/graphql'
 import { clientPlugin, query } from '@cuillere/postgres'
@@ -49,6 +51,7 @@ const namesResolvers = {
 }
 
 export const resolvers = makeResolvers([
+  { Date: GraphQLDate, DateTime: GraphQLDateTime },
   databaseResolvers,
   simpleResolvers,
   namesResolvers,
