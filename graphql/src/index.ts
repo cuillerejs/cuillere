@@ -62,7 +62,7 @@ function makeResolverFactory(cllr: Cuillere, getContext: (ctx: any) => any): Fie
 
 type FieldResolverWrapper = (original: GraphQLFieldResolver<any, any>) => GraphQLFieldResolver<any, any>
 
-function isResolverArray(resolvers: IResolvers<any, any> | IResolvers<any, any>[]): resolvers is IResolvers<any, any>[] {
+function isResolverArray(resolvers: OneOrMany<IResolvers>): resolvers is IResolvers[] {
   return Array.isArray(resolvers)
 }
 
