@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/graphql",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "main": "lib/index.js",
   "license": "Apache-2.0",
   "repository": "https://github.com/cuillerejs/cuillere",
@@ -13,6 +13,10 @@
     {
       "name": "Nicolas LEPAGE",
       "url": "https://github.com/nlepage"
+    },
+    {
+      "name": "Yoann PROT",
+      "url": "https://github.com/Taranys"
     }
   ],
   "scripts": {
