@@ -25,26 +25,31 @@ function applyToResolvers(fn: FieldResolverWrapper): (resolvers: OneOrMany<IReso
       return resolvers.map(resolver => applyToResolvers(fn)(resolver))
     }
 
-    // Usage of .reduce() to keep type inference
-    return Object.entries(resolvers).reduce((resolver: IResolvers, [key, value]) => {
-      if (isScalarType(value) || isEnumResolver(value)) resolver[key] = value
-      else if (isResolverOptions(value)) mapResolverOption(fn, value)
-      else if (typeof value === 'function') resolver[key] = fn(value) as () => any
-      else resolver[key] = applyToObject(fn)(value)
+    const wrappedResolvers: IResolvers = {}
 
-      return resolver
-    }, {})
+    for (const [key, value] of Object.entries(resolvers)) {
+      if (isScalarType(value) || isEnumResolver(value)) wrappedResolvers[key] = value
+      else if (isResolverOptions(value)) wrappedResolvers[key] = mapResolverOption(fn, value)
+      else if (typeof value === 'function') wrappedResolvers[key] = fn(value) as () => any
+      else wrappedResolvers[key] = applyToObject(fn)(value)
+    }
+
+    return wrappedResolvers
   }
 }
 
 function applyToObject(fn: FieldResolverWrapper): (resolvers: IResolverObject) => IResolverObject {
-  return resolverObject => Object.entries(resolverObject).reduce((resolver: IResolverObject, [key, value]) => {
-    if (isResolverOptions(value)) resolver[key] = mapResolverOption(fn, value)
-    else if (typeof value === 'function') resolver[key] = fn(value) as () => any
-    else resolver[key] = applyToObject(fn)(value)
+  return (resolverObject) => {
+    const wrappedResolverObject: IResolverObject = {}
 
-    return resolver
-  }, {})
+    for (const [key, value] of Object.entries(resolverObject)) {
+      if (isResolverOptions(value)) wrappedResolverObject[key] = mapResolverOption(fn, value)
+      else if (typeof value === 'function') wrappedResolverObject[key] = fn(value) as () => any
+      else wrappedResolverObject[key] = applyToObject(fn)(value)
+    }
+
+    return wrappedResolverObject
+  }
 }
 
 function makeResolverFactory(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
