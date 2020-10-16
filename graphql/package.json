@@ -29,6 +29,9 @@
     "@cuillere/core": "^0.10.0"
   },
   "devDependencies": {
-    "graphql": "^15.3.0"
+    "apollo-server-koa": "^2.15.1"
+  },
+  "dependencies": {
+    "graphql": "~14"
   }
 }

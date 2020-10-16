@@ -6,7 +6,8 @@
     "target": "es2018",
     "declaration": true,
     "sourceMap": true,
-    "outDir": "./lib"
+    "outDir": "./lib",
+    "esModuleInterop": true
   },
   "include": ["src/**/*"]
 }

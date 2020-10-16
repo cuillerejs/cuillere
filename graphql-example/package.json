@@ -14,5 +14,8 @@
     "apollo-server-koa": "^2.15.1",
     "koa": "^2.13.0",
     "pg": "^8"
+  },
+  "dependencies": {
+    "graphql-iso-date": "^3.6.1"
   }
 }
