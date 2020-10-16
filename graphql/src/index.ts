@@ -14,42 +14,39 @@ export const makeResolversFactory = (cllr: Cuillere, options?: GraphQLOptions): 
 
   const resolverFactory = makeResolverFactory(cllr, getContext)
 
-  return applyToResolvers(resolverFactory)
+  return resolvers => applyToResolvers(resolverFactory, resolvers)
 }
 
-function applyToResolvers(fn: FieldResolverWrapper): (resolvers: IResolvers) => IResolvers;
-function applyToResolvers(fn: FieldResolverWrapper): (resolvers: IResolvers[]) => IResolvers[];
-function applyToResolvers(fn: FieldResolverWrapper): (resolvers: OneOrMany<IResolvers>) => OneOrMany<IResolvers> {
-  return (resolvers: IResolvers | IResolvers[]) => {
-    if (isResolverArray(resolvers)) {
-      return resolvers.map(resolver => applyToResolvers(fn)(resolver))
-    }
-
-    const wrappedResolvers: IResolvers = {}
-
-    for (const [key, value] of Object.entries(resolvers)) {
-      if (isScalarType(value) || isEnumResolver(value)) wrappedResolvers[key] = value
-      else if (isResolverOptions(value)) wrappedResolvers[key] = mapResolverOption(fn, value)
-      else if (typeof value === 'function') wrappedResolvers[key] = fn(value) as () => any
-      else wrappedResolvers[key] = applyToObject(fn)(value)
-    }
-
-    return wrappedResolvers
+function applyToResolvers(fn: FieldResolverWrapper, resolvers: IResolvers): IResolvers;
+function applyToResolvers(fn: FieldResolverWrapper, resolvers: IResolvers[]): IResolvers[];
+function applyToResolvers(fn: FieldResolverWrapper, resolvers: OneOrMany<IResolvers>): OneOrMany<IResolvers>;
+function applyToResolvers(fn: FieldResolverWrapper, resolvers: OneOrMany<IResolvers>): OneOrMany<IResolvers> {
+  if (isResolverArray(resolvers)) {
+    return resolvers.map(resolver => applyToResolvers(fn, resolver))
   }
+
+  const wrappedResolvers: IResolvers = {}
+
+  for (const [key, value] of Object.entries(resolvers)) {
+    if (isScalarType(value) || isEnumResolver(value)) wrappedResolvers[key] = value
+    else if (isResolverOptions(value)) wrappedResolvers[key] = mapResolverOption(fn, value)
+    else if (typeof value === 'function') wrappedResolvers[key] = fn(value) as () => any
+    else wrappedResolvers[key] = applyToObject(fn, value)
+  }
+
+  return wrappedResolvers
 }
 
-function applyToObject(fn: FieldResolverWrapper): (resolvers: IResolverObject) => IResolverObject {
-  return (resolverObject) => {
-    const wrappedResolverObject: IResolverObject = {}
+function applyToObject(fn: FieldResolverWrapper, resolverObject: IResolverObject): IResolverObject {
+  const wrappedResolverObject: IResolverObject = {}
 
-    for (const [key, value] of Object.entries(resolverObject)) {
-      if (isResolverOptions(value)) wrappedResolverObject[key] = mapResolverOption(fn, value)
-      else if (typeof value === 'function') wrappedResolverObject[key] = fn(value) as () => any
-      else wrappedResolverObject[key] = applyToObject(fn)(value)
-    }
-
-    return wrappedResolverObject
+  for (const [key, value] of Object.entries(resolverObject)) {
+    if (isResolverOptions(value)) wrappedResolverObject[key] = mapResolverOption(fn, value)
+    else if (typeof value === 'function') wrappedResolverObject[key] = fn(value) as () => any
+    else wrappedResolverObject[key] = applyToObject(fn, value)
   }
+
+  return wrappedResolverObject
 }
 
 function makeResolverFactory(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
