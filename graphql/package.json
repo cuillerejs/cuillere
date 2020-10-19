@@ -30,12 +30,10 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "@cuillere/core": "^0.10.0"
+    "@cuillere/core": "^0.10.0",
+    "graphql": "~14||~15"
   },
   "devDependencies": {
     "apollo-server-koa": "^2.15.1"
-  },
-  "dependencies": {
-    "graphql": "~14"
   }
 }
