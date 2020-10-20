@@ -1,11 +1,10 @@
 {
-  "compileOnSave": true,
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "lib": ["ESNext"],
-    "target": "es2018",
-    "declaration": true,
-    "outDir": "./lib"
+    "outDir": "./lib",
+    "rootDir": "./src"
   },
-  "include": ["src/**/*"]
+  "exclude": [
+    "src/**/*.spec.ts"
+  ]
 }

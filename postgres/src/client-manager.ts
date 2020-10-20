@@ -1,21 +1,21 @@
 import type { PoolClient } from 'pg'
 import type { TaskListener } from '@cuillere/server'
 
-import { PoolProvider, DEFAULT_POOL, PoolConfig } from './pool-provider'
+import { PoolManager, DEFAULT_POOL, PoolConfig } from './pool-manager'
 import { setQueryHandler } from './query-handler'
 import type { QueryConfig } from './query-config'
 import { setClientGetter } from './client-getter'
 import { TransactionManager, getTransactionManager } from './transaction-manager'
 
 export function getClientManager(options: ClientManagerOptions): ClientManager {
-  const poolProvider = options.poolProvider ?? new PoolProvider(options.poolConfig)
-  if (!poolProvider) throw TypeError('Client manager needs one of poolConfig or poolProvider')
-  return new ClientManagerImpl(poolProvider, getTransactionManager(options.transactionManager))
+  const poolManager = options.poolManager ?? new PoolManager(options.poolConfig)
+  if (!poolManager) throw TypeError('Client manager needs one of poolConfig or poolManager')
+  return new ClientManagerImpl(poolManager, getTransactionManager(options.transactionManager))
 }
 
 export interface ClientManagerOptions {
   poolConfig?: PoolConfig | PoolConfig[]
-  poolProvider?: PoolProvider
+  poolManager?: PoolManager
   transactionManager?: 'none' | 'default' | 'two-phase' | 'read-only' // FIXME mutualize type with getTransactionManager
 }
 
@@ -24,14 +24,14 @@ export interface ClientManager extends TaskListener {
 }
 
 class ClientManagerImpl implements ClientManager {
-  #poolProvider: PoolProvider
+  #poolManager: PoolManager
 
   #transactionManager: TransactionManager
 
   #clients: Record<string, Promise<PoolClient>>
 
-  constructor(poolProvider: PoolProvider, transactionManager: TransactionManager) {
-    this.#poolProvider = poolProvider
+  constructor(poolManager: PoolManager, transactionManager: TransactionManager) {
+    this.#poolManager = poolManager
     this.#transactionManager = transactionManager
     this.#clients = {}
   }
@@ -42,13 +42,13 @@ class ClientManagerImpl implements ClientManager {
   }
 
   private async query(query: QueryConfig) {
-    if (query.usePoolQuery) return this.#poolProvider.query(query)
+    if (query.usePoolQuery) return this.#poolManager.query(query)
     return (await this.getClient(query.pool)).query(query)
   }
 
   private getClient(name = DEFAULT_POOL) {
     if (!(name in this.#clients)) {
-      this.#clients[name] = this.#poolProvider.connect(name)
+      this.#clients[name] = this.#poolManager.connect(name)
       if (this.#transactionManager) this.#clients[name] = this.#transactionManager.connect(this.#clients[name])
     }
     return this.#clients[name]
@@ -76,6 +76,6 @@ class ClientManagerImpl implements ClientManager {
   }
 
   public end() {
-    return this.#poolProvider.end()
+    return this.#poolManager.end()
   }
 }

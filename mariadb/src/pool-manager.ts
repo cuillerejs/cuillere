@@ -1,20 +1,19 @@
-import { Pool } from 'pg'
-import type { PoolConfig as PgPoolConfig, PoolClient, QueryResult } from 'pg'
-import type { QueryConfig } from './query-config'
+import { PoolConfig as MariaPoolConfig, Pool, PoolConnection, createPool } from 'mariadb'
+import { QueryOptions } from './query-options'
 
-export class PoolProvider {
+export class PoolManager {
   private pools: Record<string, Pool>
 
   constructor(poolConfig: PoolConfig | PoolConfig[]) {
     this.pools = makePools([].concat(poolConfig))
   }
 
-  async connect(name = DEFAULT_POOL): Promise<PoolClient> {
+  async connect(name = DEFAULT_POOL): Promise<PoolConnection> {
     if (!this.pools[name]) throw new Error(`trying to get client for unkown pool '${name}'`)
-    return this.pools[name].connect()
+    return this.pools[name].getConnection()
   }
 
-  async query<T>(query: QueryConfig): Promise<QueryResult<T>> {
+  async query(query: QueryOptions) {
     if (!this.pools[query.pool]) throw new Error(`trying to get client for unkown pool '${query.pool}'`)
     return this.pools[query.pool].query(query)
   }
@@ -32,7 +31,7 @@ export class PoolProvider {
 
 export const DEFAULT_POOL = 'DEFAULT POOL'
 
-export interface PoolConfig extends PgPoolConfig {
+export interface PoolConfig extends MariaPoolConfig {
   name?: string
 }
 
@@ -40,11 +39,11 @@ const makePools = (poolConfigs: PoolConfig[]): Record<string, Pool> => {
   if (poolConfigs.length <= 1) {
     const [poolConfig] = poolConfigs
     const name = (poolConfig?.name) ?? DEFAULT_POOL
-    return { [name]: new Pool(poolConfig) }
+    return { [name]: createPool(poolConfig) }
   }
 
   return Object.fromEntries(poolConfigs.map(({ name, ...poolConfig }) => {
     if (!name) throw new TypeError('Each pool config should have a name')
-    return [name, new Pool(poolConfig)]
+    return [name, createPool(poolConfig)]
   }))
 }

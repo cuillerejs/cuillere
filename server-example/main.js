@@ -1,11 +1,11 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
 import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager } from '@cuillere/server'
-import { PoolProvider, getClientManager } from '@cuillere/postgres'
+import { PoolManager, getClientManager } from '@cuillere/postgres'
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 
-const poolProvider = new PoolProvider({
+const poolManager = new PoolManager({
   database: 'postgres',
   user: 'postgres',
   password: 'password',
@@ -30,7 +30,7 @@ const server = new ApolloServer({
 
         return new AsyncTaskManager(
           getClientManager({
-            poolProvider,
+            poolManager,
             transactionManager: isMutation ? 'default' : 'read-only',
           }),
         )
@@ -45,7 +45,7 @@ app.use(KoaMiddleware({
   },
   taskManager() {
     return new AsyncTaskManager(
-      getClientManager({ poolProvider, transactionManager: 'read-only' }),
+      getClientManager({ poolManager, transactionManager: 'read-only' }),
     )
   },
 }))

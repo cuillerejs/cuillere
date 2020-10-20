@@ -20,7 +20,8 @@
   "files": [
     "src",
     "lib",
-    "LICENSE"
+    "LICENSE",
+    "README.md"
   ],
   "peerDependencies": {
     "@cuillere/core": "^0.10.0"

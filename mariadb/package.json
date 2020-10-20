@@ -23,6 +23,6 @@
   },
   "peerDependencies": {
     "@cuillere/core": "^0.10.0",
-    "mariadb": "^2"
+    "mariadb": "~2"
   }
 }

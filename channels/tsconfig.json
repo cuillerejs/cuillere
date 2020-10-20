@@ -1,12 +1,10 @@
 {
-  "compileOnSave": true,
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "esNext",
-    "declaration": true,
-    "sourceMap": true,
-    "outDir": "./lib"
+    "outDir": "./lib",
+    "rootDir": "./src"
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.spec.ts"]
+  "exclude": [
+    "src/**/*.spec.ts"
+  ]
 }

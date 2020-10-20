@@ -1,4 +1,5 @@
-export * from './pool-provider'
 export * from './client-manager'
-export * from './transaction-manager'
 export * from './plugins'
+export * from './pool-manager'
+export * from './query-config'
+export * from './transaction-manager'

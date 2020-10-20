@@ -1,5 +1,4 @@
 import type { PoolClient } from 'pg'
-import uuid from './utils/uuid'
 
 export interface TransactionManager {
   connect(clientPromise: Promise<PoolClient>): Promise<PoolClient>
@@ -53,7 +52,7 @@ class TwoPhaseTransactionManager implements TransactionManager {
 
   async preComplete(clients: PoolClient[]): Promise<void> {
     for (const client of clients) {
-      const id = uuid()
+      const { rows: [{ id }] } = await client.query('SELECT md5(random()::text) AS id')
       await client.query(`PREPARE TRANSACTION '${id}'`)
       this.#preparedIds.set(client, id)
     }

@@ -1,1 +1,11 @@
-{}
+{
+  "extends": "@tsconfig/node12/tsconfig.json",
+  "compileOnSave": true,
+  "compilerOptions": {
+    "declaration": true,
+    "module": "UMD",
+    "moduleResolution": "Node",
+    "sourceMap": true,
+    "strict": false
+  }
+}
