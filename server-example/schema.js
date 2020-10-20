@@ -7,6 +7,8 @@ export const typeDefs = gql`
   type Query {
     hello(name: String): String!
     all: [String!]!
+    uuid: String!
+    now: DateTime!
   }
 
   type Mutation {

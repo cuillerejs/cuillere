@@ -15,6 +15,8 @@
   },
   "peerDependencies": {
     "@cuillere/core": "^0.10.0",
+    "@cuillere/mariadb": "^0.10.0",
+    "@cuillere/postgres": "^0.10.0",
     "@cuillere/server": "^0.11.0"
   }
 }

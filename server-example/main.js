@@ -1,15 +1,23 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
 import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager } from '@cuillere/server'
-import { PoolManager, getClientManager } from '@cuillere/postgres'
+import { PoolManager as PostgresPoolManager, getClientManager } from '@cuillere/postgres'
+import { PoolManager as MariadbPoolManager, getConnectionManager } from '@cuillere/mariadb'
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 
-const poolManager = new PoolManager({
+const postgresPoolManager = new PostgresPoolManager({
   database: 'postgres',
   user: 'postgres',
   password: 'password',
   port: 54321,
+})
+
+const mariadbPoolManager = new MariadbPoolManager({
+  database: 'mysql',
+  user: 'root',
+  password: 'password',
+  port: 33061,
 })
 
 const app = new Koa()
@@ -30,7 +38,11 @@ const server = new ApolloServer({
 
         return new AsyncTaskManager(
           getClientManager({
-            poolManager,
+            poolManager: postgresPoolManager,
+            transactionManager: isMutation ? 'default' : 'read-only',
+          }),
+          getConnectionManager({
+            poolManager: mariadbPoolManager,
             transactionManager: isMutation ? 'default' : 'read-only',
           }),
         )
@@ -45,7 +57,14 @@ app.use(KoaMiddleware({
   },
   taskManager() {
     return new AsyncTaskManager(
-      getClientManager({ poolManager, transactionManager: 'read-only' }),
+      getClientManager({
+        poolManager: postgresPoolManager,
+        transactionManager: 'read-only',
+      }),
+      getConnectionManager({
+        poolManager: mariadbPoolManager,
+        transactionManager: 'read-only',
+      }),
     )
   },
 }))
