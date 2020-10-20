@@ -35,7 +35,6 @@
   "devDependencies": {
     "apollo-server-koa": "^2.15.1",
     "apollo-server-plugin-base": "^0.10.1",
-    "graphql": "^14",
     "koa": "^2"
   },
   "peerDependencies": {
