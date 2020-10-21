@@ -3,6 +3,9 @@
   "version": "0.10.1",
   "main": "dist/node/index.js",
   "types": "dist/types",
+  "engines": {
+    "node": ">=12"
+  },
   "repository": "https://github.com/cuillerejs/cuillere",
   "author": {
     "name": "Valentin COCAUD",
