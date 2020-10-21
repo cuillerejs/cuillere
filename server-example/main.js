@@ -1,30 +1,48 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
-import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager } from '@cuillere/server'
-import { PoolManager as PostgresPoolManager, getClientManager } from '@cuillere/postgres'
-import { PoolManager as MariadbPoolManager, getConnectionManager } from '@cuillere/mariadb'
+import cuillere from '@cuillere/core'
+import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager, makeResolversFactory, taskManagerPlugin } from '@cuillere/server'
+import {
+  PoolManager as PostgresPoolManager, getClientManager, clientPlugin as postgresClientPlugin, query as postgresQuery, DEFAULT_POOL,
+} from '@cuillere/postgres'
+import { PoolManager as MariadbPoolManager, getConnectionManager, clientPlugin as mariadbClientPlugin, query as mariadbQuery } from '@cuillere/mariadb'
+
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 
-const postgresPoolManager = new PostgresPoolManager({
-  database: 'postgres',
-  user: 'postgres',
-  password: 'password',
-  port: 54321,
-})
+const postgresPoolManager = new PostgresPoolManager([
+  {
+    name: 'people',
+    host: 'localhost',
+    port: 54321,
+    database: 'people',
+    user: 'people',
+    password: 'password',
+  },
+  {
+    name: 'geo',
+    host: 'localhost',
+    port: 54321,
+    database: 'geo',
+    user: 'geo',
+    password: 'password',
+  },
+])
 
 const mariadbPoolManager = new MariadbPoolManager({
-  database: 'mysql',
-  user: 'root',
-  password: 'password',
+  host: 'localhost',
   port: 33061,
+  database: 'contacts',
+  user: 'contacts',
+  password: 'password',
 })
-
-const app = new Koa()
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers,
+  resolvers: makeResolversFactory(cuillere(
+    postgresClientPlugin(),
+    mariadbClientPlugin(),
+  ))(resolvers),
   context: ({ ctx }) => ctx,
   plugins: [
     new ApolloServerPlugin({
@@ -39,17 +57,19 @@ const server = new ApolloServer({
         return new AsyncTaskManager(
           getClientManager({
             poolManager: postgresPoolManager,
-            transactionManager: isMutation ? 'default' : 'read-only',
+            transactionManager: isMutation ? 'two-phase' : 'read-only',
           }),
           getConnectionManager({
             poolManager: mariadbPoolManager,
-            transactionManager: isMutation ? 'default' : 'read-only',
+            transactionManager: isMutation ? 'two-phase' : 'read-only',
           }),
         )
       },
     }),
   ],
 })
+
+const app = new Koa()
 
 app.use(KoaMiddleware({
   context(ctx) {
@@ -71,4 +91,125 @@ app.use(KoaMiddleware({
 
 server.applyMiddleware({ app })
 
-app.listen({ port: 4000 }, () => console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`))
+async function init() {
+  await cuillere(
+    taskManagerPlugin(
+      getClientManager({
+        poolConfig: [
+          {
+            name: DEFAULT_POOL,
+            host: 'localhost',
+            port: 54321,
+            database: 'postgres',
+            user: 'postgres',
+            password: 'password',
+          },
+          {
+            name: 'people',
+            host: 'localhost',
+            port: 54321,
+            database: 'people',
+            user: 'postgres',
+            password: 'password',
+          },
+          {
+            name: 'geo',
+            host: 'localhost',
+            port: 54321,
+            database: 'geo',
+            user: 'postgres',
+            password: 'password',
+          },
+        ],
+        transactionManager: 'none',
+      }),
+      getConnectionManager({
+        poolConfig: [
+          {
+            name: DEFAULT_POOL,
+            host: 'localhost',
+            port: 33061,
+            database: 'mysql',
+            user: 'root',
+            password: 'password',
+          },
+          {
+            name: 'contacts',
+            host: 'localhost',
+            port: 33061,
+            database: 'contacts',
+            user: 'contacts',
+            password: 'password',
+          },
+        ],
+        transactionManager: 'none',
+      }),
+    ),
+    postgresClientPlugin(),
+    mariadbClientPlugin(),
+  ).call(ensureDatabases)
+
+  app.listen({ port: 4000 }, () => console.log(`🥄 Server ready at http://localhost:4000${server.graphqlPath}`))
+}
+
+init()
+
+function* ensureDatabases() {
+  yield* ensurePostgresDatabase('people')
+
+  // FIXME champ adresse
+  yield postgresQuery({
+    text: `
+      CREATE TABLE IF NOT EXISTS people (
+        id SERIAL NOT NULL PRIMARY KEY,
+        firstname TEXT NOT NULL,
+        lastname TEXT NOT NULL
+      )
+    `,
+    pool: 'people',
+  })
+
+  //  FIXME relation NN téléphone
+
+  yield* ensurePostgresDatabase('geo')
+
+  yield postgresQuery({
+    text: `
+      CREATE TABLE IF NOT EXISTS addresses (
+        id SERIAL NOT NULL PRIMARY KEY,
+        number TEXT NOT NULL,
+        street TEXT NOT NULL,
+        postalcode TEXT NOT NULL,
+        city TEXT NOT NULL
+      )
+    `,
+    pool: 'geo',
+  })
+
+  yield* ensureMariadbDatabase('contacts')
+
+  yield mariadbQuery({
+    sql: `
+      CREATE TABLE IF NOT EXISTS phones (
+        id MEDIUMINT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+        number TEXT NOT NULL
+      )
+    `,
+    pool: 'contacts',
+  })
+}
+
+function* ensurePostgresDatabase(name) {
+  const { rowCount } = yield postgresQuery({ text: 'SELECT 1 FROM pg_catalog.pg_database WHERE datname = $1', values: [name] })
+  if (rowCount === 0) {
+    yield postgresQuery({ text: `CREATE DATABASE ${name}` })
+    yield postgresQuery({ text: `CREATE USER ${name} WITH ENCRYPTED PASSWORD 'password'` })
+    yield postgresQuery({ text: `GRANT ALL PRIVILEGES ON DATABASE ${name} TO ${name}` })
+  }
+}
+
+function* ensureMariadbDatabase(name) {
+  yield mariadbQuery({ sql: `CREATE DATABASE IF NOT EXISTS ${name}` })
+  yield mariadbQuery({ sql: `CREATE USER IF NOT EXISTS ${name} IDENTIFIED BY 'password'` })
+  yield mariadbQuery({ sql: `GRANT ALL PRIVILEGES ON ${name}.* TO ${name}` })
+}

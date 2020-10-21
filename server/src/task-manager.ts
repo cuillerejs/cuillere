@@ -1,4 +1,4 @@
-import type { Operation } from '@cuillere/core'
+import { Operation, Plugin, Wrapper, terminal } from '@cuillere/core'
 
 class BaseTaskManager {
   #listeners: TaskListener[]
@@ -34,6 +34,7 @@ class BaseTaskManager {
 }
 
 export class AsyncTaskManager extends BaseTaskManager {
+  // FIXME reverse parameters
   public async execute(ctx: any, task: () => Promise<any>) {
     let error: any
 
@@ -56,6 +57,7 @@ export class AsyncTaskManager extends BaseTaskManager {
 }
 
 export class GeneratorTaskManager extends BaseTaskManager {
+  // FIXME reverse parameters
   public async* execute(ctx: any, task: Operation) {
     let error: any
 
@@ -100,4 +102,16 @@ function addErrorCauses(e: Error, results: PromiseSettledResult<any>[]) {
 
 function isRejected(result: PromiseSettledResult<any>): result is PromiseRejectedResult {
   return result.status === 'rejected'
+}
+
+export function taskManagerPlugin(...listeners: TaskListener[]): Plugin {
+  const taskManager = new GeneratorTaskManager(...listeners)
+
+  return {
+    handlers: {
+      async* '@cuillere/core/start'({ operation }: Wrapper, ctx) {
+        yield terminal(taskManager.execute(ctx, operation))
+      },
+    },
+  }
 }
