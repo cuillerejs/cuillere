@@ -35,7 +35,7 @@
     "prebuild:types": "yarn clean:types",
     "build:types": "yarn tsc -p tsconfig-types.json",
     "build": "yarn build:12 && yarn build:14 && yarn build:types",
-    "prepublishOnly": "yarn build && yarn test"
+    "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "files": [
     "src",
