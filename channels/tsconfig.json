@@ -1,10 +1,3 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./lib",
-    "rootDir": "./src"
-  },
-  "exclude": [
-    "src/**/*.spec.ts"
-  ]
+  "extends": "./tsconfig-node14.json"
 }

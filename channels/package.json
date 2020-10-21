@@ -1,7 +1,8 @@
 {
   "name": "@cuillere/channels",
   "version": "0.10.2",
-  "main": "lib/index.js",
+  "main": "dist/node/index.js",
+  "types": "dist/types",
   "repository": "https://github.com/cuillerejs/cuillere",
   "author": {
     "name": "Nicolas LEPAGE",
@@ -10,16 +11,28 @@
   "license": "Apache-2.0",
   "description": "@cuillere/channels implements Go-like channels for cuillere",
   "homepage": "https://github.com/cuillerejs/cuillere/tree/master/channels",
+
   "scripts": {
-    "test": "node ../node_modules/.bin/jest",
     "lint": "yarn eslint --ext .ts src",
-    "prebuild": "yarn clean && yarn lint",
-    "build": "yarn tsc",
-    "clean": "rm -rf lib"
+    "test": "jest",
+    "clean:version": "rm -rf dist/node/$VERSION",
+    "prebuild:version": "yarn clean:$VERSION",
+    "build:version": "yarn tsc -p tsconfig-node$VERSION.json",
+    "clean:12": "VERSION=12 yarn clean:version",
+    "prebuild:12": "VERSION=12 yarn prebuild:version",
+    "build:12": "VERSION=12 yarn build:version",
+    "clean:14": "VERSION=14 yarn clean:version",
+    "prebuild:14": "VERSION=14 yarn prebuild:version",
+    "build:14": "VERSION=14 yarn build:version",
+    "clean:types": "rm -rf dist/types",
+    "prebuild:types": "yarn clean:types",
+    "build:types": "yarn tsc -p tsconfig-types.json",
+    "build": "yarn build:12 && yarn build:14 && yarn build:types",
+    "prepublishOnly": "yarn build && yarn test"
   },
   "files": [
     "src",
-    "lib",
+    "dist",
     "LICENSE",
     "README.md"
   ],

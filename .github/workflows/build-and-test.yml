@@ -21,6 +21,10 @@ jobs:
         run: yarn build
         working-directory: ./core
 
+      - name: Lint core
+        run: yarn lint
+        working-directory: ./core
+
       - name: Test core
         run: yarn test
         working-directory: ./core
