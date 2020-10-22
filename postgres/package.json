@@ -26,7 +26,7 @@
   ],
   "scripts": {
     "lint": "yarn eslint --ext .ts src",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "clean:version": "rm -rf dist/node/$VERSION",
     "prebuild:version": "yarn clean:$VERSION",
     "build:version": "yarn tsc -p tsconfig-node$VERSION.json",
