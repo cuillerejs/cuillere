@@ -831,9 +831,9 @@
     "@types/koa" "*"
 
 "@types/koa@*", "@types/koa@^2.0.46":
-  version "2.11.4"
-  resolved "https://registry.yarnpkg.com/@types/koa/-/koa-2.11.4.tgz#8af02a069a9f8e08fa47b8da28d982e652f69cfb"
-  integrity sha512-Etqs0kdqbuAsNr5k6mlZQelpZKVwMu9WPRHVVTLnceZlhr0pYmblRNJbCgoCMzKWWePldydU0AYEOX4Q9fnGUQ==
+  version "2.11.6"
+  resolved "https://registry.yarnpkg.com/@types/koa/-/koa-2.11.6.tgz#b7030caa6b44af801c2aea13ba77d74aff7484d5"
+  integrity sha512-BhyrMj06eQkk04C97fovEDQMpLpd2IxCB4ecitaXwOKGq78Wi2tooaDOWOFGajPk8IkQOAtMppApgSVkYe1F/A==
   dependencies:
     "@types/accepts" "*"
     "@types/content-disposition" "*"
@@ -913,12 +913,12 @@
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
 
 "@types/serve-static@*":
-  version "1.13.5"
-  resolved "https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.5.tgz#3d25d941a18415d3ab092def846e135a08bbcf53"
-  integrity sha512-6M64P58N+OXjU432WoLLBQxbA0LRGBCRm7aAGQJ+SMC1IMl0dgRVi9EFfoDcS2a7Xogygk/eGN94CfwU9UF7UQ==
+  version "1.13.6"
+  resolved "https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.6.tgz#866b1b8dec41c36e28c7be40ac725b88be43c5c1"
+  integrity sha512-nuRJmv7jW7VmCVTn+IgYDkkbbDGyIINOeu/G0d74X3lm6E5KfMeQPJhxIt1ayQeQB3cSxvYs1RA/wipYoFB4EA==
   dependencies:
-    "@types/express-serve-static-core" "*"
     "@types/mime" "*"
+    "@types/node" "*"
 
 "@types/stack-utils@^2.0.0":
   version "2.0.0"

@@ -15,9 +15,9 @@
     "pg": "~8"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.10.0",
-    "@cuillere/mariadb": "^0.10.0",
-    "@cuillere/postgres": "^0.10.0",
-    "@cuillere/server": "^0.11.0"
+    "@cuillere/core": "^0.12.0-alpha.0",
+    "@cuillere/mariadb": "^0.12.0-alpha.0",
+    "@cuillere/postgres": "^0.12.0-alpha.0",
+    "@cuillere/server": "^0.12.0-alpha.0"
   }
 }

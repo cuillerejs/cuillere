@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/server",
-  "version": "0.11.0",
+  "version": "0.12.0-alpha.0",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
@@ -52,7 +52,7 @@
     "koa": "~2"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.10.0",
+    "@cuillere/core": "^0.12.0-alpha.0",
     "graphql": "~14||~15"
   }
 }
