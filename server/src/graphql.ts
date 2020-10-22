@@ -4,17 +4,17 @@ import { isScalarType, GraphQLFieldResolver } from 'graphql'
 
 type OneOrMany<T> = T | T[]
 
-export interface GraphQLOptions {
+export interface FieldResolversOptions {
   contextKey?: string
 }
 
-export const makeResolversFactory = (cllr: Cuillere, options?: GraphQLOptions): ((r: OneOrMany<IResolvers>) => OneOrMany<IResolvers>) => {
+export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>, cllr: Cuillere, options?: FieldResolversOptions) {
   const contextKey = options?.contextKey ?? 'cuillere'
   const getContext = (context: any) => context[contextKey]
 
-  const resolverFactory = makeResolverFactory(cllr, getContext)
+  const wrapper = getFieldResolverWrapper(cllr, getContext)
 
-  return resolvers => applyToResolvers(resolverFactory, resolvers)
+  return applyToResolvers(wrapper, resolvers)
 }
 
 function applyToResolvers(fn: FieldResolverWrapper, resolvers: IResolvers): IResolvers;
@@ -49,7 +49,7 @@ function applyToObject(fn: FieldResolverWrapper, resolverObject: IResolverObject
   return wrappedResolverObject
 }
 
-function makeResolverFactory(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
+function getFieldResolverWrapper(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
   return (fn: GraphQLFieldResolver<any, any>) => (obj, args, ctx, info) => {
     const res = fn(obj, args, ctx, info)
 

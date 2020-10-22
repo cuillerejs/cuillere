@@ -1,7 +1,7 @@
 import Koa from 'koa'
 import { ApolloServer } from 'apollo-server-koa'
 import cuillere from '@cuillere/core'
-import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager, makeResolversFactory, taskManagerPlugin } from '@cuillere/server'
+import { ApolloServerPlugin, KoaMiddleware, AsyncTaskManager, wrapFieldResolvers, taskManagerPlugin } from '@cuillere/server'
 import {
   PoolManager as PostgresPoolManager, getClientManager, clientPlugin as postgresClientPlugin, query as postgresQuery, DEFAULT_POOL,
 } from '@cuillere/postgres'
@@ -10,7 +10,7 @@ import { PoolManager as MariadbPoolManager, getConnectionManager, clientPlugin a
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
 
-const postgresPoolManager = new PostgresPoolManager([
+const postgresPoolConfig = [
   {
     name: 'people',
     host: 'localhost',
@@ -27,22 +27,26 @@ const postgresPoolManager = new PostgresPoolManager([
     user: 'geo',
     password: 'password',
   },
-])
+]
 
-const mariadbPoolManager = new MariadbPoolManager({
+const postgresPoolManager = new PostgresPoolManager(postgresPoolConfig)
+
+const mariadbPoolConfig = {
   host: 'localhost',
   port: 33061,
   database: 'contacts',
   user: 'contacts',
   password: 'password',
-})
+}
+
+const mariadbPoolManager = new MariadbPoolManager(mariadbPoolConfig)
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers: makeResolversFactory(cuillere(
+  resolvers: wrapFieldResolvers(resolvers, cuillere(
     postgresClientPlugin(),
     mariadbClientPlugin(),
-  ))(resolvers),
+  )),
   context: ({ ctx }) => ctx,
   plugins: [
     new ApolloServerPlugin({
@@ -104,22 +108,7 @@ async function init() {
             user: 'postgres',
             password: 'password',
           },
-          {
-            name: 'people',
-            host: 'localhost',
-            port: 54321,
-            database: 'people',
-            user: 'postgres',
-            password: 'password',
-          },
-          {
-            name: 'geo',
-            host: 'localhost',
-            port: 54321,
-            database: 'geo',
-            user: 'postgres',
-            password: 'password',
-          },
+          ...postgresPoolConfig,
         ],
         transactionManager: 'none',
       }),
@@ -135,11 +124,7 @@ async function init() {
           },
           {
             name: 'contacts',
-            host: 'localhost',
-            port: 33061,
-            database: 'contacts',
-            user: 'contacts',
-            password: 'password',
+            ...mariadbPoolConfig,
           },
         ],
         transactionManager: 'none',
