@@ -1,4 +1,5 @@
 import { Pool, PoolConfig as PgPoolConfig, PoolClient, QueryResult } from 'pg'
+
 import type { QueryConfig } from './query-config'
 
 export class PoolManager {

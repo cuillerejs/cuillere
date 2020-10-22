@@ -1,5 +1,5 @@
 import { Cuillere, isGenerator } from '@cuillere/core'
-import type { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'apollo-server-koa'
+import type { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'graphql-tools'
 import { isScalarType, GraphQLFieldResolver } from 'graphql'
 
 type OneOrMany<T> = T | T[]

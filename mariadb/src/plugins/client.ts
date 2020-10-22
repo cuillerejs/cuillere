@@ -1,4 +1,4 @@
-import { Plugin, OperationObject } from '@cuillere/core'
+import type { Plugin, OperationObject } from '@cuillere/core'
 
 import { getQueryHandler } from '../query-handler'
 import type { QueryOptions } from '../query-options'

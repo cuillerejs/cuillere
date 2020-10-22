@@ -1,4 +1,5 @@
 import { PoolConfig as MariaPoolConfig, Pool, PoolConnection, createPool } from 'mariadb'
+
 import { QueryOptions } from './query-options'
 
 export class PoolManager {

@@ -38,5 +38,8 @@
   "peerDependencies": {
     "@cuillere/core": "^0.10.0",
     "mariadb": "~2"
+  },
+  "devDependencies": {
+    "@cuillere/server": "^0.11.0"
   }
 }

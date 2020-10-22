@@ -1,4 +1,5 @@
 import type { QueryResult } from 'pg'
+
 import type { QueryConfig } from './query-config'
 
 const QUERY_HANDLER = Symbol('QUERY_HANDLER')
