@@ -1,8 +1,8 @@
 import { GeneratorFunction } from '../generator'
 import { CallOperation, Operation, OperationObject, call, fork } from '../operations'
 import { Task } from '../stack'
-import { executablePromise } from '../utils/promise'
-import { delayOperation } from '../utils/delay'
+import { executablePromise } from '../executable-promise'
+import { after } from '../time'
 import { Plugin } from './plugin'
 
 interface BatchOptions {
@@ -47,7 +47,7 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => 
           entry = { resolves: [], rejects: [], args: [], func: operation.func, result }
           ctx[BATCH_CTX].set(batchKey, entry)
 
-          const task: Task = yield fork(delayOperation, executeBatch(batchKey), timeout)
+          const task: Task = yield fork(after, executeBatch(batchKey), timeout)
           resolve(task.result)
         }
 

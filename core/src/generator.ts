@@ -1,9 +1,8 @@
-import { TSGenerator, TSAsyncGenerator } from './utils/ts-generator'
-
 export interface GeneratorFunction<Args extends any[] = any[], R = any, Yield = any> {
-  (...args: Args): Generator<R, Yield>
+  (...args: Args): GenericGenerator<R, Yield>
 }
 
-export type Generator<R = any, Yield = any> = (TSGenerator<Yield, R, any> | TSAsyncGenerator<Yield, R, any>) & { name?: string }
+type GenericGenerator<R = any, Yield = any> = (Generator<Yield, R, any> | AsyncGenerator<Yield, R, any>) & { name?: string }
+export { GenericGenerator as Generator }
 
-export const isGenerator = (value: any): value is Generator => Boolean(value?.next && value?.throw && value?.return)
+export const isGenerator = (value: any): value is GenericGenerator => Boolean(value?.next && value?.throw && value?.return)

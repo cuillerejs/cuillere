@@ -12,7 +12,7 @@ export interface Cuillere {
 
 const namespacePrefix = '@'
 
-export default function cuillere(...pPlugins: Plugin[]): Cuillere {
+export function cuillere(...pPlugins: Plugin[]): Cuillere {
   const instances = new WeakMap<any, Cuillere>()
 
   const plugins = pPlugins.concat([
