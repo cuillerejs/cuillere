@@ -1,16 +1,13 @@
 import type { Middleware, ParameterizedContext, DefaultState, DefaultContext } from 'koa'
 
-import { AsyncTaskManager } from './task-manager'
+import { AsyncTaskExecutorOptions } from './task-executor'
 
-export interface KoaMiddlewareOptions {
-  context(ctx: ParameterizedContext<DefaultState, DefaultContext>): any
-  taskManager(ctx: ParameterizedContext<DefaultState, DefaultContext>): AsyncTaskManager
-}
+export type KoaMiddlewareArgs = [ParameterizedContext<DefaultState, DefaultContext>]
 
-export function KoaMiddleware(options: KoaMiddlewareOptions): Middleware {
+export function koaMiddleware(options: AsyncTaskExecutorOptions<KoaMiddlewareArgs>): Middleware {
   return async (ctx, next) => {
     try {
-      await options.taskManager(ctx).execute(options.context(ctx), next)
+      await options.taskManager(ctx).execute(next, options.context(ctx))
     } catch (e) {
       // Avoids unhandled promise rejection
     }

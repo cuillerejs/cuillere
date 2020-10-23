@@ -1,14 +1,11 @@
-import type { ApolloServerPlugin as ApolloServerPluginBase, GraphQLRequestContextExecutionDidStart, BaseContext } from 'apollo-server-plugin-base'
+import type { ApolloServerPlugin, GraphQLRequestContextExecutionDidStart, BaseContext } from 'apollo-server-plugin-base'
 import { executablePromise } from '@cuillere/core'
 
-import { AsyncTaskManager } from './task-manager'
+import { AsyncTaskExecutorOptions } from './task-executor'
 
-export interface ApolloServerPluginOptions {
-  context(reqCtx: GraphQLRequestContextExecutionDidStart<BaseContext>): any
-  taskManager(reqCtx: GraphQLRequestContextExecutionDidStart<BaseContext>): AsyncTaskManager
-}
+export type ApolloServerPluginArgs = [GraphQLRequestContextExecutionDidStart<BaseContext>]
 
-export function ApolloServerPlugin(options: ApolloServerPluginOptions): ApolloServerPluginBase {
+export function apolloServerPlugin(options: AsyncTaskExecutorOptions<ApolloServerPluginArgs>): ApolloServerPlugin {
   return {
     requestDidStart() {
       let didEncounterErrors = false
@@ -27,7 +24,7 @@ export function ApolloServerPlugin(options: ApolloServerPluginOptions): ApolloSe
           const [task, resolve, reject] = executablePromise()
 
           taskManager
-            .execute(options.context(reqCtx), () => task)
+            .execute(() => task, options.context(reqCtx))
             .catch(() => { /* Avoids unhandled promise rejection */ })
 
           return () => {

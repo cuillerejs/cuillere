@@ -1,4 +1,4 @@
-import { Operation, Plugin, Wrapper, terminal } from '@cuillere/core'
+import { Operation, Plugin, next } from '@cuillere/core'
 
 class BaseTaskManager {
   #listeners: TaskListener[]
@@ -34,8 +34,7 @@ class BaseTaskManager {
 }
 
 export class AsyncTaskManager extends BaseTaskManager {
-  // FIXME reverse parameters
-  public async execute(ctx: any, task: () => Promise<any>) {
+  public async execute(task: () => Promise<any>, ctx: any) {
     let error: any
 
     try {
@@ -57,8 +56,7 @@ export class AsyncTaskManager extends BaseTaskManager {
 }
 
 export class GeneratorTaskManager extends BaseTaskManager {
-  // FIXME reverse parameters
-  public async* execute(ctx: any, task: Operation) {
+  public async* execute(task: Operation, ctx: any) {
     let error: any
 
     try {
@@ -109,9 +107,15 @@ export function taskManagerPlugin(...listeners: TaskListener[]): Plugin {
 
   return {
     handlers: {
-      async* '@cuillere/core/start'({ operation }: Wrapper, ctx) {
-        yield terminal(taskManager.execute(ctx, operation))
+      async* '@cuillere/core/start'(operation : Operation, ctx) {
+        yield* taskManager.execute(next(operation), ctx)
       },
     },
   }
 }
+
+export interface GetTaskManager<T extends AsyncTaskManager | GeneratorTaskManager, Args extends any[]> {
+  (...args: Args): T
+}
+export type GetAsyncTaskManager<Args extends any[]> = GetTaskManager<AsyncTaskManager, Args>
+export type GetGeneratorTaskManager<Args extends any[]> = GetTaskManager<GeneratorTaskManager, Args>
