@@ -1,5 +1,6 @@
+import cuillere from '@cuillere/core'
 import { connectionPlugin, DEFAULT_POOL, getConnectionManager, PoolManager, query } from '@cuillere/mariadb'
-import { cuillere, taskManagerPlugin } from '@cuillere/server'
+import { taskManagerPlugin } from '@cuillere/server'
 
 const poolConfig = {
   host: 'localhost',

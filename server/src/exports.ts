@@ -18,10 +18,6 @@ export {
   PlaygroundRenderPageOptions,
 } from 'apollo-server-core'
 
-// FIXME conflicts with export * from '@cuillere/core'
-// export * from 'graphql-tools'
+export * from 'graphql-tools'
 
 export * from 'graphql-subscriptions'
-
-export { default as cuillere } from '@cuillere/core'
-export * from '@cuillere/core'

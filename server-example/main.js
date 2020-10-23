@@ -13,7 +13,7 @@ const server = new CuillereServer(
     resolvers,
   },
   {
-    requestTaskManager() {
+    httpRequestTaskManager() {
       return new AsyncTaskManager(
         getClientManager({
           poolManager: postgresPoolManager,

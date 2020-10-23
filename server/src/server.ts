@@ -1,6 +1,6 @@
 import cuillere, { Plugin } from '@cuillere/core'
-import type { ContextFunction, PluginDefinition } from 'apollo-server-core'
-import { ApolloServer, Config as ApolloConfig, ServerRegistration } from 'apollo-server-koa'
+import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from 'apollo-server-core'
+import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
 import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
@@ -10,7 +10,7 @@ import { wrapFieldResolvers } from './graphql'
 
 export interface CuillereConfig {
   contextKey?: string
-  requestTaskManager?: GetAsyncTaskManager<KoaMiddlewareArgs>
+  httpRequestTaskManager?: GetAsyncTaskManager<KoaMiddlewareArgs>
   graphqlRequestTaskManager?: GetAsyncTaskManager<ApolloServerPluginArgs>
   plugins: Plugin[]
 }
@@ -25,7 +25,7 @@ export class CuillereServer extends ApolloServer {
   }
 
   applyMiddleware(serverRegistration: ServerRegistration) {
-    const { requestTaskManager: taskManager, contextKey } = this.#config
+    const { httpRequestTaskManager: taskManager, contextKey } = this.#config
 
     if (taskManager) {
       serverRegistration.app.use(koaMiddleware({
@@ -50,8 +50,8 @@ const defaultContextKey = 'cuillere'
 
 function defaultConfig(config: CuillereConfig): CuillereConfig {
   return {
-    contextKey: defaultContextKey,
     ...config,
+    contextKey: config.contextKey ?? defaultContextKey,
   }
 }
 

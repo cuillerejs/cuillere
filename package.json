@@ -6,7 +6,9 @@
     "mariadb",
     "postgres",
     "server",
-    "server-example"
+    "server-example",
+    "server-postgres",
+    "server-postgres-example"
   ],
   "devDependencies": {
     "@tsconfig/node12": "^1.0.7",

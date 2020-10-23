@@ -7,16 +7,11 @@
     "start": "node ."
   },
   "dependencies": {
-    "apollo-server-koa": "~2",
-    "graphql": "~14",
-    "graphql-iso-date": "^3.6.1",
-    "koa": "~2",
-    "mariadb": "~2",
-    "pg": "~8"
-  },
-  "peerDependencies": {
     "@cuillere/mariadb": "^0.12.0-alpha.0",
     "@cuillere/postgres": "^0.12.0-alpha.0",
-    "@cuillere/server": "^0.12.0-alpha.0"
+    "@cuillere/server": "^0.12.0-alpha.0",
+    "graphql-iso-date": "^3.6.1",
+    "mariadb": "~2",
+    "pg": "~8"
   }
 }

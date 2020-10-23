@@ -1,0 +1,53 @@
+{
+  "name": "@cuillere/server-postgres",
+  "version": "0.12.0-alpha.0",
+  "main": "dist/node/index.js",
+  "types": "dist/types",
+  "engines": {
+    "node": ">=12"
+  },
+  "repository": "https://github.com/cuillerejs/cuillere",
+  "author": {
+    "name": "Nicolas LEPAGE",
+    "url": "https://github.com/nlepage"
+  },
+  "contributors": [
+    {
+      "name": "Valentin COCAUD",
+      "email": "v.cocaud@gmail.com",
+      "url": "https://github.com/EmrysMyrddin"
+    },
+    {
+      "name": "Yoann PROT",
+      "url": "https://github.com/Taranys"
+    }
+  ],
+  "license": "Apache-2.0",
+  "files": [
+    "src",
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "yarn eslint --ext .ts src",
+    "test": "jest --passWithNoTests",
+    "clean:version": "rm -rf dist/node/$VERSION",
+    "prebuild:version": "yarn clean:$VERSION",
+    "build:version": "yarn tsc -p tsconfig-node$VERSION.json",
+    "clean:12": "VERSION=12 yarn clean:version",
+    "prebuild:12": "VERSION=12 yarn prebuild:version",
+    "build:12": "VERSION=12 yarn build:version",
+    "clean:14": "VERSION=14 yarn clean:version",
+    "prebuild:14": "VERSION=14 yarn prebuild:version",
+    "build:14": "VERSION=14 yarn build:version",
+    "clean:types": "rm -rf dist/types",
+    "prebuild:types": "yarn clean:types",
+    "build:types": "yarn tsc -p tsconfig-types.json",
+    "build": "yarn build:12 && yarn build:14 && yarn build:types",
+    "prepublishOnly": "yarn build && yarn lint && yarn test"
+  },
+  "dependencies": {
+    "@cuillere/postgres": "^0.12.0-alpha.0",
+    "@cuillere/server": "^0.12.0-alpha.0"
+  }
+}
