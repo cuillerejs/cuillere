@@ -47,14 +47,15 @@
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "devDependencies": {
-    "apollo-server-core": "~2",
-    "apollo-server-plugin-base": "^0.10.0",
-    "graphql-tools": "~4"
+    "apollo-server-plugin-base": "^0.10.0"
   },
   "dependencies": {
     "@cuillere/core": "^0.12.0-alpha.0",
+    "apollo-server-core": "~2",
     "apollo-server-koa": "~2",
     "graphql": "~14",
+    "graphql-subscriptions": "~1",
+    "graphql-tools": "~4",
     "koa": "~2"
   }
 }

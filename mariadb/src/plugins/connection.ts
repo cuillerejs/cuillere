@@ -6,7 +6,7 @@ import { getConnectionGetter } from '../connection-getter'
 
 const namespace = '@cuillere/mariadb'
 
-export function clientPlugin(): Plugin {
+export function connectionPlugin(): Plugin {
   return {
     namespace,
 

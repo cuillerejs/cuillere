@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server-koa'
+import { gql } from '@cuillere/server'
 
 export const typeDefs = gql`
   scalar Date
