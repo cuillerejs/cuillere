@@ -1,6 +1,7 @@
 import { Cuillere, isGenerator } from '@cuillere/core'
 import type { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'graphql-tools'
 import { isScalarType, GraphQLFieldResolver } from 'graphql'
+import { defaultContextKey } from './context'
 
 type OneOrMany<T> = T | T[]
 
@@ -9,7 +10,7 @@ export interface FieldResolversOptions {
 }
 
 export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>, cllr: Cuillere, options?: FieldResolversOptions) {
-  const contextKey = options?.contextKey ?? 'cuillere'
+  const contextKey = options?.contextKey ?? defaultContextKey
   const getContext = (context: any) => context[contextKey]
 
   const wrapper = getFieldResolverWrapper(cllr, getContext)

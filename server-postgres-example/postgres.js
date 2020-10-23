@@ -1,5 +1,5 @@
 import cuillere from '@cuillere/core'
-import { clientPlugin, DEFAULT_POOL, getClientManager, PoolManager, query } from '@cuillere/postgres'
+import { clientPlugin, DEFAULT_POOL, getClientManager, PoolManager, query } from '@cuillere/server-postgres'
 import { taskManagerPlugin } from '@cuillere/server'
 
 const poolConfig = [

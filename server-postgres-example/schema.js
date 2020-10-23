@@ -1,4 +1,4 @@
-import { gql } from '@cuillere/server'
+import { gql } from '@cuillere/server-postgres'
 
 export const typeDefs = gql`
   scalar Date

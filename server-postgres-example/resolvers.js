@@ -1,5 +1,5 @@
 import { GraphQLDate, GraphQLDateTime } from 'graphql-iso-date'
-import { query } from '@cuillere/postgres'
+import { query } from '@cuillere/server-postgres'
 
 const simpleResolvers = {
   Query: {
