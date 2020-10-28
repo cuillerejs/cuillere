@@ -161,8 +161,8 @@ function* fibonacci(n, ch) {
   let x = 0
   let y = 1
   for (let i = 0; i < n; i++) {
-    yield send(ch, x)
-    y = (x + (x = y))
+    yield send(ch, x);
+    [x, y] = [y, x + y]
   }
   yield close(ch)
 }
@@ -201,7 +201,7 @@ function* fibonacci(ch, quit) {
   while (!stopped) {
     yield select(
       [send(ch, x), () => {
-        y = (x + (x = y))
+        [x, y] = [y, x + y]
       }],
       [recv(quit), () => {
         console.log('quit')
