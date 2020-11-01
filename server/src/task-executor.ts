@@ -2,9 +2,9 @@ import { Plugin, Operation, delegate, next } from '@cuillere/core'
 
 import { AsyncTaskManager, GeneratorTaskManager, GetTaskManager } from './task-manager'
 
-export interface TaskExecutorOptions<TaskManager extends AsyncTaskManager | GeneratorTaskManager, Args extends any[] = any[]> {
+export interface TaskExecutorOptions<T extends AsyncTaskManager | GeneratorTaskManager, Args extends any[] = any[]> {
   context(...args: Args): any
-  taskManager: GetTaskManager<TaskManager, Args>
+  taskManager: GetTaskManager<T, Args>
 }
 
 export type AsyncTaskExecutorOptions<Args extends any[]> = TaskExecutorOptions<AsyncTaskManager, Args>

@@ -1,3 +1,4 @@
+import type { TransactionManagerType } from '@cuillere/server'
 import type { PoolConnection } from 'mariadb'
 
 export interface TransactionManager {
@@ -7,7 +8,7 @@ export interface TransactionManager {
   error(connections: PoolConnection[], error: any): Promise<void>
 }
 
-export function getTransactionManager(type = 'default'): TransactionManager {
+export function getTransactionManager(type: TransactionManagerType = 'default'): TransactionManager {
   switch (type) {
     case 'none': return null
     case 'default': return new DefaultTransactionManager()

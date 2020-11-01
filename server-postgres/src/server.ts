@@ -37,7 +37,7 @@ function buildServerConfig(config: CuillereConfig): CuillereServerConfig {
         getClientManager({
           poolConfig: config.poolConfig,
           poolManager: config.poolManager,
-          transactionManager: 'two-phase', // FIXME check if there are several databases
+          transactionManager: 'auto',
         }),
       )
     },

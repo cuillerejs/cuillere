@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg'
+import type { TransactionManagerType } from '@cuillere/server'
 
 export interface TransactionManager {
   connect(clientPromise: Promise<PoolClient>): Promise<PoolClient>
@@ -7,7 +8,7 @@ export interface TransactionManager {
   error(clients: PoolClient[], error: any): Promise<void>
 }
 
-export function getTransactionManager(type = 'default'): TransactionManager {
+export function getTransactionManager(type: TransactionManagerType = 'default'): TransactionManager {
   switch (type) {
     case 'none': return null
     case 'default': return new DefaultTransactionManager()

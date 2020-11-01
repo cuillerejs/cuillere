@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg'
-import type { TaskListener } from '@cuillere/server'
+import type { TaskListener, TransactionManagerType } from '@cuillere/server'
 
 import { PoolManager, DEFAULT_POOL, PoolConfig } from './pool-manager'
 import { setQueryHandler } from './query-handler'
@@ -10,13 +10,17 @@ import { TransactionManager, getTransactionManager } from './transaction-manager
 export function getClientManager(options: ClientManagerOptions): ClientManager {
   const poolManager = options.poolManager ?? new PoolManager(options.poolConfig)
   if (!poolManager) throw TypeError('Client manager needs one of poolConfig or poolManager')
-  return new ClientManagerImpl(poolManager, getTransactionManager(options.transactionManager))
+
+  let transactionManagerType = options.transactionManager
+  if (transactionManagerType === 'auto') transactionManagerType = Object.keys(poolManager.pools).length === 1 ? 'default' : 'two-phase'
+
+  return new ClientManagerImpl(poolManager, getTransactionManager(transactionManagerType))
 }
 
 export interface ClientManagerOptions {
   poolConfig?: PoolConfig | PoolConfig[]
   poolManager?: PoolManager
-  transactionManager?: 'none' | 'default' | 'two-phase' | 'read-only' // FIXME mutualize type with getTransactionManager
+  transactionManager?: TransactionManagerType
 }
 
 export interface ClientManager extends TaskListener {
