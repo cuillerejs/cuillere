@@ -1,11 +1,14 @@
 import { Plugin } from '@cuillere/core'
-import { CuillereServer as CuillereServerBase, Config as ApolloConfig, CuillereConfig as CuillereServerConfig, AsyncTaskManager } from '@cuillere/server'
+import {
+  CuillereServer as CuillereServerBase, Config as ApolloConfig, CuillereConfig as CuillereConfigBase, AsyncTaskManager, TransactionManagerType,
+} from '@cuillere/server'
 import { clientPlugin, getClientManager, PoolConfig, PoolManager } from '@cuillere/postgres'
 
 export interface CuillereConfig {
     contextKey?: string
     poolConfig?: PoolConfig | PoolConfig[]
     poolManager?: PoolManager
+    transactionManager?: TransactionManagerType
     plugins?: Plugin[]
 }
 
@@ -18,7 +21,7 @@ export class CuillereServer extends CuillereServerBase {
   }
 }
 
-function buildServerConfig(config: CuillereConfig): CuillereServerConfig {
+function buildServerConfig(config: CuillereConfig): CuillereConfigBase {
   return {
     contextKey: config.contextKey,
     httpRequestTaskManager() {
@@ -37,7 +40,7 @@ function buildServerConfig(config: CuillereConfig): CuillereServerConfig {
         getClientManager({
           poolConfig: config.poolConfig,
           poolManager: config.poolManager,
-          transactionManager: 'auto',
+          transactionManager: config.transactionManager ?? 'auto',
         }),
       )
     },
