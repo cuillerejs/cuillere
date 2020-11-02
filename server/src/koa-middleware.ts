@@ -6,8 +6,11 @@ export type KoaMiddlewareArgs = [ParameterizedContext<DefaultState, DefaultConte
 
 export function koaMiddleware(options: AsyncTaskExecutorOptions<KoaMiddlewareArgs>): Middleware {
   return async (ctx, next) => {
+    const taskManager = options.taskManager(ctx)
+    if (!taskManager) return next()
+
     try {
-      await options.taskManager(ctx).execute(next, options.context(ctx))
+      await taskManager.execute(next, options.context(ctx))
     } catch (e) {
       // Avoids unhandled promise rejection
     }
