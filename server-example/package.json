@@ -7,9 +7,9 @@
     "start": "node ."
   },
   "dependencies": {
-    "@cuillere/mariadb": "^0.12.0-alpha.0",
-    "@cuillere/postgres": "^0.12.0-alpha.0",
-    "@cuillere/server": "^0.12.0-alpha.0",
+    "@cuillere/mariadb": "^0.12.0-alpha.1",
+    "@cuillere/postgres": "^0.12.0-alpha.1",
+    "@cuillere/server": "^0.12.0-alpha.1",
     "graphql-iso-date": "^3.6.1",
     "mariadb": "~2",
     "pg": "~8"

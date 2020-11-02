@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/server-postgres",
-  "version": "0.12.0-alpha.0",
+  "version": "0.12.0-alpha.1",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
@@ -47,7 +47,7 @@
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "dependencies": {
-    "@cuillere/postgres": "^0.12.0-alpha.0",
-    "@cuillere/server": "^0.12.0-alpha.0"
+    "@cuillere/postgres": "^0.12.0-alpha.1",
+    "@cuillere/server": "^0.12.0-alpha.1"
   }
 }
