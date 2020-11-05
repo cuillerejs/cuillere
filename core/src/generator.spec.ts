@@ -3,6 +3,16 @@ import { isGenerator, isGeneratorFunction } from './generator'
 describe('generator', () => {
   function* gen() { /* test */ }
   async function* asyncGen() { /* test */ }
+  function func() { /* test */ }
+  async function asyncFunc() { /* test */ }
+  function makeGenerator(): Generator {
+    return {
+      next() { return undefined },
+      return() { return undefined },
+      throw() { return undefined },
+      [Symbol.iterator]() { return this },
+    }
+  }
 
   describe('isGenerator', () => {
     it('should return true for a generator or async generator', () => {
@@ -13,6 +23,11 @@ describe('generator', () => {
     it('should return false for non generator values', () => {
       expect(isGenerator(gen)).toBe(false)
       expect(isGenerator(asyncGen)).toBe(false)
+      expect(isGenerator(func)).toBe(false)
+      expect(isGenerator(asyncFunc)).toBe(false)
+      expect(isGenerator(makeGenerator)).toBe(false)
+      expect(isGenerator(makeGenerator())).toBe(false)
+      expect(isGenerator([][Symbol.iterator]())).toBe(false)
       expect(isGenerator(Promise.resolve())).toBe(false)
       expect(isGenerator(1)).toBe(false)
       expect(isGenerator('test')).toBe(false)
@@ -34,6 +49,11 @@ describe('generator', () => {
     it('should return false for non generator values', () => {
       expect(isGeneratorFunction(gen())).toBe(false)
       expect(isGeneratorFunction(asyncGen())).toBe(false)
+      expect(isGeneratorFunction(func)).toBe(false)
+      expect(isGeneratorFunction(asyncFunc)).toBe(false)
+      expect(isGenerator(makeGenerator)).toBe(false)
+      expect(isGenerator(makeGenerator())).toBe(false)
+      expect(isGeneratorFunction([][Symbol.iterator]())).toBe(false)
       expect(isGeneratorFunction(Promise.resolve())).toBe(false)
       expect(isGeneratorFunction(1)).toBe(false)
       expect(isGeneratorFunction('test')).toBe(false)
