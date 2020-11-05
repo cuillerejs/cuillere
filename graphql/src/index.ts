@@ -1,4 +1,4 @@
-import { Cuillere, isGenerator } from '@cuillere/core'
+import { Cuillere, isGeneratorFunction } from '@cuillere/core'
 import type { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'apollo-server-koa'
 import { isScalarType, GraphQLFieldResolver } from 'graphql'
 
@@ -29,8 +29,8 @@ function applyToResolvers(fn: FieldResolverWrapper, resolvers: OneOrMany<IResolv
 
   for (const [key, value] of Object.entries(resolvers)) {
     if (isScalarType(value) || isEnumResolver(value)) wrappedResolvers[key] = value
+    else if (typeof value === 'function') wrappedResolvers[key] = isGeneratorFunction(value) ? fn(value) as () => any : value
     else if (isResolverOptions(value)) wrappedResolvers[key] = mapResolverOption(fn, value)
-    else if (typeof value === 'function') wrappedResolvers[key] = fn(value) as () => any
     else wrappedResolvers[key] = applyToObject(fn, value)
   }
 
@@ -41,8 +41,8 @@ function applyToObject(fn: FieldResolverWrapper, resolverObject: IResolverObject
   const wrappedResolverObject: IResolverObject = {}
 
   for (const [key, value] of Object.entries(resolverObject)) {
-    if (isResolverOptions(value)) wrappedResolverObject[key] = mapResolverOption(fn, value)
-    else if (typeof value === 'function') wrappedResolverObject[key] = fn(value) as () => any
+    if (typeof value === 'function') wrappedResolverObject[key] = isGeneratorFunction(value) ? fn(value) as () => any : value
+    else if (isResolverOptions(value)) wrappedResolverObject[key] = mapResolverOption(fn, value)
     else wrappedResolverObject[key] = applyToObject(fn, value)
   }
 
@@ -50,16 +50,7 @@ function applyToObject(fn: FieldResolverWrapper, resolverObject: IResolverObject
 }
 
 function makeResolverFactory(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
-  return (fn: GraphQLFieldResolver<any, any>) => (obj, args, ctx, info) => {
-    const res = fn(obj, args, ctx, info)
-
-    if (!res || !isGenerator(res)) return res
-
-    // Copy function name on generator for stacktrace
-    res.name = fn.name
-
-    return cllr.ctx(getContext(ctx)).start(res)
-  }
+  return (fn: GraphQLFieldResolver<any, any>) => (obj, args, ctx, info) => cllr.ctx(getContext(ctx)).call(fn, obj, args, ctx, info)
 }
 
 type FieldResolverWrapper = (original: GraphQLFieldResolver<any, any>) => GraphQLFieldResolver<any, any>
