@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/graphql",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "main": "lib/index.js",
   "license": "Apache-2.0",
   "repository": "https://github.com/cuillerejs/cuillere",
@@ -30,7 +30,7 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "@cuillere/core": "^0.10.0",
+    "@cuillere/core": "^0.11.2",
     "graphql": "~14||~15"
   },
   "devDependencies": {
