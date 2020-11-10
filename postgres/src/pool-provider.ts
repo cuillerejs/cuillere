@@ -15,8 +15,9 @@ export class PoolProvider {
   }
 
   async query<T>(query: QueryConfig): Promise<QueryResult<T>> {
-    if (!this.pools[query.pool]) throw new Error(`trying to get client for unkown pool '${query.pool}'`)
-    return this.pools[query.pool].query(query)
+    const pool = this.getPool(query.pool)
+    if (!pool) throw new Error(`trying to get client for unkown pool '${query.pool}'`)
+    return pool.query(query)
   }
 
   getPool(name = DEFAULT_POOL) {
