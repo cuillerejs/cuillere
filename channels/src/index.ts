@@ -1,21 +1,18 @@
-import { Plugin, OperationObject, delegate, execute, fork, isGenerator, isOfKind } from '@cuillere/core'
+import { Plugin, OperationObject, execute, fork, isGenerator, isOfKind } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
-export function channelsPlugin(): Plugin<ChannelsContext> {
+const chans = new WeakMap<ChanKey, ChanState>()
+
+export function channelsPlugin(): Plugin {
   return {
     namespace,
 
     handlers: {
-      * '@cuillere/core/start'(operation, ctx) {
-        ctx[CHANS] = new WeakMap()
-        yield delegate(operation)
-      },
-
-      * chan({ bufferCapacity }: Chan, ctx) {
+      * chan({ bufferCapacity }: Chan) {
         const key = chanKey(bufferCapacity)
 
-        ctx[CHANS].set(key, {
+        chans.set(key, {
           buffer: Array(bufferCapacity),
           bufferLength: 0,
           sendQ: new ChanQ(),
@@ -26,8 +23,8 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
         return key
       },
 
-      * close({ chanKey }: ChanOperation, ctx) {
-        const ch = ctx[CHANS].get(chanKey)
+      * close({ chanKey }: ChanOperation) {
+        const ch = chans.get(chanKey)
 
         if (ch.closed) throw TypeError(`close on closed ${chanKey}`)
 
@@ -37,10 +34,10 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
         while (recver = ch.recvQ.shift()) recver([undefined, false])
       },
 
-      * range({ chanKey }: ChanOperation, ctx) {
+      * range({ chanKey }: ChanOperation) {
         return {
           async next() {
-            const [value, ok] = await doRecv(ctx, chanKey)
+            const [value, ok] = await doRecv(chanKey)
             return {
               value,
               done: !ok,
@@ -53,20 +50,20 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
         }
       },
 
-      async* recv({ chanKey, detail }: Recv, ctx) {
-        const res = await doRecv(ctx, chanKey)
+      async* recv({ chanKey, detail }: Recv) {
+        const res = await doRecv(chanKey)
         return detail ? res : res[0]
       },
 
-      async* select({ cases }: Select, ctx) {
+      async* select({ cases }: Select) {
         const simpleCases = cases.map(caze => (isCallbackCase(caze) ? caze[0] : caze))
         const indexes = new Map(simpleCases.map((caze, i) => [caze, i]))
         const callbacks = new Map(cases.filter(isCallbackCase))
 
         const readyCases = simpleCases.filter((caze) => {
           if (isDefault(caze)) return false
-          if (isSend(caze)) return isSendReady(ctx, caze)
-          if (isRecv(caze)) return isRecvReady(ctx, caze)
+          if (isSend(caze)) return isSendReady(caze)
+          if (isRecv(caze)) return isRecvReady(caze)
           throw new TypeError('unknown case type')
         }) as (Send | Recv)[]
 
@@ -76,12 +73,12 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
           ]
           const index = indexes.get(caze)
           if (isSend(caze)) {
-            syncSend(ctx, caze.chanKey, caze.value)
+            syncSend(caze.chanKey, caze.value)
             if (callbacks.has(caze)) yield* executeCallback(callbacks.get(caze))
             return [index]
           }
           if (isRecv(caze)) {
-            const res = syncRecv(ctx, caze.chanKey)
+            const res = syncRecv(caze.chanKey)
             const ret = caze.detail ? res : res[0]
             if (callbacks.has(caze)) yield* executeCallback(callbacks.get(caze), [ret])
             return [index, ret]
@@ -112,7 +109,7 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
           })
 
           for (const [chanKey, [sends, recvs]] of casesByChanKey.entries()) {
-            const ch = ctx[CHANS].get(chanKey)
+            const ch = chans.get(chanKey)
 
             if (sends.length !== 0) {
               const sender: Sender = () => {
@@ -154,10 +151,10 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
         throw new TypeError('unknown case type')
       },
 
-      async* send({ chanKey, value }: Send, ctx) {
-        if (syncSend(ctx, chanKey, value)) return
+      async* send({ chanKey, value }: Send) {
+        if (syncSend(chanKey, value)) return
 
-        await new Promise<void>(resolve => ctx[CHANS].get(chanKey).sendQ.push(() => {
+        await new Promise<void>(resolve => chans.get(chanKey).sendQ.push(() => {
           resolve()
           return value
         }))
@@ -185,12 +182,6 @@ export function channelsPlugin(): Plugin<ChannelsContext> {
     },
   }
 }
-
-interface ChannelsContext {
-  [CHANS]: WeakMap<ChanKey, ChanState>
-}
-
-const CHANS = Symbol('CHANS')
 
 export type ChanKey = object // eslint-disable-line @typescript-eslint/ban-types
 
@@ -260,13 +251,13 @@ export const recv = (chanKey: ChanKey, detail = false): Recv => ({ kind: `${name
 
 const isRecv = isOfKind<Recv>(`${namespace}/recv`)
 
-const isRecvReady = (ctx: ChannelsContext, { chanKey }: Recv): boolean => {
-  const ch = ctx[CHANS].get(chanKey)
+const isRecvReady = ({ chanKey }: Recv): boolean => {
+  const ch = chans.get(chanKey)
   return ch.bufferLength !== 0 || ch.sendQ.length() !== 0 || ch.closed
 }
 
-const syncRecv = (ctx: ChannelsContext, chanKey: ChanKey): [any, boolean] => {
-  const ch = ctx[CHANS].get(chanKey)
+const syncRecv = (chanKey: ChanKey): [any, boolean] => {
+  const ch = chans.get(chanKey)
 
   if (ch.bufferLength !== 0) {
     const value = ch.buffer[0]
@@ -287,11 +278,11 @@ const syncRecv = (ctx: ChannelsContext, chanKey: ChanKey): [any, boolean] => {
   return undefined
 }
 
-const doRecv = async (ctx: ChannelsContext, chanKey: ChanKey) => {
-  const res = syncRecv(ctx, chanKey)
+const doRecv = async (chanKey: ChanKey) => {
+  const res = syncRecv(chanKey)
   if (res) return res
 
-  return new Promise<[any, boolean]>(resolve => ctx[CHANS].get(chanKey).recvQ.push(resolve))
+  return new Promise<[any, boolean]>(resolve => chans.get(chanKey).recvQ.push(resolve))
 }
 
 const DEFAULT = Symbol('DEFAULT')
@@ -321,14 +312,14 @@ export const send = (chanKey: ChanKey, value: any): Send => ({ kind: `${namespac
 
 const isSend = isOfKind<Send>(`${namespace}/send`)
 
-const isSendReady = (ctx: ChannelsContext, { chanKey }: Send): boolean => {
-  const ch = ctx[CHANS].get(chanKey)
+const isSendReady = ({ chanKey }: Send): boolean => {
+  const ch = chans.get(chanKey)
   if (ch.closed) throw TypeError(`send on closed ${chanKey}`)
   return ch.recvQ.length() !== 0 || ch.bufferLength !== ch.buffer.length
 }
 
-const syncSend = (ctx: ChannelsContext, chanKey: ChanKey, value: any): boolean => {
-  const ch = ctx[CHANS].get(chanKey)
+const syncSend = (chanKey: ChanKey, value: any): boolean => {
+  const ch = chans.get(chanKey)
 
   if (ch.closed) throw TypeError(`send on closed ${chanKey}`)
 
