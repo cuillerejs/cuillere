@@ -7,10 +7,10 @@
     "start": "node ."
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.10.0",
+    "@cuillere/core": "^0.11.2",
     "@cuillere/graphql": "^0.11.1",
-    "@cuillere/postgres-apollo-plugin": "^0.10.0",
-    "@cuillere/postgres-koa-middleware": "^0.10.0",
+    "@cuillere/postgres-apollo-plugin": "^0.11.3",
+    "@cuillere/postgres-koa-middleware": "^0.11.3",
     "apollo-server-koa": "^2.15.1",
     "koa": "^2.13.0",
     "pg": "^8"

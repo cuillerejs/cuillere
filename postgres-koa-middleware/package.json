@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres-koa-middleware",
-  "version": "0.10.0",
+  "version": "0.11.3",
   "main": "lib/index.js",
   "repository": "https://github.com/cuillerejs/cuillere",
   "author": {
@@ -20,7 +20,7 @@
     "build": "yarn tsc"
   },
   "peerDependencies": {
-    "@cuillere/postgres": "^0.10.0"
+    "@cuillere/postgres": "^0.11.3"
   },
   "devDependencies": {
     "koa": "^2"
