@@ -1,7 +1,7 @@
 import cuillere, { Cuillere, Plugin, next } from '..'
 
 describe('plugin', () => {
-  const test = async (cllr: Cuillere, expected = 'test') => {
+  const callFuncAndExpectTest = async (cllr: Cuillere, expected = 'test') => {
     function* func() {
       return 'test'
     }
@@ -9,8 +9,7 @@ describe('plugin', () => {
   }
 
   it('should work with no plugins', async () => {
-    const cllr = cuillere()
-    await test(cllr)
+    await callFuncAndExpectTest(cuillere())
   })
 
   it('should call plugins for call operation', async () => {
@@ -34,9 +33,7 @@ describe('plugin', () => {
       },
     }
 
-    const cllr = cuillere(plugin1, plugin2)
-
-    await test(cllr)
+    await callFuncAndExpectTest(cuillere(plugin1, plugin2))
     expect(plugin1Fn).toBeCalled()
     expect(plugin2Fn).toBeCalled()
   })

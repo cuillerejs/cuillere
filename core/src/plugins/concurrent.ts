@@ -1,6 +1,5 @@
 import { fork, Operation, OperationObject } from '../operations'
 import { Task } from '../stack'
-import { allSettled as promiseAllSettled } from '../utils/promise'
 import { Plugin } from './plugin'
 
 export interface Concurrent extends OperationObject {
@@ -20,9 +19,9 @@ export const concurrentPlugin = (): Plugin => ({
       try {
         return await Promise.all(tasks.map(({ result }) => result))
       } catch (error) {
-        const results = await promiseAllSettled(tasks.map(task => task.cancel()))
+        const results = await Promise.allSettled(tasks.map(task => task.cancel()))
         error.errors = results
-          .filter(({ status }) => status === 'rejected')
+          .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
           .map(({ reason }) => reason)
           .filter(reason => reason !== error)
         throw error
@@ -32,7 +31,7 @@ export const concurrentPlugin = (): Plugin => ({
     async* allSettled({ operations }: Concurrent) {
       const tasks = []
       for (const op of operations) tasks.push(yield fork(op))
-      return promiseAllSettled(tasks.map(({ result }) => result))
+      return Promise.allSettled(tasks.map(({ result }) => result))
     },
   },
 })

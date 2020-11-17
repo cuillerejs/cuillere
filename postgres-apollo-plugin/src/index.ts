@@ -1,6 +1,6 @@
 import type { ApolloServerPlugin } from 'apollo-server-plugin-base'
 import { getClientManager, ClientManagerOptions } from '@cuillere/postgres'
-import { executablePromise } from '@cuillere/core/lib/utils/promise'
+import { executablePromise } from '@cuillere/core'
 
 export interface PostgresApolloPluginOptions extends ClientManagerOptions {
   contextKey?: string
