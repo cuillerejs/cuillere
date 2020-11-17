@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/server",
-  "version": "0.12.0-alpha.1",
+  "version": "0.12.0-alpha.3",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
@@ -50,7 +50,7 @@
     "apollo-server-plugin-base": "^0.10.2"
   },
   "dependencies": {
-    "@cuillere/core": "^0.12.0-alpha.1",
+    "@cuillere/core": "^0.12.0-alpha.3",
     "apollo-server-core": "~2.19.0",
     "apollo-server-koa": "~2.19.0",
     "graphql-subscriptions": "~1",
