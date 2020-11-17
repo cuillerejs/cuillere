@@ -9,14 +9,16 @@ export class PoolManager {
     this.#pools = makePools([].concat(poolConfig))
   }
 
-  async connect(name = DEFAULT_POOL): Promise<PoolConnection> {
-    if (!this.#pools[name]) throw new Error(`trying to get client for unkown pool '${name}'`)
-    return this.#pools[name].getConnection()
+  async connect(name?: string): Promise<PoolConnection> {
+    const pool = this.getPool(name)
+    if (!pool) throw new Error(`trying to connect using unknown pool "${name}"`)
+    return pool.getConnection()
   }
 
   async query(query: QueryOptions) {
-    if (!this.#pools[query.pool]) throw new Error(`trying to get client for unkown pool '${query.pool}'`)
-    return this.#pools[query.pool].query(query)
+    const pool = this.getPool(query.pool)
+    if (!pool) throw new Error(`trying to get client for unknown pool "${query.pool}"`)
+    return pool.query(query)
   }
 
   getPool(name = DEFAULT_POOL) {

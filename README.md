@@ -1,24 +1,23 @@
-<h1 align="center">Welcome to cuillere 🥄</h1>
-<p>
-  <a href="https://www.npmjs.com/package/@cuillere/core" target="_blank">
-    <img alt="Version" src="https://img.shields.io/npm/v/@cuillere/core.svg">
-  </a>
-  <a href="https://spdx.org/licenses/Apache-2.0.html" target="_blank">
-    <img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache2.0-yellow.svg" />
-  </a>
-</p>
+<h1>
+  <img src="https://raw.githubusercontent.com/cuillerejs/cuillere/master/logo.png" width="160" />
+  <br />
+  Welcome to CuillereJS 🥄
+</h1>
 
-> cuillere is an extensible asynchronous execution framework based on generator functions.
+[![Version](https://img.shields.io/npm/v/@cuillere/core.svg)](https://www.npmjs.com/package/@cuillere/core)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache2.0-yellow.svg)](https://spdx.org/licenses/Apache-2.0.html)
 
-**🚧 cuillere is still in early development stage, the API may change at any time.**
+**CuillereJS is an extensible asynchronous execution framework based on generator functions.**
+
+*🚧 CuillereJS is still experimental, APIs may change at any time.*
 
 ## Why ?
 
-The goal of cuillere is to abstract some inevitable technical complexity (such as managing database transactions) in plugins, and keep business code as simple and focused as possible.
+The goal of CuillereJS is to abstract some inevitable technical complexity (such as managing database transactions) in plugins, and keep business code as simple and focused as possible.
 
 ## Usage
 
-In this example we use cuillere to manage the connection to a PostgreSQL database.
+In this example we use CuillereJS to manage the connection to a PostgreSQL database.
 
 ```js
 const cuillere = require('@cuillere/core')

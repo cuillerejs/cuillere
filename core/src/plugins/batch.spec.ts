@@ -1,5 +1,4 @@
-import cuillere, { CallOperation, Cuillere, batched, batchPlugin } from '..'
-import { callable } from '../operations'
+import cuillere, { Cuillere, batched, batchPlugin, callable } from '..'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
@@ -11,7 +10,7 @@ const afterDelay = async (fn: () => void, d: number) => {
 describe('batch', () => {
   let cllr: Cuillere
   const mock = jest.fn()
-  let fn: (...args: any[]) => CallOperation
+  let fn: (...args: any[]) => any
 
   beforeEach(() => {
     cllr = cuillere(batchPlugin({ timeout: 0 }))
@@ -162,7 +161,7 @@ describe('batch', () => {
     const testError = 'testError'
     const throwing = batched(function* throwing() {
       throw testError
-    } as any) // WORKAROUND: error TS2345: Argument of type '[]' is not assignable to parameter of type 'never'
+    })
 
     const result = Promise.all([
       cllr.start(throwing()),
