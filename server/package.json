@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/server",
-  "version": "0.12.0-alpha.4",
+  "version": "0.12.0-alpha.5",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
