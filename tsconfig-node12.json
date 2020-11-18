@@ -1,0 +1,7 @@
+{
+  "extends": "@tsconfig/node12/tsconfig.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "strict": false
+  }
+}

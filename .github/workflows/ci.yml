@@ -1,0 +1,42 @@
+name: CI
+on: [push]
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup node 14
+        uses: actions/setup-node@v2-beta
+        with:
+          node-version: '14'
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+
+      - name: CI core
+        run: yarn build && yarn lint && yarn test
+        working-directory: ./core
+
+      - name: CI server
+        run: yarn build && yarn lint
+        working-directory: ./server
+
+      - name: CI postgres
+        run: yarn build && yarn lint
+        working-directory: ./postgres
+
+      - name: CI server-postgres
+        run: yarn build && yarn lint
+        working-directory: ./server-postgres
+
+      - name: CI mariadb
+        run: yarn build && yarn lint
+        working-directory: ./mariadb
+
+      - name: CI channels
+        run: yarn build && yarn lint && yarn test
+        working-directory: ./channels

@@ -1,13 +1,14 @@
 import type { PoolClient } from 'pg'
-import uuid from './utils/uuid'
+import type { TransactionManagerType } from '@cuillere/server'
 
 export interface TransactionManager {
-  onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient>
-  onSuccess(clients: PoolClient[], result: any): Promise<void>
-  onError(clients: PoolClient[], error: any): Promise<void>
+  connect(clientPromise: Promise<PoolClient>): Promise<PoolClient>
+  preComplete?(clients: PoolClient[], result: any): Promise<void>
+  complete(clients: PoolClient[], result: any): Promise<void>
+  error(clients: PoolClient[], error: any): Promise<void>
 }
 
-export function getTransactionManager(type = 'default'): TransactionManager {
+export function getTransactionManager(type: TransactionManagerType = 'default'): TransactionManager {
   switch (type) {
     case 'none': return null
     case 'default': return new DefaultTransactionManager()
@@ -18,17 +19,17 @@ export function getTransactionManager(type = 'default'): TransactionManager {
 }
 
 class DefaultTransactionManager implements TransactionManager {
-  async onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
+  async connect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
     const client = await clientPromise
     await client.query('BEGIN')
     return client
   }
 
-  async onSuccess(clients: PoolClient[]): Promise<void> { // eslint-disable-line class-methods-use-this
+  async complete(clients: PoolClient[]): Promise<void> { // eslint-disable-line class-methods-use-this
     for (const client of clients) await client.query('COMMIT')
   }
 
-  async onError(clients: PoolClient[], error: any): Promise<void> { // eslint-disable-line class-methods-use-this
+  async error(clients: PoolClient[], error: any): Promise<void> { // eslint-disable-line class-methods-use-this
     const results = await Promise.allSettled(clients.map(client => client.query('ROLLBACK')))
 
     if (results.some(result => result.status === 'rejected')) {
@@ -40,30 +41,32 @@ class DefaultTransactionManager implements TransactionManager {
 }
 
 class TwoPhaseTransactionManager implements TransactionManager {
-  #preparedIds = new Map<PoolClient, string>()
+  private preparedIds = new Map<PoolClient, string>()
 
-  #committed = false
+  private committed = false
 
-  async onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
+  async connect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
     const client = await clientPromise
     await client.query('BEGIN')
     return client
   }
 
-  async onSuccess(clients: PoolClient[]): Promise<void> {
+  async preComplete(clients: PoolClient[]): Promise<void> {
     for (const client of clients) {
-      const id = uuid()
+      const { rows: [{ id }] } = await client.query('SELECT md5(random()::text) AS id')
       await client.query(`PREPARE TRANSACTION '${id}'`)
-      this.#preparedIds.set(client, id)
+      this.preparedIds.set(client, id)
     }
 
-    this.#committed = true
+    this.committed = true
+  }
 
+  async complete(clients: PoolClient[]): Promise<void> {
     const results = await Promise.allSettled(clients.map(async (client) => {
       try {
-        await client.query(`COMMIT PREPARED '${this.#preparedIds.get(client)}'`)
+        await client.query(`COMMIT PREPARED '${this.preparedIds.get(client)}'`)
       } catch (e) {
-        console.error(`Prepared transaction ${this.#preparedIds.get(client)} commit failed`, e)
+        console.error(`Prepared transaction ${this.preparedIds.get(client)} commit failed`, e)
         throw e
       }
     }))
@@ -71,15 +74,15 @@ class TwoPhaseTransactionManager implements TransactionManager {
     if (results.some(result => result.status === 'rejected')) throw Error('One or more prepared transaction commit failed')
   }
 
-  async onError(clients: PoolClient[], error: any): Promise<void> {
-    if (this.#committed) return
+  async error(clients: PoolClient[], error: any): Promise<void> {
+    if (this.committed) return
 
     const results = await Promise.allSettled(clients.map(async (client) => {
-      if (this.#preparedIds.has(client)) {
+      if (this.preparedIds.has(client)) {
         try {
-          await client.query(`ROLLBACK PREPARED '${this.#preparedIds.get(client)}'`)
+          await client.query(`ROLLBACK PREPARED '${this.preparedIds.get(client)}'`)
         } catch (e) {
-          console.error(`Prepared transaction ${this.#preparedIds.get(client)} rollback failed`, e)
+          console.error(`Prepared transaction ${this.preparedIds.get(client)} rollback failed`, e)
           throw e
         }
       } else {
@@ -96,7 +99,7 @@ class TwoPhaseTransactionManager implements TransactionManager {
 }
 
 class ReadOnlyTransactionManager extends DefaultTransactionManager {
-  async onConnect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
+  async connect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
     const client = await clientPromise
     await client.query('BEGIN READ ONLY')
     return client

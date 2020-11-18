@@ -1,11 +1,3 @@
 {
-  "compileOnSave": true,
-  "compilerOptions": {
-    "module": "commonjs",
-    "lib": ["ESNext"],
-    "target": "es2018",
-    "declaration": true,
-    "outDir": "./lib"
-  },
-  "include": ["src/**/*"]
+  "extends": "./tsconfig-node14.json"
 }
