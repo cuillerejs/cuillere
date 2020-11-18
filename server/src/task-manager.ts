@@ -108,7 +108,7 @@ export function taskManagerPlugin(...listeners: TaskListener[]): Plugin {
   return {
     handlers: {
       async* '@cuillere/core/start'(operation : Operation, ctx) {
-        yield* taskManager.execute(next(operation), ctx)
+        return yield* taskManager.execute(next(operation), ctx)
       },
     },
   }

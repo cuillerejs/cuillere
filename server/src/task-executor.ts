@@ -19,7 +19,7 @@ export function taskExecutorPlugin(options: GeneratorTaskExecutorOptions<[any]>)
 
         if (!taskManager) yield delegate(operation)
 
-        yield* taskManager.execute(next(operation), options.context?.(ctx) ?? ctx)
+        return yield* taskManager.execute(next(operation), options.context?.(ctx) ?? ctx)
       },
     },
   }
