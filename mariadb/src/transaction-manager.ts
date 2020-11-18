@@ -41,34 +41,34 @@ class DefaultTransactionManager implements TransactionManager {
 }
 
 class TwoPhaseTransactionManager implements TransactionManager {
-  #preparedIds = new Map<PoolConnection, string>()
+  private preparedIds = new Map<PoolConnection, string>()
 
-  #committed = false
+  private committed = false
 
   async connect(connectionPromise: Promise<PoolConnection>): Promise<PoolConnection> { // eslint-disable-line class-methods-use-this
     const connection = await connectionPromise
     const id = await connection.query('SELECT UUID()')
     await connection.query(`XA START '${id}'`)
-    this.#preparedIds.set(connection, id)
+    this.preparedIds.set(connection, id)
     return connection
   }
 
   async preComplete(connections: PoolConnection[]): Promise<void> {
     for (const connection of connections) {
-      const id = this.#preparedIds.get(connection)
+      const id = this.preparedIds.get(connection)
       await connection.query(`XA END '${id}'`)
       await connection.query(`XA PREPARE '${id}'`)
     }
 
-    this.#committed = true
+    this.committed = true
   }
 
   async complete(connections: PoolConnection[]): Promise<void> {
     const results = await Promise.allSettled(connections.map(async (connection) => {
       try {
-        await connection.query(`XA COMMIT '${this.#preparedIds.get(connection)}'`)
+        await connection.query(`XA COMMIT '${this.preparedIds.get(connection)}'`)
       } catch (e) {
-        console.error(`Prepared transaction ${this.#preparedIds.get(connection)} commit failed`, e)
+        console.error(`Prepared transaction ${this.preparedIds.get(connection)} commit failed`, e)
         throw e
       }
     }))
@@ -77,14 +77,14 @@ class TwoPhaseTransactionManager implements TransactionManager {
   }
 
   async error(connections: PoolConnection[], error: any): Promise<void> {
-    if (this.#committed) return
+    if (this.committed) return
 
     const results = await Promise.allSettled(connections.map(async (connection) => {
-      if (this.#preparedIds.has(connection)) {
+      if (this.preparedIds.has(connection)) {
         try {
-          await connection.query(`XA ROLLBACK '${this.#preparedIds.get(connection)}'`)
+          await connection.query(`XA ROLLBACK '${this.preparedIds.get(connection)}'`)
         } catch (e) {
-          console.error(`Prepared transaction ${this.#preparedIds.get(connection)} rollback failed`, e)
+          console.error(`Prepared transaction ${this.preparedIds.get(connection)} rollback failed`, e)
           throw e
         }
       } else {

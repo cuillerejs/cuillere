@@ -17,16 +17,16 @@ export interface CuillereConfig {
 }
 
 export class CuillereServer extends ApolloServer {
-  #config: CuillereConfig
+  private cuillereConfig: CuillereConfig
 
   constructor(apolloConfig: ApolloConfig, config: CuillereConfig) {
     super(buildApolloConfig(defaultConfig(config), apolloConfig))
 
-    this.#config = defaultConfig(config)
+    this.cuillereConfig = defaultConfig(config)
   }
 
   applyMiddleware(serverRegistration: ServerRegistration) {
-    const { httpRequestTaskManager: taskManager, contextKey } = this.#config
+    const { httpRequestTaskManager: taskManager, contextKey } = this.cuillereConfig
 
     if (taskManager) {
       serverRegistration.app.use(koaMiddleware({

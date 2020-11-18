@@ -1,34 +1,34 @@
 import { Operation, Plugin, next } from '@cuillere/core'
 
 class BaseTaskManager {
-  #listeners: TaskListener[]
+  private listeners: TaskListener[]
 
   constructor(...listeners: TaskListener[]) {
-    this.#listeners = listeners
+    this.listeners = listeners
   }
 
   async initialize(ctx: any) {
-    await Promise.all(this.#listeners.map(listener => listener.initialize?.(ctx)))
+    await Promise.all(this.listeners.map(listener => listener.initialize?.(ctx)))
   }
 
   async preComplete(result: any) {
-    for (const listener of this.#listeners) {
+    for (const listener of this.listeners) {
       await listener.preComplete(result)
     }
   }
 
   async complete(result: any) {
-    const results = await Promise.allSettled(this.#listeners.map(listener => listener.complete?.(result)))
+    const results = await Promise.allSettled(this.listeners.map(listener => listener.complete?.(result)))
     if (someRejected(results)) throw addErrorCauses(new Error('Task completion failed'), results)
   }
 
   async error(error: any) {
-    const results = await Promise.allSettled(this.#listeners.map(listener => listener.error?.(error)))
+    const results = await Promise.allSettled(this.listeners.map(listener => listener.error?.(error)))
     if (someRejected(results)) throw addErrorCauses(new Error('Task error handling failed'), results)
   }
 
   async finalize(error: any) {
-    const results = await Promise.allSettled(this.#listeners.map(listener => listener.finalize?.(error)))
+    const results = await Promise.allSettled(this.listeners.map(listener => listener.finalize?.(error)))
     if (someRejected(results)) throw addErrorCauses(new Error('Task finalization failed'), results)
   }
 }

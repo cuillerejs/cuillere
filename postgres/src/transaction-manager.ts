@@ -41,9 +41,9 @@ class DefaultTransactionManager implements TransactionManager {
 }
 
 class TwoPhaseTransactionManager implements TransactionManager {
-  #preparedIds = new Map<PoolClient, string>()
+  private preparedIds = new Map<PoolClient, string>()
 
-  #committed = false
+  private committed = false
 
   async connect(clientPromise: Promise<PoolClient>): Promise<PoolClient> { // eslint-disable-line class-methods-use-this
     const client = await clientPromise
@@ -55,18 +55,18 @@ class TwoPhaseTransactionManager implements TransactionManager {
     for (const client of clients) {
       const { rows: [{ id }] } = await client.query('SELECT md5(random()::text) AS id')
       await client.query(`PREPARE TRANSACTION '${id}'`)
-      this.#preparedIds.set(client, id)
+      this.preparedIds.set(client, id)
     }
 
-    this.#committed = true
+    this.committed = true
   }
 
   async complete(clients: PoolClient[]): Promise<void> {
     const results = await Promise.allSettled(clients.map(async (client) => {
       try {
-        await client.query(`COMMIT PREPARED '${this.#preparedIds.get(client)}'`)
+        await client.query(`COMMIT PREPARED '${this.preparedIds.get(client)}'`)
       } catch (e) {
-        console.error(`Prepared transaction ${this.#preparedIds.get(client)} commit failed`, e)
+        console.error(`Prepared transaction ${this.preparedIds.get(client)} commit failed`, e)
         throw e
       }
     }))
@@ -75,14 +75,14 @@ class TwoPhaseTransactionManager implements TransactionManager {
   }
 
   async error(clients: PoolClient[], error: any): Promise<void> {
-    if (this.#committed) return
+    if (this.committed) return
 
     const results = await Promise.allSettled(clients.map(async (client) => {
-      if (this.#preparedIds.has(client)) {
+      if (this.preparedIds.has(client)) {
         try {
-          await client.query(`ROLLBACK PREPARED '${this.#preparedIds.get(client)}'`)
+          await client.query(`ROLLBACK PREPARED '${this.preparedIds.get(client)}'`)
         } catch (e) {
-          console.error(`Prepared transaction ${this.#preparedIds.get(client)} rollback failed`, e)
+          console.error(`Prepared transaction ${this.preparedIds.get(client)} rollback failed`, e)
           throw e
         }
       } else {

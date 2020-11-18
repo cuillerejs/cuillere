@@ -3,10 +3,10 @@ import { Pool, PoolConfig as PgPoolConfig, PoolClient, QueryResult } from 'pg'
 import type { QueryConfig } from './query-config'
 
 export class PoolManager {
-  #pools: Record<string, Pool>
+  pools: Record<string, Pool>
 
   constructor(poolConfig: PoolConfig | PoolConfig[]) {
-    this.#pools = makePools([].concat(poolConfig))
+    this.pools = makePools([].concat(poolConfig))
   }
 
   async connect(name?: string): Promise<PoolClient> {
@@ -22,16 +22,12 @@ export class PoolManager {
   }
 
   getPool(name = DEFAULT_POOL) {
-    return this.#pools[name]
+    return this.pools[name]
   }
-
-  get pools() { return this.#pools }
 
   async end() {
     // FIXME Promise.allSettled ?
-    await Promise.all(Object.values(this.#pools).map(
-      pool => pool.end(),
-    ))
+    await Promise.all(Object.values(this.pools).map(pool => pool.end()))
   }
 }
 

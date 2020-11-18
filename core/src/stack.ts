@@ -7,32 +7,32 @@ import { error, unrecognizedOperation, CancellationError, captured } from './err
 import { isGenerator, Generator } from './generator'
 
 export class Stack {
-  #handlers: Record<string, HandlerDescriptor[]>
+  result: Promise<any>
 
-  #ctx: any
+  private handlers: Record<string, HandlerDescriptor[]>
 
-  #validators?: Record<string, Validator>
+  private ctx: any
 
-  #rootFrame = new StackFrame(null, null)
+  private validators?: Record<string, Validator>
 
-  #currentFrame = this.#rootFrame
+  private rootFrame = new StackFrame(null, null)
 
-  #result: Promise<any>
+  private currentFrame = this.rootFrame
 
-  #settled = false
+  private settled = false
 
-  #canceled = false
+  private canceled = false
 
   constructor(handlers: Record<string, HandlerDescriptor[]>, ctx: any, validators?: Record<string, Validator>) {
-    this.#handlers = handlers
-    this.#ctx = ctx
-    this.#validators = validators
+    this.handlers = handlers
+    this.ctx = ctx
+    this.validators = validators
   }
 
   start(value: any) {
     this.handle(value)
 
-    this.#result = this.execute().finally(() => { this.#settled = true })
+    this.result = this.execute().finally(() => { this.settled = true })
 
     return this
   }
@@ -40,19 +40,19 @@ export class Stack {
   async execute() {
     for await (const value of this.yields) this.handle(value)
 
-    if (this.#canceled) throw new CancellationError()
+    if (this.canceled) throw new CancellationError()
 
-    if (this.#rootFrame.result.hasError) throw this.#rootFrame.result.error
+    if (this.rootFrame.result.hasError) throw this.rootFrame.result.error
 
-    return this.#rootFrame.result.value
+    return this.rootFrame.result.value
   }
 
   handle(value: any) {
     try {
-      this.#currentFrame = this.stackFrameFor(this.validateOperation(value), this.#currentFrame)
+      this.currentFrame = this.stackFrameFor(this.validateOperation(value), this.currentFrame)
     } catch (e) {
       this.captureCoreStackTrace(e)
-      this.#currentFrame.result = { hasError: true, error: e }
+      this.currentFrame.result = { hasError: true, error: e }
     }
   }
 
@@ -62,25 +62,25 @@ export class Stack {
     // Equivalent to isGenerator(operation) but gives priority to the OperationObject
     if (!isOperationObject(operation)) {
       // No handler for generator execution, directly put it on the stack
-      if (!(`${coreNamespace}/execute` in this.#handlers)) return new StackFrame(operation, curFrame)
+      if (!(`${coreNamespace}/execute` in this.handlers)) return new StackFrame(operation, curFrame)
 
       operation = execute(operation)
     }
 
-    const handlers = this.#handlers[operation.kind]
+    const handlers = this.handlers[operation.kind]
 
     // There is no handler for this kind of operation
     if (!handlers) return this.handleCore(operation, curFrame)
 
     let handlerIndex = handlerFirstIndex
     for (; handlerIndex < handlers.length; handlerIndex++) {
-      if (!handlers[handlerIndex].filter || handlers[handlerIndex].filter(operation, this.#ctx)) break
+      if (!handlers[handlerIndex].filter || handlers[handlerIndex].filter(operation, this.ctx)) break
     }
 
     // No handler left for this kind of operation
     if (handlerIndex === handlers.length) return this.handleCore(operation, curFrame)
 
-    const gen = handlers[handlerIndex].handle(operation, this.#ctx)
+    const gen = handlers[handlerIndex].handle(operation, this.ctx)
 
     return new HandlerStackFrame(gen, curFrame, operation.kind, handlerIndex)
   }
@@ -111,7 +111,7 @@ export class Stack {
     },
 
     [`${coreNamespace}/fork`]: ({ operation }: Wrapper, curFrame) => {
-      curFrame.result.value = new Task(new Stack(this.#handlers, this.#ctx, this.#validators).start(operation))
+      curFrame.result.value = new Task(new Stack(this.handlers, this.ctx, this.validators).start(operation))
 
       return curFrame
     },
@@ -162,37 +162,37 @@ export class Stack {
   shift() {
     do {
       // Handle defers if any
-      if (this.#currentFrame.defers.length !== 0) {
-        this.handle(this.#currentFrame.defers.shift())
+      if (this.currentFrame.defers.length !== 0) {
+        this.handle(this.currentFrame.defers.shift())
         return
       }
 
       // Copy yield result to previous frame
-      if (this.#currentFrame.previous && !this.#currentFrame.previous.done) this.#currentFrame.previous.result = this.#currentFrame.result
+      if (this.currentFrame.previous && !this.currentFrame.previous.done) this.currentFrame.previous.result = this.currentFrame.result
 
       // Propagate uncaught error from defer
-      if (this.#currentFrame.previous?.done && this.#currentFrame.result.hasError) {
-        this.#currentFrame.previous.result.hasError = true
-        this.#currentFrame.previous.result.error = this.#currentFrame.result.error
+      if (this.currentFrame.previous?.done && this.currentFrame.result.hasError) {
+        this.currentFrame.previous.result.hasError = true
+        this.currentFrame.previous.result.error = this.currentFrame.result.error
       }
 
-      this.#currentFrame = this.#currentFrame.previous
-    } while (this.#currentFrame?.done)
+      this.currentFrame = this.currentFrame.previous
+    } while (this.currentFrame?.done)
   }
 
   async cancel() {
-    if (this.#settled) return
+    if (this.settled) return
 
-    if (!this.#canceled) {
-      for (let frame = this.#currentFrame; frame; frame = frame.previous) {
+    if (!this.canceled) {
+      for (let frame = this.currentFrame; frame; frame = frame.previous) {
         frame.canceled = Canceled.ToDo
       }
 
-      this.#canceled = true
+      this.canceled = true
     }
 
     try {
-      await this.#result
+      await this.result
     } catch (e) {
       if (CancellationError.isCancellationError(e)) return
       // This should not happen
@@ -207,36 +207,36 @@ export class Stack {
         let yielded = false
 
         while (!yielded) {
-          if (this.#currentFrame === this.#rootFrame) return { done: true, value: undefined }
+          if (this.currentFrame === this.rootFrame) return { done: true, value: undefined }
 
           try {
-            if (this.#currentFrame.canceled && this.#currentFrame.canceled === Canceled.ToDo) {
-              this.#currentFrame.canceled = Canceled.Done
-              result = await this.#currentFrame.gen.return(undefined)
+            if (this.currentFrame.canceled && this.currentFrame.canceled === Canceled.ToDo) {
+              this.currentFrame.canceled = Canceled.Done
+              result = await this.currentFrame.gen.return(undefined)
             } else {
               result = await (
-                this.#currentFrame.result.hasError
-                  ? this.#currentFrame.gen.throw(this.#currentFrame.result.error)
-                  : this.#currentFrame.gen.next(this.#currentFrame.result.value))
+                this.currentFrame.result.hasError
+                  ? this.currentFrame.gen.throw(this.currentFrame.result.error)
+                  : this.currentFrame.gen.next(this.currentFrame.result.value))
             }
 
-            this.#currentFrame.result = { hasError: false }
+            this.currentFrame.result = { hasError: false }
           } catch (e) {
             this.captureGeneratorStackTrace(e)
-            this.#currentFrame.result = { hasError: true, error: e }
-            this.#currentFrame.done = true
+            this.currentFrame.result = { hasError: true, error: e }
+            this.currentFrame.done = true
             this.shift()
             continue
           }
 
           if (result.done) {
-            this.#currentFrame.result.value = result.value
-            this.#currentFrame.done = true
+            this.currentFrame.result.value = result.value
+            this.currentFrame.done = true
             this.shift()
             continue
           }
 
-          if (this.#currentFrame.canceled === Canceled.ToDo) continue
+          if (this.currentFrame.canceled === Canceled.ToDo) continue
 
           yielded = true
         }
@@ -259,7 +259,7 @@ export class Stack {
 
     if (isOperationObject(value)) {
       this.coreValidators[value.kind]?.(value) // eslint-disable-line no-unused-expressions
-      this.#validators?.[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+      this.validators?.[value.kind]?.(value) // eslint-disable-line no-unused-expressions
     }
 
     // FIXME additional validations when stack is starting (on rootFrame)
@@ -282,7 +282,7 @@ export class Stack {
 
     stack.splice(
       handleIndex + 1, 0,
-      ...this.getFrames(this.#currentFrame),
+      ...this.getFrames(this.currentFrame),
     )
   })
 
@@ -295,11 +295,11 @@ export class Stack {
     do { i++ } while (stack[i] && /^ +at .+\.next \(.+\)$/.test(stack[i]))
     const nextsEnd = i
 
-    if (this.#currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
-      stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.#currentFrame.kind}>$2`)
+    if (this.currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
+      stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.currentFrame.kind}>$2`)
     }
 
-    stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.#currentFrame.previous))
+    stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.currentFrame.previous))
   })
 
   static captureStackTrace(updateStack: (stack: string[]) => void) {
@@ -321,28 +321,24 @@ export class Stack {
 
   getFrames(firstFrame: StackFrame) {
     const newFrames = []
-    for (let frame = firstFrame; frame !== this.#rootFrame; frame = frame.previous) {
+    for (let frame = firstFrame; frame !== this.rootFrame; frame = frame.previous) {
       if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
     }
     return newFrames
   }
-
-  get result() {
-    return this.#result
-  }
 }
 
 export class Task {
-  #stack: Stack
+  private stack: Stack
 
   constructor(stack: Stack) {
-    this.#stack = stack
+    this.stack = stack
   }
 
-  async cancel() { return this.#stack.cancel() }
+  async cancel() { return this.stack.cancel() }
 
-  get result() { return this.#stack.result }
+  get result() { return this.stack.result }
 }
 
 interface StackFrameResult {

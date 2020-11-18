@@ -28,16 +28,16 @@ export interface ConnectionManager extends TaskListener {
 }
 
 class ConnectionManagerImpl implements ConnectionManager {
-  #poolManager: PoolManager
+  private poolManager: PoolManager
 
-  #transactionManager: TransactionManager
+  private transactionManager: TransactionManager
 
-  #connections: Record<string, Promise<PoolConnection>>
+  private connections: Record<string, Promise<PoolConnection>>
 
   constructor(poolManager: PoolManager, transactionManager: TransactionManager) {
-    this.#poolManager = poolManager
-    this.#transactionManager = transactionManager
-    this.#connections = {}
+    this.poolManager = poolManager
+    this.transactionManager = transactionManager
+    this.connections = {}
   }
 
   initialize(ctx: any) {
@@ -46,40 +46,40 @@ class ConnectionManagerImpl implements ConnectionManager {
   }
 
   private async query(query: QueryOptions) {
-    if (query.usePoolQuery) return this.#poolManager.query(query)
+    if (query.usePoolQuery) return this.poolManager.query(query)
     return (await this.getConnection(query.pool)).query(query)
   }
 
   private getConnection(name = DEFAULT_POOL) {
-    if (!(name in this.#connections)) {
-      this.#connections[name] = this.#poolManager.connect(name)
-      if (this.#transactionManager) this.#connections[name] = this.#transactionManager.connect(this.#connections[name])
+    if (!(name in this.connections)) {
+      this.connections[name] = this.poolManager.connect(name)
+      if (this.transactionManager) this.connections[name] = this.transactionManager.connect(this.connections[name])
     }
-    return this.#connections[name]
+    return this.connections[name]
   }
 
   async preComplete(result: any) {
-    await this.#transactionManager?.preComplete?.(await this.connections, result)
+    await this.transactionManager?.preComplete?.(await this.getConnections(), result)
   }
 
   async complete(result: any) {
-    await this.#transactionManager?.complete(await this.connections, result)
+    await this.transactionManager?.complete(await this.getConnections(), result)
   }
 
   async error(error: any) {
-    await this.#transactionManager?.error(await this.connections, error)
+    await this.transactionManager?.error(await this.getConnections(), error)
   }
 
   async finalize() {
-    for (const connection of await this.connections) connection.release()
-    this.#connections = {}
+    for (const connection of await this.getConnections()) connection.release()
+    this.connections = {}
   }
 
-  private get connections() {
-    return Promise.all(Object.values(this.#connections))
+  private getConnections() {
+    return Promise.all(Object.values(this.connections))
   }
 
   public end() {
-    return this.#poolManager.end()
+    return this.poolManager.end()
   }
 }

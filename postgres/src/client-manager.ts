@@ -28,16 +28,16 @@ export interface ClientManager extends TaskListener {
 }
 
 class ClientManagerImpl implements ClientManager {
-  #poolManager: PoolManager
+  private poolManager: PoolManager
 
-  #transactionManager: TransactionManager
+  private transactionManager: TransactionManager
 
-  #clients: Record<string, Promise<PoolClient>>
+  private clients: Record<string, Promise<PoolClient>>
 
   constructor(poolManager: PoolManager, transactionManager: TransactionManager) {
-    this.#poolManager = poolManager
-    this.#transactionManager = transactionManager
-    this.#clients = {}
+    this.poolManager = poolManager
+    this.transactionManager = transactionManager
+    this.clients = {}
   }
 
   initialize(ctx: any) {
@@ -46,40 +46,40 @@ class ClientManagerImpl implements ClientManager {
   }
 
   private async query(query: QueryConfig) {
-    if (query.usePoolQuery) return this.#poolManager.query(query)
+    if (query.usePoolQuery) return this.poolManager.query(query)
     return (await this.getClient(query.pool)).query(query)
   }
 
   private getClient(name = DEFAULT_POOL) {
-    if (!(name in this.#clients)) {
-      this.#clients[name] = this.#poolManager.connect(name)
-      if (this.#transactionManager) this.#clients[name] = this.#transactionManager.connect(this.#clients[name])
+    if (!(name in this.clients)) {
+      this.clients[name] = this.poolManager.connect(name)
+      if (this.transactionManager) this.clients[name] = this.transactionManager.connect(this.clients[name])
     }
-    return this.#clients[name]
+    return this.clients[name]
   }
 
   async preComplete(result: any) {
-    await this.#transactionManager?.preComplete?.(await this.clients, result)
+    await this.transactionManager?.preComplete?.(await this.getClients(), result)
   }
 
   async complete(result: any) {
-    await this.#transactionManager?.complete(await this.clients, result)
+    await this.transactionManager?.complete(await this.getClients(), result)
   }
 
   async error(error: any) {
-    await this.#transactionManager?.error(await this.clients, error)
+    await this.transactionManager?.error(await this.getClients(), error)
   }
 
   async finalize(err?: any) {
-    for (const client of await this.clients) client.release(err)
-    this.#clients = {}
+    for (const client of await this.getClients()) client.release(err)
+    this.clients = {}
   }
 
-  private get clients() {
-    return Promise.all(Object.values(this.#clients))
+  private getClients() {
+    return Promise.all(Object.values(this.clients))
   }
 
-  public end() {
-    return this.#poolManager.end()
+  end() {
+    return this.poolManager.end()
   }
 }
