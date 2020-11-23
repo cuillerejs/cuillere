@@ -15,7 +15,7 @@ describe('channels', () => {
 
   it('should use unbuffered channel', async () => {
     async function* test() {
-      const ch = yield chan()
+      const ch = chan()
       yield fork(delayedCall, 100, test2, ch)
       yield call(echo, 'do something else...')
       yield call(echo, `Recevied: ${yield recv(ch)}`)
@@ -34,7 +34,7 @@ describe('channels', () => {
 
   it('should use buffered channel', async () => {
     async function* test() {
-      const ch = yield chan(3)
+      const ch = chan(3)
       yield fork(delayedCall, 100, test2, ch)
       for (let i = 0; i < 10; i++) {
         yield send(ch, i * 2)
@@ -55,7 +55,7 @@ describe('channels', () => {
 
   it('should close channel', async () => {
     async function* test() {
-      const ch = yield chan(3)
+      const ch = chan(3)
 
       yield send(ch, 1)
       yield send(ch, 2)
@@ -86,7 +86,7 @@ describe('channels', () => {
 
   it('should use range over channel', async () => {
     async function* test() {
-      const ch = yield chan()
+      const ch = chan()
 
       yield fork(test2, ch)
 
@@ -110,8 +110,8 @@ describe('channels', () => {
 
   it('should select 1', async () => {
     async function* test() {
-      const ch1 = yield chan()
-      const ch2 = yield chan()
+      const ch1 = chan()
+      const ch2 = chan()
 
       yield fork(test2, ch2)
 
@@ -144,8 +144,8 @@ describe('channels', () => {
 
   it('should select 2', async () => {
     function* test() {
-      const ch1 = yield chan()
-      const ch2 = yield chan()
+      const ch1 = chan()
+      const ch2 = chan()
 
       yield fork(test2, ch1, ch2)
 
@@ -177,9 +177,9 @@ describe('channels', () => {
     let received
 
     function* test() {
-      const ch1 = yield chan()
-      const ch2 = yield chan()
-      const ch3 = yield chan()
+      const ch1 = chan()
+      const ch2 = chan()
+      const ch3 = chan()
 
       yield fork(function* () {
         yield select(
@@ -198,5 +198,14 @@ describe('channels', () => {
 
     expect(sent).toBe('ch2')
     expect(received).toBe('ch2')
+  })
+
+  it('should be possible to yield a channel key (backward compatibility)', async () => {
+    function* test() {
+      const ch = yield chan()
+      yield close(ch)
+    }
+
+    await expect(cllr.start(test())).resolves.toBe(undefined)
   })
 })

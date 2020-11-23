@@ -9,18 +9,8 @@ export function channelsPlugin(): Plugin {
     namespace,
 
     handlers: {
-      * chan({ bufferCapacity }: Chan) {
-        const key = chanKey(bufferCapacity)
-
-        chans.set(key, {
-          buffer: Array(bufferCapacity),
-          bufferLength: 0,
-          sendQ: new ChanQ(),
-          recvQ: new ChanQ(),
-          closed: false,
-        })
-
-        return key
+      * chan(chanKey: ChanKey) {
+        return chanKey
       },
 
       * close({ chanKey }: ChanOperation) {
@@ -161,7 +151,7 @@ export function channelsPlugin(): Plugin {
       },
 
       * after({ duration }: After) {
-        const ch = yield chan()
+        const ch = chan()
         yield fork(async function* () {
           await new Promise(resolve => setTimeout(resolve, duration))
           yield send(ch, new Date())
@@ -170,7 +160,7 @@ export function channelsPlugin(): Plugin {
       },
 
       * tick({ interval }: Tick) {
-        const ch = yield chan()
+        const ch = chan()
         yield fork(async function* () {
           while (true) {
             await new Promise(resolve => setTimeout(resolve, interval))
@@ -233,11 +223,27 @@ export interface Chan extends OperationObject {
   bufferCapacity: number
 }
 
-export const chan = (bufferCapacity = 0): Chan => ({ kind: `${namespace}/chan`, bufferCapacity })
+export const chan = (bufferCapacity = 0): ChanKey => {
+  const key = chanKey(bufferCapacity)
+
+  chans.set(key, {
+    buffer: Array(bufferCapacity),
+    bufferLength: 0,
+    sendQ: new ChanQ(),
+    recvQ: new ChanQ(),
+    closed: false,
+  })
+
+  return key
+}
 
 let nextChanId = 1
 
-const chanKey = (bufferCapacity: number): ChanKey => new String(`chan #${nextChanId++} { bufferCapacity: ${bufferCapacity} }`)
+const chanKey = (bufferCapacity: number): ChanKey => Object.defineProperty(
+  new String(`chan #${nextChanId++} { bufferCapacity: ${bufferCapacity} }`),
+  'kind',
+  { value: `${namespace}/chan` },
+)
 
 export const close = (chanKey: ChanKey): ChanOperation => ({ kind: `${namespace}/close`, chanKey })
 
