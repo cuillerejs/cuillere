@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/channels",
-  "version": "0.12.0-alpha.4",
+  "version": "0.12.0-alpha.6",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
