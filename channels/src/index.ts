@@ -1,4 +1,4 @@
-import { Plugin, OperationObject, execute, fork, isGenerator, isOfKind } from '@cuillere/core'
+import { Plugin, OperationObject, fork, isOfKind, isGeneratorFunction } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
@@ -9,37 +9,6 @@ export function channelsPlugin(): Plugin {
     namespace,
 
     handlers: {
-      * chan(chanKey: ChanKey) {
-        return chanKey
-      },
-
-      * close({ chanKey }: ChanOperation) {
-        const ch = chans.get(chanKey)
-
-        if (ch.closed) throw TypeError(`close on closed ${chanKey}`)
-
-        ch.closed = true
-
-        let recver: Recver
-        while (recver = ch.recvQ.shift()) recver([undefined, false])
-      },
-
-      * range({ chanKey }: ChanOperation) {
-        return {
-          async next() {
-            const [value, ok] = await doRecv(chanKey)
-            return {
-              value,
-              done: !ok,
-            }
-          },
-
-          [Symbol.asyncIterator]() {
-            return this
-          },
-        }
-      },
-
       async* recv({ chanKey, detail }: Recv) {
         const res = await doRecv(chanKey)
         return detail ? res : res[0]
@@ -223,7 +192,7 @@ export interface Chan extends OperationObject {
   bufferCapacity: number
 }
 
-export const chan = (bufferCapacity = 0): ChanKey => {
+export function chan(bufferCapacity = 0): ChanKey {
   const key = chanKey(bufferCapacity)
 
   chans.set(key, {
@@ -239,30 +208,53 @@ export const chan = (bufferCapacity = 0): ChanKey => {
 
 let nextChanId = 1
 
-const chanKey = (bufferCapacity: number): ChanKey => Object.defineProperty(
-  new String(`chan #${nextChanId++} { bufferCapacity: ${bufferCapacity} }`),
-  'kind',
-  { value: `${namespace}/chan` },
-)
+function chanKey(bufferCapacity: number): ChanKey {
+  return new String(`chan #${nextChanId++} { bufferCapacity: ${bufferCapacity} }`)
+}
 
-export const close = (chanKey: ChanKey): ChanOperation => ({ kind: `${namespace}/close`, chanKey })
+export function close(chanKey: ChanKey) {
+  const ch = chans.get(chanKey)
 
-export const range = (chanKey: ChanKey): ChanOperation => ({ kind: `${namespace}/range`, chanKey })
+  if (ch.closed) throw TypeError(`close on closed ${chanKey}`)
+
+  ch.closed = true
+
+  let recver: Recver
+  while (recver = ch.recvQ.shift()) recver([undefined, false])
+}
+
+export function range(chanKey:ChanKey) {
+  return {
+    async next() {
+      const [value, ok] = await doRecv(chanKey)
+      return {
+        value,
+        done: !ok,
+      }
+    },
+
+    [Symbol.asyncIterator]() {
+      return this
+    },
+  }
+}
 
 export interface Recv extends ChanOperation {
   detail: boolean
 }
 
-export const recv = (chanKey: ChanKey, detail = false): Recv => ({ kind: `${namespace}/recv`, chanKey, detail })
+export function recv(chanKey: ChanKey, detail = false): Recv {
+  return { kind: `${namespace}/recv`, chanKey, detail }
+}
 
 const isRecv = isOfKind<Recv>(`${namespace}/recv`)
 
-const isRecvReady = ({ chanKey }: Recv): boolean => {
+function isRecvReady({ chanKey }: Recv): boolean {
   const ch = chans.get(chanKey)
   return ch.bufferLength !== 0 || ch.sendQ.length() !== 0 || ch.closed
 }
 
-const syncRecv = (chanKey: ChanKey): [any, boolean] => {
+function syncRecv(chanKey: ChanKey): [any, boolean] {
   const ch = chans.get(chanKey)
 
   if (ch.bufferLength !== 0) {
@@ -284,7 +276,7 @@ const syncRecv = (chanKey: ChanKey): [any, boolean] => {
   return undefined
 }
 
-const doRecv = async (chanKey: ChanKey) => {
+async function doRecv(chanKey: ChanKey) {
   const res = syncRecv(chanKey)
   if (res) return res
 
@@ -307,24 +299,28 @@ export interface Select extends OperationObject {
   cases: Case[]
 }
 
-export const select = (...cases: Case[]): Select => ({ kind: `${namespace}/select`, cases })
+export function select(...cases: Case[]): Select {
+  return { kind: `${namespace}/select`, cases }
+}
 select.default = DEFAULT
 
 export interface Send extends ChanOperation {
   value: any
 }
 
-export const send = (chanKey: ChanKey, value: any): Send => ({ kind: `${namespace}/send`, chanKey, value })
+export function send(chanKey: ChanKey, value: any): Send {
+  return { kind: `${namespace}/send`, chanKey, value }
+}
 
 const isSend = isOfKind<Send>(`${namespace}/send`)
 
-const isSendReady = ({ chanKey }: Send): boolean => {
+function isSendReady({ chanKey }: Send): boolean {
   const ch = chans.get(chanKey)
   if (ch.closed) throw TypeError(`send on closed ${chanKey}`)
   return ch.recvQ.length() !== 0 || ch.bufferLength !== ch.buffer.length
 }
 
-const syncSend = (chanKey: ChanKey, value: any): boolean => {
+function syncSend(chanKey: ChanKey, value: any): boolean {
   const ch = chans.get(chanKey)
 
   if (ch.closed) throw TypeError(`send on closed ${chanKey}`)
@@ -344,24 +340,22 @@ const syncSend = (chanKey: ChanKey, value: any): boolean => {
 }
 
 async function* executeCallback(callback: (...args: any[]) => any, args = []) {
-  const res = callback(...args)
-
-  if (isGenerator(res)) {
-    res.name = callback.name
-    yield execute(res)
-  } else {
-    await res
-  }
+  if (isGeneratorFunction(callback)) yield Object.defineProperty(callback(...args), 'name', { value: callback.name })
+  else await callback(...args)
 }
 
 export interface After extends OperationObject {
   duration: number
 }
 
-export const after = (duration: number): After => ({ kind: `${namespace}/after`, duration })
+export function after(duration: number): After {
+  return { kind: `${namespace}/after`, duration }
+}
 
 export interface Tick extends OperationObject {
   interval: number
 }
 
-export const tick = (interval: number): Tick => ({ kind: `${namespace}/tick`, interval })
+export function tick(interval: number): Tick {
+  return { kind: `${namespace}/tick`, interval }
+}

@@ -30,8 +30,8 @@ import { channelsPlugin, chan, send, recv } from '@cuillere/channels'
 cuillere(channelsPlugin()).call(function* () {
   // Start using channels !
   
-  const ch1 = yield chan() // Create an unbuffered channel
-  const ch2 = yield chan(3) // Create a buffered channel
+  const ch1 = chan() // Create an unbuffered channel
+  const ch2 = chan(3) // Create a buffered channel
 
   // Send values to a channel
   yield send(ch2, 'Spoon!')
@@ -80,10 +80,10 @@ yield send(ch, v) // Send v to channel ch
 const v = yield recv(ch) // Receive from ch, and assign value to v
 ```
 
-Channels must be created before use, using the `chan()` operation:
+Channels must be created before use, using the `chan()` function:
 
 ```js
-const ch = yield chan()
+const ch = chan()
 ```
 
 By default, sends and receives block until the other side is ready. This allows forks to synchronize without using a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
@@ -102,7 +102,7 @@ function* sum(numbers, ch) {
 function* main() {
   const numbers = [7, 2, 8, -9, 4, 0]
 
-  const ch = yield chan()
+  const ch = chan()
   yield fork(sum(numbers.slice(0, 3), ch))
   yield fork(sum(numbers.slice(3), ch))
   const x = yield recv(ch)
@@ -119,7 +119,7 @@ cuillere(channelsPlugin()).call(main)
 Channels can be buffered. Provide the buffer length as the argument to `chan()` to initialize a buffered channel:
 
 ```js
-const ch = yield chan(100)
+const ch = chan(100)
 ```
 
 Sends to a buffered channel block only when the buffer is full. Receives block when the buffer is empty.
@@ -131,7 +131,7 @@ import cuillere from '@cuillere/core'
 import { channelsPlugin, chan, recv, send } from '@cuillere/channels'
 
 function* main() {
-  const ch = yield chan(2)
+  const ch = chan(2)
   yield send(ch, 1)
   yield send(ch, 2)
   console.log(yield recv(ch))
@@ -164,13 +164,13 @@ function* fibonacci(n, ch) {
     yield send(ch, x);
     [x, y] = [y, x + y]
   }
-  yield close(ch)
+  close(ch)
 }
 
 async function* main() {
-  const ch = yield chan(10)
+  const ch = chan(10)
   yield fork(fibonacci(10, ch))
-  for await (const v of yield range(ch)) {
+  for await (const v of range(ch)) {
     console.log(v)
   }
 }
@@ -212,8 +212,8 @@ function* fibonacci(ch, quit) {
 }
 
 function* main() {
-  const ch = yield chan()
-  const quit = yield chan()
+  const ch = chan()
+  const quit = chan()
   yield fork(function* () {
     for (let i = 0; i < 10; i++) {
       console.log(yield recv(ch))

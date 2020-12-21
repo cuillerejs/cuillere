@@ -61,7 +61,7 @@ describe('channels', () => {
       yield send(ch, 2)
       yield send(ch, 3)
 
-      yield close(ch)
+      close(ch)
 
       expect(yield recv(ch)).toBe(1)
       expect(yield recv(ch, true)).toEqual([2, true])
@@ -91,7 +91,7 @@ describe('channels', () => {
       yield fork(test2, ch)
 
       const res = []
-      for await (const i of yield range(ch)) {
+      for await (const i of range(ch)) {
         res.push(i)
       }
 
@@ -102,7 +102,7 @@ describe('channels', () => {
       for (let i = 0; i < 10; i++) {
         yield send(ch, i)
       }
-      yield close(ch)
+      close(ch)
     }
 
     await cllr.call(test)
@@ -198,14 +198,5 @@ describe('channels', () => {
 
     expect(sent).toBe('ch2')
     expect(received).toBe('ch2')
-  })
-
-  it('should be possible to yield a channel key (backward compatibility)', async () => {
-    function* test() {
-      const ch = yield chan()
-      yield close(ch)
-    }
-
-    await expect(cllr.start(test())).resolves.toBe(undefined)
   })
 })
