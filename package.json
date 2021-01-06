@@ -1,5 +1,8 @@
 {
   "private": true,
+  "scripts": {
+    "build": "cd core && yarn build && cd ../channels && yarn build && cd ../mariadb & yarn build && cd ../postgres && yarn build && cd ../server && yarn build && cd ../server-postgres && yarn build "
+  },
   "workspaces": [
     "channels",
     "core",

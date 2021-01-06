@@ -1,6 +1,6 @@
 import { Cuillere, isGeneratorFunction } from '@cuillere/core'
 import type { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'graphql-tools'
-import { isScalarType, GraphQLFieldResolver } from 'graphql'
+import { isScalarType, GraphQLFieldResolver, GraphQLSchema, isObjectType, GraphQLObjectType, GraphQLType, GraphQLField, isInterfaceType } from 'graphql'
 import { defaultContextKey } from './context'
 
 type OneOrMany<T> = T | T[]
@@ -16,6 +16,26 @@ export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>, cllr: Cuill
   const wrapper = getFieldResolverWrapper(cllr, getContext)
 
   return applyToResolvers(wrapper, resolvers)
+}
+
+export function wrapSchemaFields(schema: GraphQLSchema, cllr: Cuillere, options?: FieldResolversOptions): GraphQLSchema {
+  const contextKey = options?.contextKey ?? defaultContextKey
+  const getContext = (context: any) => context[contextKey]
+  const wrapper = getFieldResolverWrapper(cllr, getContext)
+
+  getFields(schema).forEach((field) => {
+    if (isGeneratorFunction(field.resolve)) field.resolve = wrapper(field.resolve)
+    if (isGeneratorFunction(field.subscribe)) field.subscribe = wrapper(field.subscribe)
+  })
+
+  return schema
+}
+
+function getFields(schema: GraphQLSchema) {
+  const types = Object.values(schema.getTypeMap())
+  const objectTypes = types.filter(isObjectType)
+  const interfacesTypes = types.filter(isInterfaceType)
+  return [...objectTypes, ...interfacesTypes].flatMap(type => Object.values(type.getFields()))
 }
 
 function applyToResolvers(fn: FieldResolverWrapper, resolvers: IResolvers): IResolvers;

@@ -47,7 +47,8 @@
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "devDependencies": {
-    "apollo-server-plugin-base": "^0.10.2"
+    "apollo-server-plugin-base": "^0.10.2",
+    "graphql-tag": "^2.11.0"
   },
   "dependencies": {
     "@cuillere/core": "^0.12.0-alpha.4",
@@ -59,5 +60,9 @@
   },
   "peerDependencies": {
     "graphql": "~14||~15"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   }
 }

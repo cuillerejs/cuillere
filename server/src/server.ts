@@ -6,7 +6,7 @@ import Application from 'koa'
 import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
 import { GetAsyncTaskManager } from './task-manager'
 import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
-import { wrapFieldResolvers } from './graphql'
+import { wrapFieldResolvers, wrapSchemaFields } from './graphql'
 import { defaultContextKey } from './context'
 
 export interface CuillereConfig {
@@ -60,6 +60,7 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
     context: getContextFunction(config, apolloConfig),
     plugins: mergePlugins(config, apolloConfig),
     resolvers: getResolvers(config, apolloConfig),
+    schema: getSchema(config, apolloConfig),
   }
 }
 
@@ -104,6 +105,16 @@ function getResolvers({ plugins, contextKey }: CuillereConfig, { resolvers }: Ap
 
   return wrapFieldResolvers(
     resolvers,
+    cuillere(...plugins),
+    { contextKey },
+  )
+}
+
+function getSchema({ plugins, contextKey }: CuillereConfig, { schema }: ApolloConfig) {
+  if (!schema) return null
+
+  return wrapSchemaFields(
+    schema,
     cuillere(...plugins),
     { contextKey },
   )
