@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/channels",
-  "version": "0.12.0-alpha.6",
+  "version": "0.12.0",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
@@ -40,7 +40,7 @@
     "README.md"
   ],
   "peerDependencies": {
-    "@cuillere/core": "^0.12.0-alpha.4"
+    "@cuillere/core": "^0.12.0"
   },
   "jest": {
     "preset": "ts-jest",

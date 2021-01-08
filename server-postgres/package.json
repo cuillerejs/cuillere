@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/server-postgres",
-  "version": "0.12.0-alpha.11",
+  "version": "0.12.01",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
@@ -47,8 +47,8 @@
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "dependencies": {
-    "@cuillere/postgres": "^0.12.0-alpha.4",
-    "@cuillere/server": "^0.12.0-alpha.11",
+    "@cuillere/postgres": "^0.12.0",
+    "@cuillere/server": "^0.12.0",
     "apollo-server-core": "~2.19.0",
     "graphql-subscriptions": "~1",
     "graphql-tools": "~4"
