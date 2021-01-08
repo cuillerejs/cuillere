@@ -25,4 +25,3 @@ export * from 'graphql-subscriptions'
 export * from '@cuillere/core'
 
 export { Operation } from '@cuillere/core'
-export { Operation as GraphqlToolOperation } from 'graphql-tools'

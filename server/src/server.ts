@@ -57,7 +57,9 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
 
 function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
   if (apolloConfig.schema) {
-    if (!isCuillereExecutableSchema(apolloConfig.schema)) throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
+    if (!isCuillereExecutableSchema(apolloConfig.schema)) {
+      throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
+    }
     apolloConfig.schema.setCuillereConfig(config)
   }
 
@@ -105,7 +107,7 @@ function getApolloServerPlugin(config: CuillereConfig) {
   })
 }
 
-export function getResolvers({ plugins, contextKey }: CuillereConfig, { resolvers }: ApolloConfig) {
+function getResolvers({ plugins, contextKey }: CuillereConfig, { resolvers }: ApolloConfig) {
   if (!resolvers) return null
 
   return wrapFieldResolvers(

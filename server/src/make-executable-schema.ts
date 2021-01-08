@@ -4,7 +4,7 @@ import { IExecutableSchemaDefinition, makeExecutableSchema as makeExecutableSche
 import { wrapFieldResolvers, CuillereHolder } from './graphql'
 
 interface CuillereSchema extends GraphQLSchema {
-  setCuillereConfig(options: SetCuillereConfigOptions): void
+  setCuillereConfig(options: CuillereSchemaConfig): void
 }
 
 interface CuillereSchemaConfig {
@@ -12,16 +12,16 @@ interface CuillereSchemaConfig {
   contextKey?: string
 }
 
-export function makeExecutableSchema<TContext extends any>(definition: IExecutableSchemaDefinition<TContext>): CuillereGraphQLSchema {
+export function makeExecutableSchema<TContext extends any>(definition: IExecutableSchemaDefinition<TContext>): CuillereSchema {
   const cuillereHolder: CuillereHolder = {}
   const resolvers = definition.resolvers && wrapFieldResolvers(definition.resolvers, cuillereHolder)
   const schema = makeExecutableSchemaTool({ ...definition, resolvers })
-  return Object.assign(schema, { setCuillereConfig: ({ plugins, contextKey }: SetCuillereConfigOptions) => {
+  return Object.assign(schema, { setCuillereConfig: ({ plugins, contextKey }: CuillereSchemaConfig) => {
     cuillereHolder.cllr = cuillere(...plugins)
     cuillereHolder.contextKey = contextKey
   } })
 }
 
-export function isCuillereExecutableSchema(schema: GraphQLSchema): schema is CuillereGraphQLSchema {
+export function isCuillereExecutableSchema(schema: GraphQLSchema): schema is CuillereSchema {
   return 'setCuillereConfig' in schema
 }
