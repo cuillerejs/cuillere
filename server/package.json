@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "apollo-server-plugin-base": "^0.10.2",
-    "graphql-tag": "^2.11.0",
+    "graphql-tag": "^2.9.2",
     "graphql-tools": "~4"
   },
   "dependencies": {
