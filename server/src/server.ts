@@ -57,9 +57,7 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
 
 function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
   if (apolloConfig.schema) {
-    if (!isCuillereExecutableSchema(apolloConfig.schema)) {
-      throw Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
-    }
+    if (!isCuillereExecutableSchema(apolloConfig.schema)) throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
     apolloConfig.schema.setCuillereConfig(config)
   }
 

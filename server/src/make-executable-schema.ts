@@ -3,11 +3,11 @@ import { GraphQLSchema } from 'graphql'
 import { IExecutableSchemaDefinition, makeExecutableSchema as makeExecutableSchemaTool } from 'graphql-tools'
 import { wrapFieldResolvers, CuillereHolder } from './graphql'
 
-interface CuillereGraphQLSchema extends GraphQLSchema {
+interface CuillereSchema extends GraphQLSchema {
   setCuillereConfig(options: SetCuillereConfigOptions): void
 }
 
-interface SetCuillereConfigOptions {
+interface CuillereSchemaConfig {
   plugins: Plugin[]
   contextKey?: string
 }
