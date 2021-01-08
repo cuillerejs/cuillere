@@ -29,6 +29,10 @@ jobs:
         run: yarn build && yarn lint
         working-directory: ./server
 
+      - name: CI crud
+        run: yarn build && yarn lint && yarn test
+        working-directory: ./crud
+
       - name: CI postgres
         run: yarn build && yarn lint
         working-directory: ./postgres
