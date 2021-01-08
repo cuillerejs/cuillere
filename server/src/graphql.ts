@@ -5,15 +5,13 @@ import { defaultContextKey } from './context'
 
 type OneOrMany<T> = T | T[]
 
-export interface FieldResolversOptions {
+export interface CuillereHolder {
+  cllr?: Cuillere
   contextKey?: string
 }
 
-export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>, cllr: Cuillere, options?: FieldResolversOptions) {
-  const contextKey = options?.contextKey ?? defaultContextKey
-  const getContext = (context: any) => context[contextKey]
-
-  const wrapper = getFieldResolverWrapper(cllr, getContext)
+export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>, holder: CuillereHolder) {
+  const wrapper = getFieldResolverWrapper(holder)
 
   return applyToResolvers(wrapper, resolvers)
 }
@@ -50,8 +48,13 @@ function applyToObject(fn: FieldResolverWrapper, resolverObject: IResolverObject
   return wrappedResolverObject
 }
 
-function getFieldResolverWrapper(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
-  return (fn: GraphQLFieldResolver<any, any>) => (obj, args, ctx, info) => cllr.ctx(getContext(ctx)).call(fn, obj, args, ctx, info)
+function getFieldResolverWrapper(holder: CuillereHolder): FieldResolverWrapper {
+  const cllr = (context: any) => {
+    if (!holder.cllr) throw Error('Cuillere plugins are not set. Make sure to use CuillereServer and not ApolloServer.')
+    return holder.cllr.ctx(context[holder?.contextKey ?? defaultContextKey])
+  }
+
+  return (fn: GraphQLFieldResolver<any, any>) => async (obj, args, ctx, info) => cllr(ctx).call(fn, obj, args, ctx, info)
 }
 
 type FieldResolverWrapper = (original: GraphQLFieldResolver<any, any>) => GraphQLFieldResolver<any, any>

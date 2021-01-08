@@ -6,3 +6,6 @@ export * from './server'
 export * from './task-executor'
 export * from './task-manager'
 export * from './transaction-manager'
+export * from './make-executable-schema'
+
+export { makeExecutableSchema } from './make-executable-schema'

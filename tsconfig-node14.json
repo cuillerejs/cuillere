@@ -4,5 +4,6 @@
   "compilerOptions": {
     "sourceMap": true,
     "strict": false,
+    "esModuleInterop": true,
   }
 }

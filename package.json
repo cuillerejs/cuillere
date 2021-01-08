@@ -1,5 +1,8 @@
 {
   "private": true,
+  "scripts": {
+    "build": "for project in core channels mariadb postgres server server-postgres; do echo Building $project...; (cd $project && yarn build); done"
+  },
   "workspaces": [
     "channels",
     "core",
