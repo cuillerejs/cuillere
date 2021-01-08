@@ -1,4 +1,4 @@
-import type { Plugin, OperationObject } from '@cuillere/core'
+import { Plugin, OperationObject, next } from '@cuillere/core'
 
 import { getQueryHandler } from '../query-handler'
 import type { QueryConfig } from '../query-config'
@@ -21,6 +21,11 @@ export function clientPlugin(): Plugin {
         const queryHandler = getQueryHandler(ctx)
         if (!queryHandler) throw new Error('No query handler in context, you probably forgot to setup a client manager')
         return queryHandler(config)
+      },
+
+      * '@cuillere/crud/describe'(operation) {
+        // FIXME describe tables
+        yield next(operation)
       },
     },
   }
