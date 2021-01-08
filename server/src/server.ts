@@ -6,8 +6,9 @@ import Application from 'koa'
 import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
 import { GetAsyncTaskManager } from './task-manager'
 import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
-import { wrapFieldResolvers, wrapSchemaFields } from './graphql'
+import { wrapFieldResolvers } from './graphql'
 import { defaultContextKey } from './context'
+import { isCuillereExecutableSchema } from './make-executable-schema'
 
 export interface CuillereConfig {
   contextKey?: string
@@ -55,12 +56,18 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
 }
 
 function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
+  if (apolloConfig.schema) {
+    if (!isCuillereExecutableSchema(apolloConfig.schema)) {
+      throw Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
+    }
+    apolloConfig.schema.setCuillereConfig(config)
+  }
+
   return {
     ...apolloConfig,
     context: getContextFunction(config, apolloConfig),
     plugins: mergePlugins(config, apolloConfig),
     resolvers: getResolvers(config, apolloConfig),
-    schema: getSchema(config, apolloConfig),
   }
 }
 
@@ -100,22 +107,11 @@ function getApolloServerPlugin(config: CuillereConfig) {
   })
 }
 
-function getResolvers({ plugins, contextKey }: CuillereConfig, { resolvers }: ApolloConfig) {
+export function getResolvers({ plugins, contextKey }: CuillereConfig, { resolvers }: ApolloConfig) {
   if (!resolvers) return null
 
   return wrapFieldResolvers(
     resolvers,
-    cuillere(...plugins),
-    { contextKey },
-  )
-}
-
-function getSchema({ plugins, contextKey }: CuillereConfig, { schema }: ApolloConfig) {
-  if (!schema) return null
-
-  return wrapSchemaFields(
-    schema,
-    cuillere(...plugins),
-    { contextKey },
+    { cllr: cuillere(...plugins), contextKey },
   )
 }

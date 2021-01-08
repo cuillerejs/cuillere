@@ -1,41 +1,19 @@
 import { Cuillere, isGeneratorFunction } from '@cuillere/core'
 import type { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'graphql-tools'
-import { isScalarType, GraphQLFieldResolver, GraphQLSchema, isObjectType, GraphQLObjectType, GraphQLType, GraphQLField, isInterfaceType } from 'graphql'
+import { isScalarType, GraphQLFieldResolver } from 'graphql'
 import { defaultContextKey } from './context'
 
 type OneOrMany<T> = T | T[]
 
-export interface FieldResolversOptions {
+export interface CuillereHolder {
+  cllr?: Cuillere
   contextKey?: string
 }
 
-export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>, cllr: Cuillere, options?: FieldResolversOptions) {
-  const contextKey = options?.contextKey ?? defaultContextKey
-  const getContext = (context: any) => context[contextKey]
-
-  const wrapper = getFieldResolverWrapper(cllr, getContext)
+export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>, holder: CuillereHolder) {
+  const wrapper = getFieldResolverWrapper(holder)
 
   return applyToResolvers(wrapper, resolvers)
-}
-
-export function wrapSchemaFields(schema: GraphQLSchema, cllr: Cuillere, options?: FieldResolversOptions): GraphQLSchema {
-  const contextKey = options?.contextKey ?? defaultContextKey
-  const getContext = (context: any) => context[contextKey]
-  const wrapper = getFieldResolverWrapper(cllr, getContext)
-
-  getFields(schema).forEach((field) => {
-    if (isGeneratorFunction(field.resolve)) field.resolve = wrapper(field.resolve)
-    if (isGeneratorFunction(field.subscribe)) field.subscribe = wrapper(field.subscribe)
-  })
-
-  return schema
-}
-
-function getFields(schema: GraphQLSchema) {
-  const types = Object.values(schema.getTypeMap())
-  const objectTypes = types.filter(isObjectType)
-  const interfacesTypes = types.filter(isInterfaceType)
-  return [...objectTypes, ...interfacesTypes].flatMap(type => Object.values(type.getFields()))
 }
 
 function applyToResolvers(fn: FieldResolverWrapper, resolvers: IResolvers): IResolvers;
@@ -70,8 +48,13 @@ function applyToObject(fn: FieldResolverWrapper, resolverObject: IResolverObject
   return wrappedResolverObject
 }
 
-function getFieldResolverWrapper(cllr: Cuillere, getContext: (ctx: any) => any): FieldResolverWrapper {
-  return (fn: GraphQLFieldResolver<any, any>) => (obj, args, ctx, info) => cllr.ctx(getContext(ctx)).call(fn, obj, args, ctx, info)
+function getFieldResolverWrapper(holder: CuillereHolder): FieldResolverWrapper {
+  const cllr = (context: any) => {
+    if (!holder.cllr) throw Error('Cuillere plugins are not set. Make sure to use CuillereServer and not ApolloServer.')
+    return holder.cllr.ctx(context[holder?.contextKey ?? defaultContextKey])
+  }
+
+  return (fn: GraphQLFieldResolver<any, any>) => async (obj, args, ctx, info) => cllr(ctx).call(fn, obj, args, ctx, info)
 }
 
 type FieldResolverWrapper = (original: GraphQLFieldResolver<any, any>) => GraphQLFieldResolver<any, any>
