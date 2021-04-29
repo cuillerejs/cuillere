@@ -7,13 +7,21 @@ export function crudPlugin(): Plugin {
     namespace,
 
     handlers: {
-      * describe() {
-        // Catch describe opeation
+      * build() {
+        // Catch build opeation
       },
     },
   }
 }
 
-export function describe(): OperationObject {
-  return { kind: `${namespace}/describe` }
+export function build(): BuildCrud {
+  return { kind: `${namespace}/build`, cruds: [] }
+}
+
+export interface BuildCrud extends OperationObject {
+  cruds: Crud[]
+}
+
+export interface Crud {
+
 }
