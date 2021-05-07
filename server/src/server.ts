@@ -7,7 +7,7 @@ import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plug
 import { GetAsyncTaskManager } from './task-manager'
 import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
 import { defaultContextKey } from './context'
-import { isCuillereExecutableSchema, makeExecutableSchema } from './make-executable-schema'
+import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
 
 export interface CuillereConfig {
   contextKey?: string
@@ -61,11 +61,12 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
   }
 
   if (apolloConfig.schema) {
-    if (!isCuillereExecutableSchema(apolloConfig.schema)) {
+    if (!isCuillereSchema(apolloConfig.schema)) {
       throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
     }
 
-    apolloConfig.schema.setCuillereConfig(config)
+    apolloConfig.schema[CUILLERE_PLUGINS] = config.plugins
+    apolloConfig.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   } else {
     apolloConfigOverride.schema = makeExecutableSchema({
       parseOptions: apolloConfig.parseOptions,

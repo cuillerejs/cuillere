@@ -2,7 +2,7 @@ import gql from 'graphql-tag'
 import { get } from '@cuillere/core'
 import { GraphQLObjectType } from 'graphql'
 import { makeExecutableSchema as originalMakeExecutableSchema } from 'graphql-tools'
-import { makeExecutableSchema } from './make-executable-schema'
+import { CUILLERE_PLUGINS, makeExecutableSchema } from './schema'
 import { CuillereServer } from './server'
 
 describe('graphql wrapers', () => {
@@ -13,9 +13,9 @@ describe('graphql wrapers', () => {
         return 'test'
       })
 
-      schema.setCuillereConfig({ plugins: [] })
+      schema[CUILLERE_PLUGINS] = []
 
-      expect(await field.resolve({}, {}, {}, null)).toBe('test')
+      expect(await field.resolve({}, {}, {}, { schema } as any)).toBe('test')
     })
 
     it('should throw if the schema is used without initalisation', async () => {
