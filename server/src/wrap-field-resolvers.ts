@@ -6,13 +6,11 @@ import { CUILLERE_CONTEXT_KEY, CUILLERE_INSTANCE, isCuillereSchema } from './sch
 
 type OneOrMany<T> = T | T[]
 
-export function wrapFieldResolvers(resolvers: IResolvers): IResolvers;
-export function wrapFieldResolvers(resolvers: IResolvers[]): IResolvers[];
-export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>): OneOrMany<IResolvers>;
-export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>): OneOrMany<IResolvers> {
-  if (isResolverArray(resolvers)) {
-    return resolvers.map(resolver => wrapFieldResolvers(resolver))
-  }
+export function wrapFieldResolvers(resolvers: IResolvers): IResolvers
+export function wrapFieldResolvers(resolvers: IResolvers[]): IResolvers[]
+export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>): OneOrMany<IResolvers>
+export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>) {
+  if (isResolverArray(resolvers)) return resolvers.map(resolver => wrapFieldResolvers(resolver))
 
   const wrappedResolvers: IResolvers = {}
 
