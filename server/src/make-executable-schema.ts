@@ -1,7 +1,7 @@
 import cuillere, { Plugin } from '@cuillere/core'
 import { GraphQLSchema } from 'graphql'
 import { IExecutableSchemaDefinition, makeExecutableSchema as makeExecutableSchemaTool } from 'graphql-tools'
-import { wrapFieldResolvers, CuillereHolder } from './graphql'
+import { wrapFieldResolvers, CuillereHolder } from './wrap-field-resolvers'
 
 interface CuillereSchema extends GraphQLSchema {
   setCuillereConfig(options: CuillereSchemaConfig): void

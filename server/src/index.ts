@@ -1,6 +1,5 @@
 export * from './apollo-server-plugin'
 export * from './exports'
-export * from './graphql'
 export * from './koa-middleware'
 export * from './server'
 export * from './task-executor'
