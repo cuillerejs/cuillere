@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@cuillere/postgres": "^0.12.0",
-    "@cuillere/server": "^0.13.0",
+    "@cuillere/server": "^0.13.0-alpha",
     "apollo-server-core": "~2.19.0",
     "graphql-subscriptions": "~1",
     "graphql-tools": "~4"
