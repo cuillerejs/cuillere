@@ -70,7 +70,7 @@ export function addDefaultFieldResolvers(resolvers: IResolvers | IResolvers[], d
   forEachField(draftSchema, (field, typeName, fieldName) => {
     if (field.resolve === undefined) {
       if (!(typeName in resolversWithDefaultResolvers)) resolversWithDefaultResolvers[typeName] = {}
-      resolvers[typeName][fieldName] = defaultFieldResolver
+      resolversWithDefaultResolvers[typeName][fieldName] = defaultFieldResolver
     }
   })
 
