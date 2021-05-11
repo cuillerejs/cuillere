@@ -71,10 +71,12 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
     apolloConfigOverride.schema = makeExecutableSchema({
       parseOptions: apolloConfig.parseOptions,
       resolvers: apolloConfig.resolvers,
-      // resolverValidationOptions?: IResolverValidationOptions
       schemaDirectives: apolloConfig.schemaDirectives, // possibility to add directives...
       typeDefs: apolloConfig.typeDefs, // possibility to extend typeDefs...
     })
+
+    apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
+    apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   }
 
   return {

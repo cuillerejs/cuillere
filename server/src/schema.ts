@@ -56,7 +56,8 @@ export function isCuillereSchema(schema: GraphQLSchema): schema is CuillereSchem
   return CUILLERE_SCHEMA in schema
 }
 
-function addDefaultFieldResolvers(resolvers: IResolvers | IResolvers[], definition: IExecutableSchemaDefinition): IResolvers {
+// FIXME add a test
+export function addDefaultFieldResolvers(resolvers: IResolvers | IResolvers[], definition: IExecutableSchemaDefinition): IResolvers {
   const resolversWithDefaultResolvers = Array.isArray(resolvers) ? resolvers.reduce<IResolvers>(mergeDeep, {}) : resolvers
 
   const draftSchema = buildSchemaFromTypeDefinitions(definition.typeDefs, definition.parseOptions)
@@ -68,7 +69,7 @@ function addDefaultFieldResolvers(resolvers: IResolvers | IResolvers[], definiti
 
   forEachField(draftSchema, (field, typeName, fieldName) => {
     if (field.resolve === undefined) {
-      if (!(typeName in resolvers)) resolvers[typeName] = {}
+      if (!(typeName in resolversWithDefaultResolvers)) resolversWithDefaultResolvers[typeName] = {}
       resolvers[typeName][fieldName] = defaultFieldResolver
     }
   })
