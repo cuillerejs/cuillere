@@ -15,7 +15,7 @@ export function wrapFieldResolvers(resolvers: OneOrMany<IResolvers>) {
   const wrappedResolvers: IResolvers = {}
 
   for (const [key, value] of Object.entries(resolvers)) {
-    if (isScalarType(value) || isEnumResolver(value)) wrappedResolvers[key] = value
+    if (value == null || isScalarType(value) || isEnumResolver(value)) wrappedResolvers[key] = value
     else if (typeof value === 'function') wrappedResolvers[key] = isGeneratorFunction(value) ? wrapFieldResolver(value) as () => any : value
     else if (isResolverOptions(value)) wrappedResolvers[key] = mapResolverOption(value)
     else wrappedResolvers[key] = applyToObject(value)
@@ -28,7 +28,8 @@ function applyToObject(resolverObject: IResolverObject): IResolverObject {
   const wrappedResolverObject: IResolverObject = {}
 
   for (const [key, value] of Object.entries(resolverObject)) {
-    if (typeof value === 'function') wrappedResolverObject[key] = isGeneratorFunction(value) ? wrapFieldResolver(value) as () => any : value
+    if (value == null) wrappedResolverObject[key] = value
+    else if (typeof value === 'function') wrappedResolverObject[key] = isGeneratorFunction(value) ? wrapFieldResolver(value) as () => any : value
     else if (isResolverOptions(value)) wrappedResolverObject[key] = mapResolverOption(value)
     else wrappedResolverObject[key] = applyToObject(value)
   }

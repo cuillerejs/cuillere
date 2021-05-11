@@ -68,6 +68,7 @@ export function addDefaultFieldResolvers(resolvers: IResolvers | IResolvers[], d
   })
 
   forEachField(draftSchema, (field, typeName, fieldName) => {
+    if (typeName === 'Subscription') return
     if (field.resolve === undefined) {
       if (!(typeName in resolversWithDefaultResolvers)) resolversWithDefaultResolvers[typeName] = {}
       resolversWithDefaultResolvers[typeName][fieldName] = defaultFieldResolver
