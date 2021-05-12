@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/mariadb",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
@@ -36,10 +36,10 @@
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.12.0",
+    "@cuillere/core": "^0.13.0",
     "mariadb": "~2"
   },
   "devDependencies": {
-    "@cuillere/server": "^0.13.0-alpha"
+    "@cuillere/server": "^0.13.0"
   }
 }
