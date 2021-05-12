@@ -1,11 +1,8 @@
 export * from './apollo-server-plugin'
 export * from './exports'
-export * from './graphql'
 export * from './koa-middleware'
+export { makeExecutableSchema } from './schema'
 export * from './server'
 export * from './task-executor'
 export * from './task-manager'
 export * from './transaction-manager'
-export * from './make-executable-schema'
-
-export { makeExecutableSchema } from './make-executable-schema'

@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres",
-  "version": "0.12.0",
+  "version": "0.13.0-alpha.2",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {
@@ -47,6 +47,6 @@
     "pg": "~7||~8"
   },
   "devDependencies": {
-    "@cuillere/server": "^0.12.0"
+    "@cuillere/server": "^0.13.0-alpha"
   }
 }

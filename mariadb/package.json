@@ -40,6 +40,6 @@
     "mariadb": "~2"
   },
   "devDependencies": {
-    "@cuillere/server": "^0.12.0"
+    "@cuillere/server": "^0.13.0-alpha"
   }
 }

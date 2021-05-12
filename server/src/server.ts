@@ -1,4 +1,4 @@
-import cuillere, { Plugin } from '@cuillere/core'
+import { Plugin } from '@cuillere/core'
 import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from 'apollo-server-core'
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
@@ -6,9 +6,8 @@ import Application from 'koa'
 import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
 import { GetAsyncTaskManager } from './task-manager'
 import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
-import { wrapFieldResolvers } from './graphql'
 import { defaultContextKey } from './context'
-import { isCuillereExecutableSchema } from './make-executable-schema'
+import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
 
 export interface CuillereConfig {
   contextKey?: string
@@ -56,22 +55,37 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
 }
 
 function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
+  const apolloConfigOverride: ApolloConfig = {
+    context: getContextFunction(config, apolloConfig),
+    plugins: mergePlugins(config, apolloConfig),
+  }
+
   if (apolloConfig.schema) {
-    if (!isCuillereExecutableSchema(apolloConfig.schema)) {
+    if (!isCuillereSchema(apolloConfig.schema)) {
       throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
     }
-    apolloConfig.schema.setCuillereConfig(config)
+
+    apolloConfig.schema[CUILLERE_PLUGINS] = config.plugins
+    apolloConfig.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
+  } else {
+    apolloConfigOverride.schema = makeExecutableSchema({
+      parseOptions: apolloConfig.parseOptions,
+      resolvers: apolloConfig.resolvers,
+      schemaDirectives: apolloConfig.schemaDirectives, // possibility to add directives...
+      typeDefs: apolloConfig.typeDefs, // possibility to extend typeDefs...
+    })
+
+    apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
+    apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   }
 
   return {
     ...apolloConfig,
-    context: getContextFunction(config, apolloConfig),
-    plugins: mergePlugins(config, apolloConfig),
-    resolvers: getResolvers(config, apolloConfig),
+    ...apolloConfigOverride,
   }
 }
 
-function getContextFunction({ contextKey }: CuillereConfig, { context }: ApolloConfig): ContextFunction {
+function getContextFunction({ contextKey }: CuillereConfig, { context } : ApolloConfig): ContextFunction {
   if (typeof context === 'function') {
     return async arg => ({
       ...await context(arg),
@@ -85,7 +99,7 @@ function getContextFunction({ contextKey }: CuillereConfig, { context }: ApolloC
   })
 }
 
-function mergePlugins(config: CuillereConfig, { plugins }: ApolloConfig): PluginDefinition[] {
+function mergePlugins(config: CuillereConfig, { plugins } : ApolloConfig): PluginDefinition[] {
   const plugin = getApolloServerPlugin(config)
 
   if (!plugin) return plugins
@@ -105,13 +119,4 @@ function getApolloServerPlugin(config: CuillereConfig) {
     context: reqCtx => reqCtx.context[contextKey] = {}, // eslint-disable-line no-return-assign
     taskManager,
   })
-}
-
-function getResolvers({ plugins, contextKey }: CuillereConfig, { resolvers }: ApolloConfig) {
-  if (!resolvers) return null
-
-  return wrapFieldResolvers(
-    resolvers,
-    { cllr: cuillere(...plugins), contextKey },
-  )
 }
