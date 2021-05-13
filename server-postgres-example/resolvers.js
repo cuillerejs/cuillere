@@ -16,7 +16,7 @@ const simpleResolvers = {
 
   Mutation: {
     * sendMessage(_, { message }, { channels }) {
-      yield send(channels.messages, message)
+      yield send(channels.message, { message })
       return message
     },
   },

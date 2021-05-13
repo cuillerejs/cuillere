@@ -11,7 +11,7 @@ export const typeDefs = gql`
   }
 
   type Subscription {
-    messages: String! @channel
+    message: String! @channel
   }
 
   type Mutation {
