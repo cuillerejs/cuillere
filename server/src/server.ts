@@ -4,10 +4,11 @@ import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
 import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
-import { GetAsyncTaskManager } from './task-manager'
-import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
+import { CUILLERE_CHANNELS, ChannelDirective } from './channels'
 import { defaultContextKey } from './context'
-import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
+import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
+import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, assertCuillereSchema, makeExecutableSchema } from './schema'
+import { GetAsyncTaskManager } from './task-manager'
 
 export interface CuillereConfig {
   contextKey?: string
@@ -43,7 +44,12 @@ export class CuillereServer extends ApolloServer {
 
     this.applyMiddleware({ app })
 
-    return app.listen(...args)
+    const server = app.listen(...args)
+
+    // FIXME not sure about this...
+    this.installSubscriptionHandlers(server)
+
+    return server
   }
 }
 
@@ -56,58 +62,75 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
 
 function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
   const apolloConfigOverride: ApolloConfig = {
-    context: getContextFunction(config, apolloConfig),
+    ...apolloConfig,
     plugins: mergePlugins(config, apolloConfig),
   }
 
-  if (apolloConfig.schema) {
-    if (!isCuillereSchema(apolloConfig.schema)) {
-      throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
-    }
+  if (apolloConfigOverride.schema) {
+    assertCuillereSchema(apolloConfigOverride.schema, 'apolloConfig.schema')
 
-    apolloConfig.schema[CUILLERE_PLUGINS] = config.plugins
-    apolloConfig.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
+    apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
+    apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   } else {
     apolloConfigOverride.schema = makeExecutableSchema({
-      parseOptions: apolloConfig.parseOptions,
-      resolvers: apolloConfig.resolvers,
-      schemaDirectives: apolloConfig.schemaDirectives, // possibility to add directives...
-      typeDefs: apolloConfig.typeDefs, // possibility to extend typeDefs...
+      parseOptions: apolloConfigOverride.parseOptions,
+      resolvers: apolloConfigOverride.resolvers,
+      schemaDirectives: mergeDirectives(apolloConfigOverride),
+      typeDefs: mergeTypeDefs(apolloConfigOverride),
     })
 
     apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
     apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   }
 
-  return {
-    ...apolloConfig,
-    ...apolloConfigOverride,
-  }
+  apolloConfigOverride.context = getContextFunction(config, apolloConfigOverride)
+
+  return apolloConfigOverride
 }
 
-function getContextFunction({ contextKey }: CuillereConfig, { context } : ApolloConfig): ContextFunction {
+function getContextFunction({ contextKey }: CuillereConfig, { context, schema } : ApolloConfig): ContextFunction {
   if (typeof context === 'function') {
     return async arg => ({
       ...await context(arg),
       [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
+      channels: schema[CUILLERE_CHANNELS],
     })
   }
 
   return ({ ctx }) => ({
     ...context,
     [contextKey]: ctx?.[contextKey], // FIXME subscriptions?
+    channels: schema[CUILLERE_CHANNELS],
   })
 }
 
 function mergePlugins(config: CuillereConfig, { plugins } : ApolloConfig): PluginDefinition[] {
   const plugin = getApolloServerPlugin(config)
 
-  if (!plugin) return plugins
+  if (plugin == null) return plugins
 
   return [
     ...(plugins ?? []),
     plugin,
   ]
+}
+
+function mergeTypeDefs({ typeDefs }: ApolloConfig) {
+  if (typeDefs == null) return typeDefs
+
+  const mergedTypeDefs = Array.isArray(typeDefs) ? [...typeDefs] : [typeDefs]
+
+  mergedTypeDefs.push(ChannelDirective.typeDefs)
+
+  return mergedTypeDefs
+}
+
+function mergeDirectives({ schemaDirectives }: ApolloConfig) {
+  const mergedDirectives = schemaDirectives == null ? {} : { ...schemaDirectives }
+
+  mergedDirectives.channel = ChannelDirective
+
+  return mergedDirectives
 }
 
 function getApolloServerPlugin(config: CuillereConfig) {

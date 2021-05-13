@@ -56,6 +56,10 @@ export function isCuillereSchema(schema: GraphQLSchema): schema is CuillereSchem
   return CUILLERE_SCHEMA in schema
 }
 
+export function assertCuillereSchema(schema: GraphQLSchema, reference = 'schema') {
+  if (!isCuillereSchema(schema)) throw new TypeError(`\`${reference}\` should be a \`CuillereSchema\``)
+}
+
 // FIXME add a test
 export function addDefaultFieldResolvers(resolvers: IResolvers | IResolvers[], definition: IExecutableSchemaDefinition): IResolvers {
   const resolversWithDefaultResolvers = Array.isArray(resolvers) ? resolvers.reduce<IResolvers>(mergeDeep, {}) : resolvers
@@ -91,7 +95,7 @@ function defaultFieldResolver<TSource, TContext, TArgs = { [argName: string]: an
     const value = source[info.fieldName]
     if (typeof value === 'function') {
       if (isGeneratorFunction(value)) {
-        if (!isCuillereSchema(info.schema)) throw TypeError('`info.schema` should be a `CuillereSchema`')
+        assertCuillereSchema(info.schema, 'info.schema')
         return info.schema[CUILLERE_INSTANCE].ctx(ctx[info.schema[CUILLERE_CONTEXT_KEY] ?? defaultContextKey]).call(value, args, ctx, info)
       }
       return value(args, ctx, info)
