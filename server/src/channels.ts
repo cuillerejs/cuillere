@@ -21,9 +21,18 @@ export class ChannelDirective extends SchemaDirectiveVisitor {
     }
 
     if (!(CUILLERE_CHANNELS in schema)) {
-      // FIXME use defineProperty
-      schema[CUILLERE_CHANNELS] = {}
-      schema[CUILLERE_CHANNELS_SUBSCRIBERS] = {}
+      Object.defineProperties(schema, {
+        [CUILLERE_CHANNELS]: {
+          enumerable: false,
+          value: {},
+          writable: false,
+        },
+        [CUILLERE_CHANNELS_SUBSCRIBERS]: {
+          enumerable: false,
+          value: {},
+          writable: false,
+        },
+      })
 
       // FIXME use an apollo server plugin (a schema might be reused by more than one server):
       // - create the chan references when the server starts
