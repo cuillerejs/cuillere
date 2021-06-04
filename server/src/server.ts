@@ -2,6 +2,7 @@ import { Plugin } from '@cuillere/core'
 import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from 'apollo-server-core'
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
+import { ExecutionParams } from 'subscriptions-transport-ws' // FIXME this package is deprecated, use graphql-ws
 
 import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
 import { CUILLERE_CHANNELS, ChannelDirective } from './channels'
@@ -12,6 +13,7 @@ import { GetAsyncTaskManager } from './task-manager'
 
 export interface CuillereConfig {
   contextKey?: string
+  subscriptionTaskManager?: GetAsyncTaskManager<[{ connection: ExecutionParams }]>
   httpRequestTaskManager?: GetAsyncTaskManager<KoaMiddlewareArgs>
   graphqlRequestTaskManager?: GetAsyncTaskManager<ApolloServerPluginArgs>
   plugins: Plugin[]
@@ -68,9 +70,6 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
 
   if (apolloConfigOverride.schema) {
     assertCuillereSchema(apolloConfigOverride.schema, 'apolloConfig.schema')
-
-    apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
-    apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   } else {
     apolloConfigOverride.schema = makeExecutableSchema({
       parseOptions: apolloConfigOverride.parseOptions,
@@ -78,29 +77,25 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
       schemaDirectives: mergeDirectives(apolloConfigOverride),
       typeDefs: mergeTypeDefs(apolloConfigOverride),
     })
-
-    apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
-    apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   }
+
+  apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
+  Object.defineProperty(apolloConfigOverride.schema, CUILLERE_CONTEXT_KEY, {
+    enumerable: false,
+    value: config.contextKey,
+  })
 
   apolloConfigOverride.context = getContextFunction(config, apolloConfigOverride)
 
   return apolloConfigOverride
 }
 
-function getContextFunction({ contextKey }: CuillereConfig, { context, schema } : ApolloConfig): ContextFunction {
-  if (typeof context === 'function') {
-    return async arg => ({
-      ...await context(arg),
-      [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
-      channels: schema[CUILLERE_CHANNELS],
-    })
-  }
+function getContextFunction({ contextKey }: CuillereConfig, { context } : ApolloConfig): ContextFunction {
+  const originalContext = typeof context === 'function' ? context : () => context
 
-  return ({ ctx }) => ({
-    ...context,
-    [contextKey]: ctx?.[contextKey], // FIXME subscriptions?
-    channels: schema[CUILLERE_CHANNELS],
+  return async arg => ({
+    ...await originalContext(arg),
+    [contextKey]: arg.ctx?.[contextKey],
   })
 }
 

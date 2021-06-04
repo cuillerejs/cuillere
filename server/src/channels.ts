@@ -6,7 +6,7 @@ import { SchemaDirectiveVisitor } from 'graphql-tools'
 import { CUILLERE_INSTANCE } from './schema'
 
 export const CUILLERE_CHANNELS = Symbol('CUILLERE_CHANNELS')
-const CUILLERE_CHANNELS_SUBSCRIBERS = Symbol('CUILLERE_CHANNELS_SUBSCRIBERS')
+export const CUILLERE_CHANNELS_SUBSCRIBERS = Symbol('CUILLERE_CHANNELS_SUBSCRIBERS')
 
 export class ChannelDirective extends SchemaDirectiveVisitor {
   static typeDefs = gql`
@@ -21,56 +21,23 @@ export class ChannelDirective extends SchemaDirectiveVisitor {
     }
 
     if (!(CUILLERE_CHANNELS in schema)) {
-      Object.defineProperties(schema, {
-        [CUILLERE_CHANNELS]: {
-          enumerable: false,
-          value: {},
-          writable: false,
-        },
-        [CUILLERE_CHANNELS_SUBSCRIBERS]: {
-          enumerable: false,
-          value: {},
-          writable: false,
-        },
-      })
-
-      // FIXME use an apollo server plugin (a schema might be reused by more than one server):
-      // - create the chan references when the server starts
-      // - start the infinite loop when server starts
-      // - stop the infinite loop when server stops
-      schema[CUILLERE_INSTANCE].call(function* () {
-        const cases = Object.entries(schema[CUILLERE_CHANNELS])
-          .map(([fieldName, input]) => [
-            recv(input as any),
-            function* (value) {
-              for (const output of schema[CUILLERE_CHANNELS_SUBSCRIBERS][fieldName]) {
-                yield send(output, { [fieldName]: value })
-              }
-            },
-          ] as Case)
-
-        while (true) { // eslint-disable-line no-constant-condition
-          try {
-            yield select(...cases)
-          } catch (e) {
-            // FIXME why did I put a try-catch here?!
-          }
-        }
+      Object.defineProperty(schema, CUILLERE_CHANNELS, {
+        enumerable: false,
+        value: [],
+        writable: false,
       })
     }
 
     const { bufferCapacity } = this.args
 
-    if (!(field.name in schema[CUILLERE_CHANNELS])) {
-      schema[CUILLERE_CHANNELS][field.name] = chan(bufferCapacity)
-      schema[CUILLERE_CHANNELS_SUBSCRIBERS][field.name] = new Set()
-    }
+    // FIXME throw ?
+    // if (field.name in schema[CUILLERE_CHANNELS])
 
-    console.log(field.name)
+    schema[CUILLERE_CHANNELS].push({ fieldName: field.name, bufferCapacity })
 
-    field.subscribe = (): AsyncIterableIterator<any> => {
+    field.subscribe = (_source, _args, context): AsyncIterableIterator<any> => {
       const ch = chan()
-      schema[CUILLERE_CHANNELS_SUBSCRIBERS][field.name].add(ch)
+      context[CUILLERE_CHANNELS_SUBSCRIBERS][field.name].add(ch)
       const it = range(ch)
 
       // FIXME make a class for this implementation
@@ -84,7 +51,7 @@ export class ChannelDirective extends SchemaDirectiveVisitor {
         },
 
         async return() {
-          schema[CUILLERE_CHANNELS_SUBSCRIBERS][field.name].delete(ch)
+          context[CUILLERE_CHANNELS_SUBSCRIBERS][field.name].delete(ch)
           return { done: true, value: null }
         },
 

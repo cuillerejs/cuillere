@@ -45,7 +45,10 @@ export function makeExecutableSchema<TContext extends any>(definition: IExecutab
     [CUILLERE_PLUGINS]: {
       enumerable: false,
       set(plugins: Plugin[]) {
-        this[CUILLERE_INSTANCE] = cuillere(...plugins)
+        Object.defineProperty(this, CUILLERE_INSTANCE, {
+          enumerable: false,
+          value: cuillere(...plugins),
+        })
       },
     },
   })
