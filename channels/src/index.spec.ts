@@ -79,6 +79,9 @@ describe('channels', () => {
       }
 
       expect(catched).toBeInstanceOf(TypeError)
+
+      // avoids https://bugs.chromium.org/p/v8/issues/detail?id=10238
+      return undefined
     }
 
     await cllr.call(test)

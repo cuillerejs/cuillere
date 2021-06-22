@@ -29,10 +29,13 @@
     "clean:14": "VERSION=14 yarn clean:version",
     "prebuild:14": "VERSION=14 yarn prebuild:version",
     "build:14": "VERSION=14 yarn build:version",
+    "clean:16": "VERSION=16 yarn clean:version",
+    "prebuild:16": "VERSION=16 yarn prebuild:version",
+    "build:16": "VERSION=16 yarn build:version",
     "clean:types": "rm -rf dist/types",
     "prebuild:types": "yarn clean:types",
     "build:types": "yarn tsc -p tsconfig-types.json",
-    "build": "yarn build:12 && yarn build:14 && yarn build:types",
+    "build": "yarn build:12 && yarn build:14 && yarn build:16 && yarn build:types",
     "prepublishOnly": "yarn build && yarn lint && yarn test"
   },
   "peerDependencies": {

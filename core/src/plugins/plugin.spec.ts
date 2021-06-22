@@ -1,5 +1,7 @@
 import cuillere, { Cuillere, Plugin, next } from '..'
 
+const nodeMajorVersion = Number(process.versions.node.split('.')[0])
+
 describe('plugin', () => {
   const callFuncAndExpectTest = async (cllr: Cuillere, expected = 'test') => {
     function* func() {
@@ -59,7 +61,15 @@ describe('plugin', () => {
       },
     }
 
-    await expect(cuillere(plugin).call(test)).resolves.toBeUndefined()
+    // Bug won't be fixed on node v12
+    /* eslint-disable jest/no-conditional-expect */
+    if (nodeMajorVersion > 12) {
+      await expect(cuillere(plugin).call(test)).resolves.toBeUndefined()
+    } else {
+      await expect(cuillere(plugin).call(test)).rejects.toBe(error)
+    }
+    /* eslint-enable jest/no-conditional-expect */
+
     expect(catched).toBe(error)
   })
 
