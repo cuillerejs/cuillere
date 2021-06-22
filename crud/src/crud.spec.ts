@@ -5,88 +5,79 @@ describe('mergeCrud', () => {
     const result = mergeCruds({
       postgres: {
         pool: {
-          schema: {
-            table: 'zob',
-          },
+          schema: { table: { operator } },
         },
       },
     })
 
-    console.log(JSON.stringify(result, null, 2))
-
     expect(result).toEqual({
-      table: 'zob',
-      schema: {
-        table: 'zob',
-      },
+      table: { operator },
+      schema: { table: { operator } },
       pool: {
-        table: 'zob',
-        schema: {
-          table: 'zob',
-        },
+        table: { operator },
+        schema: { table: { operator } },
       },
       postgres: {
-        table: 'zob',
-        schema: {
-          table: 'zob',
-        },
+        table: { operator },
+        schema: { table: { operator } },
         pool: {
-          table: 'zob',
-          schema: {
-            table: 'zob',
-          },
+          table: { operator },
+          schema: { table: { operator } },
         },
       },
     })
   })
 
-  it('duplicates case', () => {
+  it('duplicates fields', () => {
     const result = mergeCruds({
       postgres: {
         pool: {
-          schema: {
-            table: 'zob',
-          },
-          schema2: {
-            table: 'ha',
-          },
+          schema: { table: { zob: operator } },
+          schema2: { table: { ha: operator } },
         },
       },
     })
 
-    console.log(JSON.stringify(result, null, 2))
-
     expect(result).toEqual({
-      schema: {
-        table: 'zob',
-      },
-      schema2: {
-        table: 'ha',
-      },
+      schema: { table: { zob: operator } },
+      schema2: { table: { ha: operator } },
       pool: {
-        schema: {
-          table: 'zob',
-        },
-        schema2: {
-          table: 'ha',
-        },
+        schema: { table: { zob: operator } },
+        schema2: { table: { ha: operator } },
       },
       postgres: {
-        schema: {
-          table: 'zob',
-        },
-        schema2: {
-          table: 'ha',
-        },
+        schema: { table: { zob: operator } },
+        schema2: { table: { ha: operator } },
         pool: {
-          schema: {
-            table: 'zob',
-          },
-          schema2: {
-            table: 'ha',
-          },
+          schema: { table: { zob: operator } },
+          schema2: { table: { ha: operator } },
+        },
+      },
+    })
+  })
+
+  it('already defined fields', () => {
+    const result = mergeCruds({
+      postgres: {
+        pool: {
+          test: { test: { test: operator } },
+        },
+      },
+    })
+
+    expect(result).toEqual({
+      test: { test: { test: operator } },
+      pool: {
+        test: { test: { test: operator } },
+      },
+      postgres: {
+        test: { test: { test: operator } },
+        pool: {
+          test: { test: { test: operator } },
         },
       },
     })
   })
 })
+
+const operator = () => ({ kind: 'test' })

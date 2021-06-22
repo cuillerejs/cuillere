@@ -1,13 +1,15 @@
+import type { Operation } from '@cuillere/core'
+
 export interface Crud {
-  [key : string]: Provider | Database | Schema | Table
+  [key : string]: Provider
 }
 
 export interface Provider {
-  [key: string]: Database | Schema | Table
+  [key: string]: Database
 }
 
 export interface Database {
-  [key: string]: Schema | Table
+  [key: string]: Schema
 }
 
 export interface Schema {
@@ -15,10 +17,22 @@ export interface Schema {
 }
 
 export interface Table {
-  [key: string]: any
+  [key: string]: (...args: any[]) => Operation
 }
 
-export function mergeCruds(...cruds: Crud[]) {
+export interface PromotedCrud {
+  [key : string]: Provider | Database | Schema | Table
+}
+
+export interface PromotedProvider {
+  [key: string]: Database | Schema | Table
+}
+
+export interface PromotedDatabase {
+  [key: string]: Schema | Table
+}
+
+export function mergeCruds(...cruds: Crud[]): PromotedCrud {
   const crud: Crud = {}
 
   for (const [name, provider] of cruds.flatMap(Object.entries)) {
@@ -32,21 +46,25 @@ export function mergeCruds(...cruds: Crud[]) {
 }
 
 function promoteCrud(parent: Crud | Provider | Database, level = 2) {
-  if (level > 0) Object.values(parent).forEach(child => promoteCrud(child, level - 1))
+  const children = Object.values(parent)
+  if (level > 0) children.forEach(child => promoteCrud(child, level - 1))
 
-  const children = Object.values(parent).flatMap(Object.entries)
+  const childrenFields = children.flatMap(Object.entries)
 
-  Object.entries(groupBy(children))
+  groupByName(childrenFields)
+    // We promote only fields when there is no duplicates
     .filter(([, { length }]) => length === 1)
+    // We promote only fields if it is not already present in the parent
+    .filter(([name]) => !parent[name])
     .forEach(([name, [child]]) => {
       parent[name] = child
     })
 }
 
-function groupBy(entries: [string, any][]): {[name: string]: any[]} {
+function groupByName<Entity = any>(entries: [string, Entity][]): [string, Entity[]][] {
   const result = {}
   for (const [name, entry] of entries) {
     result[name] = (result[name] ?? []).concat([entry])
   }
-  return result
+  return Object.entries(result)
 }
