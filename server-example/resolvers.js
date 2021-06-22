@@ -1,4 +1,4 @@
-import { GraphQLDate, GraphQLDateTime } from 'graphql-iso-date'
+import { GraphQLDate, GraphQLDateTime } from 'graphql-scalars'
 import { query as postgresQuery } from '@cuillere/postgres'
 import { query as mariadbQuery } from '@cuillere/mariadb'
 

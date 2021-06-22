@@ -2731,10 +2731,12 @@ graphql-extensions@^0.15.0:
     apollo-server-env "^3.1.0"
     apollo-server-types "^0.9.0"
 
-graphql-iso-date@^3.6.1:
-  version "3.6.1"
-  resolved "https://registry.yarnpkg.com/graphql-iso-date/-/graphql-iso-date-3.6.1.tgz#bd2d0dc886e0f954cbbbc496bbf1d480b57ffa96"
-  integrity sha512-AwFGIuYMJQXOEAgRlJlFL4H1ncFM8n8XmoVDTNypNOZyQ8LFDG2ppMFlsS862BSTCDcSUfHp8PD3/uJhv7t59Q==
+graphql-scalars@^1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/graphql-scalars/-/graphql-scalars-1.10.0.tgz#9daf9252b16e6fae553a06976163a23f41b65dfd"
+  integrity sha512-LONlj8FfhA2iGpkZJWf5e4PVAHXxnZEHSOEvowLYvNXl/TNnhIck8VmE+lren/aa6GKrG+lZufo5lgnyjxcF6g==
+  dependencies:
+    tslib "~2.2.0"
 
 graphql-subscriptions@^1.0.0, graphql-subscriptions@~1.2.1:
   version "1.2.1"
@@ -4938,6 +4940,11 @@ tslib@^2.1.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.0.tgz#803b8cdab3e12ba581a4ca41c8839bbb0dacb09e"
   integrity sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==
+
+tslib@~2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.2.0.tgz#fb2c475977e35e241311ede2693cee1ec6698f5c"
+  integrity sha512-gS9GVHRU+RGn5KQM2rllAlR3dU6m7AcpJKdtH8gFvQiC4Otgk98XnmMU+nZenHt/+VhnBPWwgrJsyrdcw6i23w==
 
 tsscmp@1.0.6:
   version "1.0.6"

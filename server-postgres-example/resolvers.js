@@ -1,4 +1,4 @@
-import { GraphQLDate, GraphQLDateTime } from 'graphql-iso-date'
+import { GraphQLDate, GraphQLDateTime } from 'graphql-scalars'
 import { query } from '@cuillere/server-postgres'
 
 const simpleResolvers = {
