@@ -1,0 +1,9 @@
+{
+  "extends": "@tsconfig/node16/tsconfig.json",
+  "compileOnSave": true,
+  "compilerOptions": {
+    "sourceMap": true,
+    "strict": false,
+    "esModuleInterop": true,
+  }
+}

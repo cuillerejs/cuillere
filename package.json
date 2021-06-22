@@ -17,6 +17,7 @@
   "devDependencies": {
     "@tsconfig/node12": "^1.0.9",
     "@tsconfig/node14": "^1.0.1",
+    "@tsconfig/node16": "^1.0.1",
     "@types/jest": "^26.0.23",
     "@types/pg": "^8.6.0",
     "@typescript-eslint/eslint-plugin": "^4.28.0",
