@@ -3753,7 +3753,7 @@ koa@2.13.0:
     type-is "^1.6.16"
     vary "^1.1.2"
 
-koa@~2.13.1:
+koa@~2:
   version "2.13.1"
   resolved "https://registry.yarnpkg.com/koa/-/koa-2.13.1.tgz#6275172875b27bcfe1d454356a5b6b9f5a9b1051"
   integrity sha512-Lb2Dloc72auj5vK4X4qqL7B5jyDPQaZucc9sR/71byg7ryoD1NCaCm63CShk9ID9quQvDEi1bGR/iGjCG7As3w==
