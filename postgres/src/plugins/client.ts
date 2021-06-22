@@ -1,10 +1,8 @@
-import { Plugin, OperationObject, next } from '@cuillere/core'
-import type { Describe } from '@cuillere/crud'
+import { Plugin, OperationObject } from '@cuillere/core'
 
 import { getQueryHandler } from '../query-handler'
 import type { QueryConfig } from '../query-config'
 import { getClientGetter } from '../client-getter'
-import { getPoolsGetter } from '../pools-getter'
 
 const namespace = '@cuillere/postgres'
 
@@ -23,25 +21,6 @@ export function clientPlugin(): Plugin {
         const queryHandler = getQueryHandler(ctx)
         if (!queryHandler) throw new Error('No query handler in context, you probably forgot to setup a client manager')
         return queryHandler(config)
-      },
-
-      * '@cuillere/crud/describe'(describe: Describe, ctx) {
-        const getPools = getPoolsGetter(ctx)
-        if (!getClient) throw new Error('No pools getter in context, you probably forgot to setup a client manager')
-
-        for (const pool of getPools()) {
-          const { rows: tables } = yield query({
-            text: `
-              SELECT table_schema AS schema, table_name AS table
-              FROM information_schema.tables
-              WHERE table_schema NOT LIKE 'pg_%'
-              AND table_schema <> 'information_schema'
-            `,
-            pool,
-          })
-        }
-
-        yield next(describe)
       },
     },
   }

@@ -1,5 +1,5 @@
 import { Plugin, next } from '@cuillere/core'
-import { Describe } from '@cuillere/crud'
+import type { Describe } from '@cuillere/crud'
 
 import { getPoolsGetter } from '../pools-getter'
 import { query } from './client'
@@ -11,6 +11,8 @@ export function crudPlugin(): Plugin {
         const getPools = getPoolsGetter(ctx)
         if (!getPools) throw new Error('No pools getter in context, you probably forgot to setup a client manager')
 
+        const description = { postgres: {} }
+
         for (const pool of getPools()) {
           const { rows: tables } = yield query({
             text: `
@@ -21,9 +23,14 @@ export function crudPlugin(): Plugin {
             `,
             pool,
           })
+
+          for (const { table, schema } of tables) {
+            if (!description.postgres[schema])description.postgres[schema] = {}
+            description.postgres[schema][table] = {}
+          }
         }
 
-        yield next(describe)
+        return { ...description, ...yield next(describe) }
       },
     },
   }
