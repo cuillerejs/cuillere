@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [12, 14, 16]
 
     steps:
       - name: Checkout repository
@@ -16,35 +16,35 @@ jobs:
       - name: Setup node ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ matrix.node-version }}.x
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
       - name: CI core
-        run: yarn build && yarn lint && yarn test
+        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint && yarn test
         working-directory: ./core
 
       - name: CI server
-        run: yarn build && yarn lint
+        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
         working-directory: ./server
 
       - name: CI crud
-        run: yarn build && yarn lint && yarn test
+        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint && yarn test
         working-directory: ./crud
 
       - name: CI postgres
-        run: yarn build && yarn lint
+        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
         working-directory: ./postgres
 
       - name: CI server-postgres
-        run: yarn build && yarn lint
+        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
         working-directory: ./server-postgres
 
       - name: CI mariadb
-        run: yarn build && yarn lint
+        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
         working-directory: ./mariadb
 
       - name: CI channels
-        run: yarn build && yarn lint && yarn test
+        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint && yarn test
         working-directory: ./channels
