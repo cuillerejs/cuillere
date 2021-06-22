@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@cuillere/server-postgres": "^0.13.0",
-    "graphql-iso-date": "^3.6.1",
+    "graphql-scalars": "^1.10.0",
     "pg": "~8.6.0"
   }
 }

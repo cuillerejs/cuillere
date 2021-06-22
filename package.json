@@ -31,7 +31,7 @@
     "typescript": "^4.3.4"
   },
   "dependencies": {
-    "graphql": "~14",
+    "graphql": "~15.5.1",
     "mariadb": "^2.5.4",
     "pg": "^8.6.0"
   }

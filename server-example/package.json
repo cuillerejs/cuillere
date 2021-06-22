@@ -10,7 +10,7 @@
     "@cuillere/mariadb": "^0.13.0",
     "@cuillere/postgres": "^0.13.0",
     "@cuillere/server": "^0.13.0",
-    "graphql-iso-date": "^3.6.1",
+    "graphql-scalars": "^1.10.0",
     "mariadb": "~2.5.4",
     "pg": "~8.6.0"
   }
