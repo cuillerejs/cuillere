@@ -44,9 +44,5 @@
     "src",
     "dist",
     "LICENSE"
-  ],
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
-  }
+  ]
 }
