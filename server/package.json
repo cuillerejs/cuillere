@@ -48,19 +48,18 @@
   },
   "devDependencies": {
     "apollo-server-plugin-base": "^0.13.0",
-    "graphql-tag": "^2.12.4",
-    "graphql-tools": "~4"
+    "graphql-tag": "^2.12.4"
   },
   "dependencies": {
     "@cuillere/core": "^0.13.0",
     "apollo-server-core": "~2.25.1",
     "apollo-server-koa": "~2.25.1",
     "graphql-subscriptions": "~1.2.1",
+    "graphql-tools": "~4",
     "koa": "~2"
   },
   "peerDependencies": {
-    "graphql": "~14||~15",
-    "graphql-tools": "~4"
+    "graphql": "~14||~15"
   },
   "jest": {
     "preset": "ts-jest",
