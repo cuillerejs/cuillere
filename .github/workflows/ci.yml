@@ -22,25 +22,25 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: CI core
-        run: yarn build && yarn lint && yarn test
+        run: yarn build:${{ matrix.node-version }} && yarn lint && yarn test
         working-directory: ./core
 
       - name: CI server
-        run: yarn build && yarn lint
+        run: yarn build:${{ matrix.node-version }} && yarn lint
         working-directory: ./server
 
       - name: CI postgres
-        run: yarn build && yarn lint
+        run: yarn build:${{ matrix.node-version }} && yarn lint
         working-directory: ./postgres
 
       - name: CI server-postgres
-        run: yarn build && yarn lint
+        run: yarn build:${{ matrix.node-version }} && yarn lint
         working-directory: ./server-postgres
 
       - name: CI mariadb
-        run: yarn build && yarn lint
+        run: yarn build:${{ matrix.node-version }} && yarn lint
         working-directory: ./mariadb
 
       - name: CI channels
-        run: yarn build && yarn lint && yarn test
+        run: yarn build:${{ matrix.node-version }} && yarn lint && yarn test
         working-directory: ./channels
