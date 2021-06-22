@@ -56,7 +56,7 @@
     "apollo-server-core": "~2.19.0",
     "apollo-server-koa": "~2.19.0",
     "graphql-subscriptions": "~1",
-    "koa": "~2"
+    "koa": "~2.13.1"
   },
   "peerDependencies": {
     "graphql": "~14||~15",
