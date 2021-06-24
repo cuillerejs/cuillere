@@ -1,6 +1,6 @@
 import { mergeCruds } from '.'
 
-describe('mergeCrud', () => {
+describe('mergeCruds', () => {
   it('simple case', () => {
     const result = mergeCruds({
       postgres: {
@@ -28,7 +28,7 @@ describe('mergeCrud', () => {
     })
   })
 
-  it('duplicates fields', () => {
+  it('duplicate fields', () => {
     const result = mergeCruds({
       postgres: {
         pool: {
