@@ -13,38 +13,52 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Setup node ${{ matrix.node-version }}
+      - name: Setup node ${{matrix.node-version}}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}.x
+          node-version: ${{matrix.node-version}}
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
 
       - name: CI core
-        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint && yarn test
+        run: yarn ci
         working-directory: ./core
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server
-        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
+        run: yarn ci
         working-directory: ./server
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI crud
-        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint && yarn test
+        run: yarn ci
         working-directory: ./crud
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI postgres
-        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
+        run: yarn ci
         working-directory: ./postgres
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server-postgres
-        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
+        run: yarn ci
         working-directory: ./server-postgres
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI mariadb
-        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint
+        run: yarn ci
         working-directory: ./mariadb
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI channels
-        run: VERSION=${{ matrix.node-version }} yarn build:version && yarn build:types && yarn lint && yarn test
+        run: yarn ci
         working-directory: ./channels
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
