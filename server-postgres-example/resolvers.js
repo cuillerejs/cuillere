@@ -12,6 +12,9 @@ const simpleResolvers = {
       const { rows: [{ now }] } = yield query({ text: 'SELECT NOW()', pool: 'geo' })
       return now
     },
+    * person(_, { id }, { crud }) {
+      return yield crud.people.people.get(id)
+    },
   },
 }
 

@@ -27,7 +27,7 @@ export function clientPlugin(): Plugin {
       async* getPools(_: OperationObject, ctx) {
         const getPools = getPoolsGetter(ctx)
         if (!getPools) throw new Error('No pools getter in context, you probably forgot to setup a client manager')
-        return getClient()
+        return getPools()
       },
     },
   }

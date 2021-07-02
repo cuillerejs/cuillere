@@ -45,11 +45,12 @@ function* buildTableCrud(pool: string, schema: string, table: string) {
       AND table_name = $2
     `,
     values: [schema, table],
+    pool,
   })
 
   return {
-    get(id: any) {
-      return query({
+    * get(id: any) {
+      const { rows } = yield query({
         text: `
           SELECT ${columns.map(({ name }) => `"${name}"`).join(', ')}
           FROM "${schema}"."${table}"
@@ -58,6 +59,8 @@ function* buildTableCrud(pool: string, schema: string, table: string) {
         values: [id],
         pool,
       })
+
+      return rows[0]
     },
   }
 }
