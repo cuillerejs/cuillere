@@ -37,12 +37,12 @@ function* ensureDatabases() {
   // FIXME champ adresse
   yield query({
     text: `
-          CREATE TABLE IF NOT EXISTS people (
-            id SERIAL NOT NULL PRIMARY KEY,
-            firstname TEXT NOT NULL,
-            lastname TEXT NOT NULL
-          )
-        `,
+      CREATE TABLE IF NOT EXISTS people (
+        id SERIAL NOT NULL PRIMARY KEY,
+        firstname TEXT NOT NULL,
+        lastname TEXT NOT NULL
+      )
+    `,
     pool: 'people',
   })
 
@@ -52,14 +52,14 @@ function* ensureDatabases() {
 
   yield query({
     text: `
-          CREATE TABLE IF NOT EXISTS addresses (
-            id SERIAL NOT NULL PRIMARY KEY,
-            number TEXT NOT NULL,
-            street TEXT NOT NULL,
-            postalcode TEXT NOT NULL,
-            city TEXT NOT NULL
-          )
-        `,
+      CREATE TABLE IF NOT EXISTS addresses (
+        id SERIAL NOT NULL PRIMARY KEY,
+        number TEXT NOT NULL,
+        street TEXT NOT NULL,
+        postalcode TEXT NOT NULL,
+        city TEXT NOT NULL
+      )
+    `,
     pool: 'geo',
   })
 }

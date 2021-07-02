@@ -1,33 +1,63 @@
-import { Crud, Provider } from '@cuillere/crud'
+import { Crud, Database, Provider } from '@cuillere/crud'
 
 import { getPools, query } from '../plugins/client'
 
 export async function* buildCrud() {
   const postgres: Provider = {}
 
-  for (const pool of yield getPools()) {
-    const { rows: tables } = yield query({
-      text: `
-        SELECT table_schema AS schema, table_name AS table
-        FROM information_schema.tables
-        WHERE table_schema NOT LIKE 'pg_%'
-        AND table_schema <> 'information_schema'
-      `,
-      pool,
-    })
+  const pools = yield getPools()
 
-    postgres[pool] = {}
-
-    for (const { table, schema } of tables) {
-      if (!postgres[pool][schema]) postgres[pool][schema] = {}
-      postgres[pool][schema][table] = yield makeCrud(schema, table)
-    }
+  for (const pool of pools) {
+    // FIXME parallel
+    postgres[pool] = yield buildDatabaseCrud(pool)
   }
 
   return { postgres } as Crud
 }
 
-function* makeCrud(schema: string, table: string) {
-  // TODO
-  return {}
+function* buildDatabaseCrud(pool: string) {
+  const databaseCrud: Database = {}
+
+  const { rows: tables } = yield query({
+    text: `
+      SELECT table_schema AS schema, table_name AS table
+      FROM information_schema.tables
+      WHERE table_schema NOT LIKE 'pg_%'
+      AND table_schema <> 'information_schema'
+    `,
+    pool,
+  })
+
+  for (const { table, schema } of tables) {
+    if (!(schema in databaseCrud)) databaseCrud[schema] = {}
+    databaseCrud[schema][table] = yield buildTableCrud(pool, schema, table)
+  }
+
+  return databaseCrud
+}
+
+function* buildTableCrud(pool: string, schema: string, table: string) {
+  const { rows: columns } = yield query({
+    text: `
+      SELECT column_name AS name, data_type AS type
+      FROM information_schema.columns
+      WHERE table_schema = $1
+      AND table_name = $2
+    `,
+    values: [schema, table],
+  })
+
+  return {
+    get(id: any) {
+      return query({
+        text: `
+          SELECT ${columns.map(({ name }) => `"${name}"`).join(', ')}
+          FROM "${schema}"."${table}"
+          WHERE id = $1
+        `,
+        values: [id],
+        pool,
+      })
+    },
+  }
 }
