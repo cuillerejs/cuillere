@@ -1,3 +1,4 @@
+import { all } from '@cuillere/core'
 import { Crud, Database, Provider } from '@cuillere/crud'
 
 import { getPools, query } from '../plugins/client'
@@ -7,10 +8,9 @@ export async function* buildCrud() {
 
   const pools = yield getPools()
 
-  for (const pool of pools) {
-    // FIXME parallel
+  yield all(pools.map(function* (pool: string) {
     postgres[pool] = yield buildDatabaseCrud(pool)
-  }
+  }))
 
   return { postgres } as Crud
 }

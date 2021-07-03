@@ -2,11 +2,11 @@ import { buildCrud, cuillere, clientPlugin, DEFAULT_POOL, getClientManager, merg
 
 const poolConfig = [
   {
-    name: 'people',
+    name: 'identity',
     host: 'localhost',
     port: 54321,
-    database: 'people',
-    user: 'people',
+    database: 'identity',
+    user: 'identity',
     password: 'password',
   },
   {
@@ -31,23 +31,8 @@ function* ensureDatabase(name) {
 }
 
 function* ensureDatabases() {
-  yield* ensureDatabase('people')
-
-  // FIXME champ adresse
-  yield query({
-    text: `
-      CREATE TABLE IF NOT EXISTS people (
-        id SERIAL NOT NULL PRIMARY KEY,
-        firstname TEXT NOT NULL,
-        lastname TEXT NOT NULL
-      )
-    `,
-    pool: 'people',
-  })
-
-  //  FIXME relation NN téléphone
-
   yield* ensureDatabase('geo')
+  yield* ensureDatabase('identity')
 
   yield query({
     text: `
@@ -60,6 +45,18 @@ function* ensureDatabases() {
       )
     `,
     pool: 'geo',
+  })
+
+  yield query({
+    text: `
+      CREATE TABLE IF NOT EXISTS people (
+        id SERIAL NOT NULL PRIMARY KEY,
+        firstname TEXT NOT NULL,
+        lastname TEXT NOT NULL,
+        "addressId" INT NOT NULL
+      )
+    `,
+    pool: 'identity',
   })
 }
 

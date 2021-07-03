@@ -15,5 +15,14 @@ export const typeDefs = gql`
     id: ID!
     firstname: String!
     lastname: String!
+    address: Address!
+  }
+
+  type Address {
+    id: ID!
+    number: String!
+    street: String!
+    postalcode: String!
+    city: String!
   }
 `
