@@ -1,10 +1,11 @@
 import { Plugin } from '@cuillere/core'
 import { Context, ContextFunction, GraphQLServiceContext } from 'apollo-server-core'
-import { GraphQLServerListener, ValueOrPromise } from 'apollo-server-plugin-base'
+import { GraphQLServerListener } from 'apollo-server-plugin-base'
 
 import { ApolloServerPluginArgs } from './apollo-server-plugin'
 import { KoaMiddlewareArgs } from './koa-middleware'
 import { TaskListener } from './task-manager'
+import { OneOrMany, ValueOrPromise } from './types'
 
 export type ServerPlugin = {
   graphqlContext?: Context | ContextFunction
@@ -17,6 +18,3 @@ export type ServerPlugin = {
 export interface GetTaskListener<Args extends any[]> {
   (...args: Args): ValueOrPromise<TaskListener | void>
 }
-
-// FIXME move this type
-export type OneOrMany<T> = T | T[]
