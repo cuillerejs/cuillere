@@ -5,11 +5,11 @@ import {
 import { clientPlugin, getClientManager, PoolConfig, PoolManager } from '@cuillere/postgres'
 
 export interface CuillereConfig {
-    contextKey?: string
-    poolConfig?: PoolConfig | PoolConfig[]
-    poolManager?: PoolManager
-    transactionManager?: TransactionManagerType
-    plugins?: Plugin[]
+  contextKey?: string
+  poolConfig?: PoolConfig | PoolConfig[]
+  poolManager?: PoolManager
+  transactionManager?: TransactionManagerType
+  plugins?: Plugin[]
 }
 
 export class CuillereServer extends CuillereServerBase {
