@@ -68,9 +68,6 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
     plugins: mergeApolloPlugins(config, apolloConfig),
   }
 
-  apolloConfigOverride[CUILLERE_PLUGINS] = getCuillerePlugins(config)
-  apolloConfigOverride[CUILLERE_CONTEXT_KEY] = config.contextKey
-
   if (apolloConfig.schema) {
     if (!isCuillereSchema(apolloConfig.schema)) {
       throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
@@ -83,6 +80,9 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
       typeDefs: apolloConfig.typeDefs, // possibility to extend typeDefs...
     })
   }
+
+  apolloConfigOverride.schema[CUILLERE_PLUGINS] = getCuillerePlugins(config)
+  apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
 
   return apolloConfigOverride
 }

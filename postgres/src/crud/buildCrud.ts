@@ -1,7 +1,7 @@
 import { all } from '@cuillere/core'
 import { Crud, Database, Provider } from '@cuillere/crud'
 
-import { getPools, query } from '../plugins/client'
+import { getPools, query } from '../plugin'
 
 export async function* buildCrud() {
   const postgres: Provider = {}

@@ -1,4 +1,14 @@
-import { buildCrud, cuillere, clientPlugin, DEFAULT_POOL, getClientManager, mergeCruds, PoolManager, query, taskManagerPlugin } from '@cuillere/server-postgres'
+import {
+  buildCrud,
+  cuillere,
+  postgresPlugin,
+  DEFAULT_POOL,
+  getClientManager,
+  mergeCruds,
+  PoolManager,
+  query,
+  taskManagerPlugin,
+} from '@cuillere/server-postgres'
 
 const poolConfig = [
   {
@@ -77,14 +87,14 @@ export const initPostgres = () => cuillere(
       transactionManager: 'none',
     }),
   ),
-  clientPlugin(),
+  postgresPlugin(),
 ).call(ensureDatabases)
 
 export const initCrud = () => cuillere(
   taskManagerPlugin(
     getClientManager({ poolManager }),
   ),
-  clientPlugin(),
+  postgresPlugin(),
 ).call(function* () {
   return mergeCruds(yield buildCrud())
 })
