@@ -16,5 +16,5 @@ export type ServerPlugin = {
 }
 
 export interface GetTaskListener<Args extends any[]> {
-  (...args: Args): ValueOrPromise<TaskListener | void>
+  (...args: Args): TaskListener | void
 }

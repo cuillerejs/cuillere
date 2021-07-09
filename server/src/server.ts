@@ -3,17 +3,16 @@ import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from '
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
-import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
-import { GetAsyncTaskManager } from './task-manager'
-import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
+import { apolloServerPlugin } from './apollo-server-plugin'
+import { AsyncTaskManager, TaskListener } from './task-manager'
+import { koaMiddleware } from './koa-middleware'
 import { defaultContextKey } from './context'
 import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
+import { ServerPlugin } from './server-plugin'
 
 export interface CuillereConfig {
   contextKey?: string
-  httpRequestTaskManager?: GetAsyncTaskManager<KoaMiddlewareArgs>
-  graphqlRequestTaskManager?: GetAsyncTaskManager<ApolloServerPluginArgs>
-  plugins: Plugin[]
+  plugins?: ServerPlugin[]
 }
 
 export class CuillereServer extends ApolloServer {
@@ -26,12 +25,20 @@ export class CuillereServer extends ApolloServer {
   }
 
   applyMiddleware(serverRegistration: ServerRegistration) {
-    const { httpRequestTaskManager: taskManager, contextKey } = this.cuillereConfig
+    const { contextKey, plugins } = this.cuillereConfig
 
-    if (taskManager) {
+    const listenerGetters = plugins?.flatMap(plugin => plugin.httpRequestListeners ?? []) ?? []
+
+    if (listenerGetters.length !== 0) {
       serverRegistration.app.use(koaMiddleware({
         context: ctx => ctx[contextKey] = {}, // eslint-disable-line no-return-assign
-        taskManager,
+        taskManager(...args) {
+          const listeners = listenerGetters
+            .map(listenerGetter => listenerGetter(...args))
+            .filter((listener): listener is TaskListener => listener != null)
+          if (listeners.length === 0) return
+          return new AsyncTaskManager(...listeners)
+        },
       }))
     }
 
@@ -56,17 +63,18 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
 
 function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
   const apolloConfigOverride: ApolloConfig = {
+    ...apolloConfig,
     context: getContextFunction(config, apolloConfig),
-    plugins: mergePlugins(config, apolloConfig),
+    plugins: mergeApolloPlugins(config, apolloConfig),
   }
+
+  apolloConfigOverride[CUILLERE_PLUGINS] = getCuillerePlugins(config)
+  apolloConfigOverride[CUILLERE_CONTEXT_KEY] = config.contextKey
 
   if (apolloConfig.schema) {
     if (!isCuillereSchema(apolloConfig.schema)) {
       throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
     }
-
-    apolloConfig.schema[CUILLERE_PLUGINS] = config.plugins
-    apolloConfig.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   } else {
     apolloConfigOverride.schema = makeExecutableSchema({
       parseOptions: apolloConfig.parseOptions,
@@ -74,15 +82,9 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
       schemaDirectives: apolloConfig.schemaDirectives, // possibility to add directives...
       typeDefs: apolloConfig.typeDefs, // possibility to extend typeDefs...
     })
-
-    apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
-    apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   }
 
-  return {
-    ...apolloConfig,
-    ...apolloConfigOverride,
-  }
+  return apolloConfigOverride
 }
 
 function getContextFunction({ contextKey }: CuillereConfig, { context } : ApolloConfig): ContextFunction {
@@ -99,7 +101,7 @@ function getContextFunction({ contextKey }: CuillereConfig, { context } : Apollo
   })
 }
 
-function mergePlugins(config: CuillereConfig, { plugins } : ApolloConfig): PluginDefinition[] {
+function mergeApolloPlugins(config: CuillereConfig, { plugins } : ApolloConfig): PluginDefinition[] {
   const plugin = getApolloServerPlugin(config)
 
   if (!plugin) return plugins
@@ -111,12 +113,24 @@ function mergePlugins(config: CuillereConfig, { plugins } : ApolloConfig): Plugi
 }
 
 function getApolloServerPlugin(config: CuillereConfig) {
-  const { graphqlRequestTaskManager: taskManager, contextKey } = config
+  const { contextKey, plugins } = config
 
-  if (!taskManager) return null
+  const listenerGetters = plugins?.flatMap(plugin => plugin.graphqlRequestListeners ?? []) ?? []
+
+  if (listenerGetters.length === 0) return null
 
   return apolloServerPlugin({
     context: reqCtx => reqCtx.context[contextKey] = {}, // eslint-disable-line no-return-assign
-    taskManager,
+    taskManager(...args) {
+      const listeners = listenerGetters
+        .map(listenerGetter => listenerGetter(...args))
+        .filter((listener): listener is TaskListener => listener != null)
+      if (listeners.length === 0) return
+      return new AsyncTaskManager(...listeners)
+    },
   })
+}
+
+function getCuillerePlugins({ plugins }: CuillereConfig): Plugin[] {
+  return plugins?.flatMap(plugin => plugin.plugins ?? []) ?? []
 }
