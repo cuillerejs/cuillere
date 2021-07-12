@@ -1,8 +1,9 @@
 import { CuillereServer as CuillereServerBase, Config as ApolloConfig, CuillereConfig } from '@cuillere/server'
 import { PostgresConfig, postgresServerPlugin } from '@cuillere/postgres'
+import { crudServerPlugin } from '@cuillere/crud'
 
 export class CuillereServer extends CuillereServerBase {
-  constructor(apolloConfig: ApolloConfig, config: PostgresConfig & CuillereConfig) {
+  constructor(apolloConfig: ApolloConfig, config: CuillereConfig & PostgresConfig) {
     super(
       apolloConfig,
       {
@@ -10,7 +11,7 @@ export class CuillereServer extends CuillereServerBase {
         plugins: [
           ...(config.plugins ?? []),
           postgresServerPlugin(config),
-          // FIXME add crud plugin
+          crudServerPlugin,
         ],
       },
     )

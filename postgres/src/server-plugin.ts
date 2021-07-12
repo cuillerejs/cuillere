@@ -4,8 +4,8 @@ import { getClientManager } from './client-manager'
 import { PostgresConfig } from './config'
 import { postgresPlugin } from './plugin'
 
-export function postgresServerPlugin(config: PostgresConfig): ServerPlugin {
-  return {
+export function postgresServerPlugin(config: PostgresConfig) {
+  return (): ServerPlugin => ({
     httpRequestListeners() {
       return getClientManager({
         // FIXME this isn't good, this should always be a poolManager, the poolManager should be global to the server
@@ -24,5 +24,5 @@ export function postgresServerPlugin(config: PostgresConfig): ServerPlugin {
       })
     },
     plugins: postgresPlugin(),
-  }
+  })
 }

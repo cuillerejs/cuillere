@@ -12,26 +12,36 @@ import { ServerPlugin } from './server-plugin'
 
 export interface CuillereConfig {
   contextKey?: string
-  plugins?: ServerPlugin[]
+  plugins?: ((srvCtx: ServerContext) => ServerPlugin)[]
 }
+
+export type ServerContext = Map<any, any>
 
 export class CuillereServer extends ApolloServer {
   private cuillereConfig: CuillereConfig
 
-  constructor(apolloConfig: ApolloConfig, config: CuillereConfig) {
-    super(buildApolloConfig(defaultConfig(config), apolloConfig))
+  private serverContext: ServerContext
 
-    this.cuillereConfig = defaultConfig(config)
+  private serverPlugins: ServerPlugin[]
+
+  constructor(apolloConfig: ApolloConfig, configInput: CuillereConfig) {
+    const config = defaultConfig(configInput)
+    const srvCtx: ServerContext = new Map()
+    const plugins: ServerPlugin[] = config.plugins?.map(plugin => plugin(srvCtx)) ?? []
+
+    super(buildApolloConfig(apolloConfig, config, plugins))
+
+    this.cuillereConfig = config
+    this.serverContext = srvCtx
+    this.serverPlugins = plugins
   }
 
   applyMiddleware(serverRegistration: ServerRegistration) {
-    const { contextKey, plugins } = this.cuillereConfig
-
-    const listenerGetters = plugins?.flatMap(plugin => plugin.httpRequestListeners ?? []) ?? []
+    const listenerGetters = this.serverPlugins.flatMap(plugin => plugin.httpRequestListeners ?? [])
 
     if (listenerGetters.length !== 0) {
       serverRegistration.app.use(koaMiddleware({
-        context: ctx => ctx[contextKey] = {}, // eslint-disable-line no-return-assign
+        context: ctx => ctx[this.cuillereConfig.contextKey] = {}, // eslint-disable-line no-return-assign
         taskManager(...args) {
           const listeners = listenerGetters
             .map(listenerGetter => listenerGetter(...args))
@@ -61,11 +71,11 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
   }
 }
 
-function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
+function buildApolloConfig(apolloConfig: ApolloConfig, config: CuillereConfig, plugins: ServerPlugin[]): ApolloConfig {
   const apolloConfigOverride: ApolloConfig = {
     ...apolloConfig,
-    context: getContextFunction(config, apolloConfig),
-    plugins: mergeApolloPlugins(config, apolloConfig),
+    context: getContextFunction(apolloConfig, config),
+    plugins: mergeApolloPlugins(apolloConfig, config, plugins),
   }
 
   if (apolloConfig.schema) {
@@ -81,13 +91,13 @@ function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): 
     })
   }
 
-  apolloConfigOverride.schema[CUILLERE_PLUGINS] = getCuillerePlugins(config)
+  apolloConfigOverride.schema[CUILLERE_PLUGINS] = getCuillerePlugins(plugins)
   apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
 
   return apolloConfigOverride
 }
 
-function getContextFunction({ contextKey }: CuillereConfig, { context } : ApolloConfig): ContextFunction {
+function getContextFunction({ context } : ApolloConfig, { contextKey }: CuillereConfig): ContextFunction {
   if (typeof context === 'function') {
     return async arg => ({
       ...await context(arg),
@@ -101,26 +111,24 @@ function getContextFunction({ contextKey }: CuillereConfig, { context } : Apollo
   })
 }
 
-function mergeApolloPlugins(config: CuillereConfig, { plugins } : ApolloConfig): PluginDefinition[] {
-  const plugin = getApolloServerPlugin(config)
+function mergeApolloPlugins(apolloConfig: ApolloConfig, config: CuillereConfig, plugins: ServerPlugin[]): PluginDefinition[] {
+  const plugin = getApolloServerPlugin(config, plugins)
 
   if (!plugin) return plugins
 
   return [
-    ...(plugins ?? []),
+    ...(apolloConfig.plugins ?? []),
     plugin,
   ]
 }
 
-function getApolloServerPlugin(config: CuillereConfig) {
-  const { contextKey, plugins } = config
-
-  const listenerGetters = plugins?.flatMap(plugin => plugin.graphqlRequestListeners ?? []) ?? []
+function getApolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin[]) {
+  const listenerGetters = plugins.flatMap(plugin => plugin.graphqlRequestListeners ?? [])
 
   if (listenerGetters.length === 0) return null
 
   return apolloServerPlugin({
-    context: reqCtx => reqCtx.context[contextKey] = {}, // eslint-disable-line no-return-assign
+    context: reqCtx => reqCtx.context[config.contextKey] = {}, // eslint-disable-line no-return-assign
     taskManager(...args) {
       const listeners = listenerGetters
         .map(listenerGetter => listenerGetter(...args))
@@ -131,6 +139,6 @@ function getApolloServerPlugin(config: CuillereConfig) {
   })
 }
 
-function getCuillerePlugins({ plugins }: CuillereConfig): Plugin[] {
-  return plugins?.flatMap(plugin => plugin.plugins ?? []) ?? []
+function getCuillerePlugins(plugins: ServerPlugin[]): Plugin[] {
+  return plugins.flatMap(plugin => plugin.plugins ?? [])
 }
