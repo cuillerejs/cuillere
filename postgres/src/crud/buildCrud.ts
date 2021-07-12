@@ -3,7 +3,7 @@ import { Crud, Database, Provider } from '@cuillere/crud'
 
 import { getPools, query } from '../plugin'
 
-export async function* buildCrud() {
+export function* buildCrud() {
   const postgres: Provider = {}
 
   const pools = yield getPools()

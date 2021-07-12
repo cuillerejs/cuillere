@@ -34,7 +34,7 @@ export class CuillereServer extends ApolloServer {
 
     if (listenerGetters.length !== 0) {
       serverRegistration.app.use(koaMiddleware({
-        context: ctx => ctx[this.cuillereConfig.contextKey] = {}, // eslint-disable-line no-return-assign
+        context: ctx => ctx[this.cuillereConfig.contextKey] = {},
         taskManager: makeAsyncTaskManagerGetterForListenerGetters(listenerGetters),
       }))
     }

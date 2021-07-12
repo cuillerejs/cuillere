@@ -98,6 +98,7 @@ module.exports = {
         message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
       },
     ],
+    'no-return-assign': 'off',
     'no-shadow': 'off',
     'no-use-before-define': 'off',
     'object-curly-newline': ['error', { consistent: true }],

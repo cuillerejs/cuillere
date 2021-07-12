@@ -38,7 +38,7 @@ export function apolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin
   if (getTaskManager == null && serverWillStart == null) return null
 
   function getContext(reqCtx: GraphQLRequestContextExecutionDidStart<BaseContext>) {
-    return reqCtx.context[config.contextKey] = {} // eslint-disable-line no-return-assign
+    return reqCtx.context[config.contextKey] = {}
   }
 
   return {
