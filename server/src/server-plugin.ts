@@ -12,7 +12,7 @@ export type ServerPlugin = {
   httpRequestListeners?: OneOrMany<GetTaskListener<KoaMiddlewareArgs>>
   graphqlRequestListeners?: OneOrMany<GetTaskListener<ApolloServerPluginArgs>>
   plugins?: OneOrMany<Plugin>
-  serverWillStart?: (service: GraphQLServiceContext) => ValueOrPromise<GraphQLServerListener | void>
+  serverWillStart?: (service: GraphQLServiceContext) => ValueOrPromise<GraphQLServerListener>
 }
 
 export interface GetTaskListener<Args extends any[]> {

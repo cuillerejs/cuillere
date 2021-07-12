@@ -3,19 +3,13 @@ import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from '
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
-import { apolloServerPlugin } from './apollo-server-plugin'
-import { AsyncTaskManager, TaskListener } from './task-manager'
+import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
+import { AsyncTaskManager, GetTaskManager, TaskListener } from './task-manager'
 import { koaMiddleware } from './koa-middleware'
 import { defaultContextKey } from './context'
 import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
 import { ServerPlugin } from './server-plugin'
-
-export interface CuillereConfig {
-  contextKey?: string
-  plugins?: ((srvCtx: ServerContext) => ServerPlugin)[]
-}
-
-export type ServerContext = Map<any, any>
+import { CuillereConfig, ServerContext } from './types'
 
 export class CuillereServer extends ApolloServer {
   private cuillereConfig: CuillereConfig
@@ -112,7 +106,7 @@ function getContextFunction({ context } : ApolloConfig, { contextKey }: Cuillere
 }
 
 function mergeApolloPlugins(apolloConfig: ApolloConfig, config: CuillereConfig, plugins: ServerPlugin[]): PluginDefinition[] {
-  const plugin = getApolloServerPlugin(config, plugins)
+  const plugin = apolloServerPlugin(config, plugins)
 
   if (!plugin) return plugins
 
@@ -120,23 +114,6 @@ function mergeApolloPlugins(apolloConfig: ApolloConfig, config: CuillereConfig, 
     ...(apolloConfig.plugins ?? []),
     plugin,
   ]
-}
-
-function getApolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin[]) {
-  const listenerGetters = plugins.flatMap(plugin => plugin.graphqlRequestListeners ?? [])
-
-  if (listenerGetters.length === 0) return null
-
-  return apolloServerPlugin({
-    context: reqCtx => reqCtx.context[config.contextKey] = {}, // eslint-disable-line no-return-assign
-    taskManager(...args) {
-      const listeners = listenerGetters
-        .map(listenerGetter => listenerGetter(...args))
-        .filter((listener): listener is TaskListener => listener != null)
-      if (listeners.length === 0) return
-      return new AsyncTaskManager(...listeners)
-    },
-  })
 }
 
 function getCuillerePlugins(plugins: ServerPlugin[]): Plugin[] {
