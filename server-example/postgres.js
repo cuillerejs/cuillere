@@ -1,5 +1,5 @@
 import cuillere from '@cuillere/core'
-import { clientPlugin, DEFAULT_POOL, getClientManager, PoolManager, query } from '@cuillere/postgres'
+import { postgresPlugin, DEFAULT_POOL, getClientManager, PoolManager, query } from '@cuillere/postgres'
 import { taskManagerPlugin } from '@cuillere/server'
 
 const poolConfig = [
@@ -82,5 +82,5 @@ export const initPostgres = () => cuillere(
       transactionManager: 'none',
     }),
   ),
-  clientPlugin(),
+  postgresPlugin(),
 ).call(ensureDatabases)
