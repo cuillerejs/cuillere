@@ -4,7 +4,7 @@ import { GraphQLServerListener } from 'apollo-server-plugin-base'
 
 import { ApolloServerPluginArgs } from './apollo-server-plugin'
 import { KoaMiddlewareArgs } from './koa-middleware'
-import { TaskListener } from './task-manager'
+import { AsyncTaskManager, GetAsyncTaskManager, TaskListener } from './task-manager'
 import { OneOrMany, ValueOrPromise } from './types'
 
 export type ServerPlugin = {
@@ -17,4 +17,14 @@ export type ServerPlugin = {
 
 export interface GetTaskListener<Args extends any[]> {
   (...args: Args): TaskListener | void
+}
+
+export function makeAsyncTaskManagerGetterForListenerGetters<Args extends any[]>(listenerGetters: GetTaskListener<Args>[]): GetAsyncTaskManager<Args> {
+  return (...args) => {
+    const listeners = listenerGetters
+      .map(listenerGetter => listenerGetter(...args))
+      .filter((listener): listener is TaskListener => listener != null)
+    if (listeners.length === 0) return
+    return new AsyncTaskManager(...listeners)
+  }
 }

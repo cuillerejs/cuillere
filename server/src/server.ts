@@ -3,12 +3,11 @@ import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from '
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
-import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
-import { AsyncTaskManager, GetTaskManager, TaskListener } from './task-manager'
+import { apolloServerPlugin } from './apollo-server-plugin'
 import { koaMiddleware } from './koa-middleware'
 import { defaultContextKey } from './context'
 import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
-import { ServerPlugin } from './server-plugin'
+import { makeAsyncTaskManagerGetterForListenerGetters, ServerPlugin } from './server-plugin'
 import { CuillereConfig, ServerContext } from './types'
 
 export class CuillereServer extends ApolloServer {
@@ -36,13 +35,7 @@ export class CuillereServer extends ApolloServer {
     if (listenerGetters.length !== 0) {
       serverRegistration.app.use(koaMiddleware({
         context: ctx => ctx[this.cuillereConfig.contextKey] = {}, // eslint-disable-line no-return-assign
-        taskManager(...args) {
-          const listeners = listenerGetters
-            .map(listenerGetter => listenerGetter(...args))
-            .filter((listener): listener is TaskListener => listener != null)
-          if (listeners.length === 0) return
-          return new AsyncTaskManager(...listeners)
-        },
+        taskManager: makeAsyncTaskManagerGetterForListenerGetters(listenerGetters),
       }))
     }
 

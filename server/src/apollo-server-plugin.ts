@@ -8,26 +8,18 @@ import type {
 import { executablePromise } from '@cuillere/core'
 
 import { CuillereConfig, ValueOrPromise } from './types'
-import { ServerPlugin } from './server-plugin'
-import { AsyncTaskManager, GetTaskManager, TaskListener } from './task-manager'
+import { makeAsyncTaskManagerGetterForListenerGetters, ServerPlugin } from './server-plugin'
+import { GetAsyncTaskManager } from './task-manager'
 
 export type ApolloServerPluginArgs = [GraphQLRequestContextExecutionDidStart<BaseContext>]
 
 export function apolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin[]): ApolloServerPlugin {
-  let getTaskManager: GetTaskManager<AsyncTaskManager, ApolloServerPluginArgs>
+  let getTaskManager: GetAsyncTaskManager<ApolloServerPluginArgs>
 
   const listenerGetters = plugins.flatMap(plugin => plugin.graphqlRequestListeners ?? [])
-  if (listenerGetters.length !== 0) {
-    getTaskManager = (...args) => {
-      const listeners = listenerGetters
-        .map(listenerGetter => listenerGetter(...args))
-        .filter((listener): listener is TaskListener => listener != null)
-      if (listeners.length === 0) return
-      return new AsyncTaskManager(...listeners)
-    }
-  }
+  if (listenerGetters.length !== 0) getTaskManager = makeAsyncTaskManagerGetterForListenerGetters(listenerGetters)
 
-  let serverWillStart: (service: GraphQLServiceContext) => ValueOrPromise<GraphQLServerListener | void>
+  let serverWillStart: (service: GraphQLServiceContext) => ValueOrPromise<GraphQLServerListener>
 
   const serverWillStarts = plugins
     .map(plugin => plugin.serverWillStart)
