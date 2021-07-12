@@ -101,7 +101,7 @@ function getContextFunction({ context }: ApolloConfig, { contextKey }: CuillereC
 function mergeApolloPlugins(apolloConfig: ApolloConfig, config: CuillereConfig, plugins: ServerPlugin[]): PluginDefinition[] {
   const plugin = apolloServerPlugin(config, plugins)
 
-  if (!plugin) return plugins
+  if (!plugin) return apolloConfig.plugins
 
   return [
     ...(apolloConfig.plugins ?? []),

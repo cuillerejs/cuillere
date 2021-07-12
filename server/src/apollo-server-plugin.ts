@@ -5,11 +5,12 @@ import type {
   GraphQLServiceContext,
   GraphQLServerListener,
 } from 'apollo-server-plugin-base'
-import { executablePromise } from '@cuillere/core'
+import { all, call, executablePromise } from '@cuillere/core'
 
 import { CuillereConfig, ValueOrPromise } from './types'
-import { makeAsyncTaskManagerGetterForListenerGetters, ServerPlugin } from './server-plugin'
+import { CuillereServerListener, makeAsyncTaskManagerGetterForListenerGetters, ServerPlugin } from './server-plugin'
 import { GetAsyncTaskManager } from './task-manager'
+import { CUILLERE_INSTANCE } from './schema'
 
 export type ApolloServerPluginArgs = [GraphQLRequestContextExecutionDidStart<BaseContext>]
 
@@ -26,10 +27,14 @@ export function apolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin
     .filter(fn => fn != null)
   if (serverWillStarts.length !== 0) {
     serverWillStart = async (srvCtx) => {
-      const srvListeners = await Promise.all(serverWillStarts.map(fn => fn(srvCtx)))
+      const srvListeners: CuillereServerListener[] = await srvCtx.schema[CUILLERE_INSTANCE].start(all(serverWillStarts.map(fn => call(fn, srvCtx))))
       return {
         async serverWillStop() {
-          await Promise.all(srvListeners.map((listener?: GraphQLServerListener) => listener?.serverWillStop?.()))
+          const serverWillStops = srvListeners
+            .filter(srvListener => srvListener?.serverWillStop != null)
+            .map(srvListener => srvListener.serverWillStop)
+          if (serverWillStops.length === 0) return
+          await srvCtx.schema[CUILLERE_INSTANCE].start(all(serverWillStops.map(fn => call(fn))))
         },
       }
     }
