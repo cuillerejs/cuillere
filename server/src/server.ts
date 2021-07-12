@@ -1,5 +1,5 @@
 import { Plugin } from '@cuillere/core'
-import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from 'apollo-server-core'
+import type { ContextFunction, PluginDefinition, Config as ApolloConfig, Context } from 'apollo-server-core'
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
@@ -61,7 +61,7 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
 function buildApolloConfig(apolloConfig: ApolloConfig, config: CuillereConfig, plugins: ServerPlugin[]): ApolloConfig {
   const apolloConfigOverride: ApolloConfig = {
     ...apolloConfig,
-    context: getContextFunction(apolloConfig, config),
+    context: getContextFunction(apolloConfig, config, plugins),
     plugins: mergeApolloPlugins(apolloConfig, config, plugins),
   }
 
@@ -84,17 +84,31 @@ function buildApolloConfig(apolloConfig: ApolloConfig, config: CuillereConfig, p
   return apolloConfigOverride
 }
 
-function getContextFunction({ context }: ApolloConfig, { contextKey }: CuillereConfig): ContextFunction {
+function getContextFunction({ context }: ApolloConfig, { contextKey }: CuillereConfig, plugins: ServerPlugin[]): ContextFunction {
+  let pluginsContext: ContextFunction
+
+  const pluginsContexts = plugins
+    .filter(plugin => plugin.graphqlContext != null)
+    .map(plugin => plugin.graphqlContext)
+  if (pluginsContexts.length !== 0) {
+    pluginsContext = async (arg) => {
+      const contexts = await Promise.all(pluginsContexts.map(v => (typeof v === 'function' ? v(arg) : v)))
+      return Object.assign({}, ...contexts)
+    }
+  }
+
   if (typeof context === 'function') {
     return async arg => ({
       ...await context(arg),
       [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
+      ...await pluginsContext?.(arg),
     })
   }
 
-  return ({ ctx }) => ({
+  return async arg => ({
     ...context,
-    [contextKey]: ctx?.[contextKey], // FIXME subscriptions?
+    [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
+    ...await pluginsContext?.(arg),
   })
 }
 

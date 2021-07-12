@@ -15,6 +15,10 @@ export function crudServerPlugin(srvCtx: ServerContext): ServerPlugin {
       crud = mergeCruds(...cruds)
     },
 
+    graphqlContext() {
+      return { crud }
+    },
+
     plugins: {
       handlers: {
         * '@cuillere/start'(operation: OperationObject, ctx: any) {
