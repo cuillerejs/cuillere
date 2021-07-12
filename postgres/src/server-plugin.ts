@@ -12,6 +12,7 @@ export function postgresServerPlugin(config: PostgresConfig) {
     registerCrudProvider(srvCtx, 'postgres', {
       build() {
         return cuillere(
+          // FIXME using taskManagerPlugin means cuillere/server is not a devDependency anymore
           taskManagerPlugin(
             getClientManager({
               // FIXME no poolConfig, same as below...
