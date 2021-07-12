@@ -6,23 +6,21 @@ import { mergeCruds } from './mergeCruds'
 import { getCrudProviders } from './provider'
 
 export function crudServerPlugin(srvCtx: ServerContext): ServerPlugin {
-  let crud: Crud
+  const crudHolder: { crud?: Crud } = {}
 
   return {
     async serverWillStart() {
       const providers = getCrudProviders(srvCtx)
       const cruds = await Promise.all(providers.map(provider => provider.build()))
-      crud = mergeCruds(...cruds)
+      crudHolder.crud = mergeCruds(...cruds)
     },
 
-    graphqlContext() {
-      return { crud }
-    },
+    graphqlContext: crudHolder,
 
     plugins: {
       handlers: {
         * '@cuillere/start'(operation: OperationObject, ctx: any) {
-          if (crud != null) ctx.crud = crud
+          if (crudHolder.crud != null) ctx.crud = crudHolder.crud
           yield delegate(operation)
         },
       },
