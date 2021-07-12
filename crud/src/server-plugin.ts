@@ -1,4 +1,4 @@
-import { all, call, delegate, OperationObject } from '@cuillere/core'
+import { delegate, OperationObject } from '@cuillere/core'
 import type { ServerPlugin, ServerContext } from '@cuillere/server'
 
 import { Crud } from './crud'
@@ -9,11 +9,10 @@ export function crudServerPlugin(srvCtx: ServerContext): ServerPlugin {
   let crud: Crud
 
   return {
-    * serverWillStart() {
+    async serverWillStart() {
       const providers = getCrudProviders(srvCtx)
-      const cruds = yield all(providers.map(provider => call(provider.buildCrud)))
-      crud = mergeCruds(cruds)
-      return {} // FIXME fix the typing of serverWillStart
+      const cruds = await Promise.all(providers.map(provider => provider.build()))
+      crud = mergeCruds(...cruds)
     },
 
     plugins: {

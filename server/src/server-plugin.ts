@@ -1,24 +1,25 @@
-import { Plugin, GeneratorFunction } from '@cuillere/core'
+import { Plugin } from '@cuillere/core'
 import { Context, ContextFunction, GraphQLServiceContext } from 'apollo-server-core'
+import { GraphQLServerListener } from 'apollo-server-plugin-base'
 
 import { ApolloServerPluginArgs } from './apollo-server-plugin'
 import { KoaMiddlewareArgs } from './koa-middleware'
 import { AsyncTaskManager, GetAsyncTaskManager, TaskListener } from './task-manager'
-import { OneOrMany } from './types'
+import { OneOrMany, ValueOrPromise } from './types'
 
 export type ServerPlugin = {
   graphqlContext?: Context | ContextFunction
   httpRequestListeners?: OneOrMany<GetTaskListener<KoaMiddlewareArgs>>
   graphqlRequestListeners?: OneOrMany<GetTaskListener<ApolloServerPluginArgs>>
   plugins?: OneOrMany<Plugin>
-  serverWillStart?: GeneratorFunction<[GraphQLServiceContext], CuillereServerListener>
+  serverWillStart?(service: GraphQLServiceContext): ValueOrPromise<GraphQLServerListener | void>
 }
 
 export interface GetTaskListener<Args extends any[]> {
   (...args: Args): TaskListener | void
 }
 
-export function makeAsyncTaskManagerGetterForListenerGetters<Args extends any[]>(listenerGetters: GetTaskListener<Args>[]): GetAsyncTaskManager<Args> {
+export function makeAsyncTaskManagerGetterFromListenerGetters<Args extends any[]>(listenerGetters: GetTaskListener<Args>[]): GetAsyncTaskManager<Args> {
   return (...args) => {
     const listeners = listenerGetters
       .map(listenerGetter => listenerGetter(...args))
@@ -26,8 +27,4 @@ export function makeAsyncTaskManagerGetterForListenerGetters<Args extends any[]>
     if (listeners.length === 0) return
     return new AsyncTaskManager(...listeners)
   }
-}
-
-export interface CuillereServerListener {
-  serverWillStop?: GeneratorFunction
 }

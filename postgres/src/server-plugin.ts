@@ -1,5 +1,6 @@
-import type { ServerContext, ServerPlugin } from '@cuillere/server'
-import { CrudProvider, registerCrudProvider } from '@cuillere/crud'
+import { cuillere } from '@cuillere/core'
+import { ServerContext, ServerPlugin, taskManagerPlugin } from '@cuillere/server'
+import { registerCrudProvider } from '@cuillere/crud'
 
 import { getClientManager } from './client-manager'
 import { PostgresConfig } from './config'
@@ -8,7 +9,20 @@ import { postgresPlugin } from './plugin'
 
 export function postgresServerPlugin(config: PostgresConfig) {
   return (srvCtx: ServerContext): ServerPlugin => {
-    registerCrudProvider(srvCtx, 'postgres', crudProvider)
+    registerCrudProvider(srvCtx, 'postgres', {
+      build() {
+        return cuillere(
+          taskManagerPlugin(
+            getClientManager({
+              // FIXME no poolConfig, same as below...
+              poolManager: config?.poolManager,
+              transactionManager: 'read-only',
+            }),
+          ),
+          postgresPlugin(),
+        ).call(buildCrud)
+      },
+    })
 
     return {
       httpRequestListeners() {
@@ -31,8 +45,4 @@ export function postgresServerPlugin(config: PostgresConfig) {
       plugins: postgresPlugin(),
     }
   }
-}
-
-const crudProvider: CrudProvider = {
-  buildCrud,
 }

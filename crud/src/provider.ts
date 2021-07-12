@@ -1,10 +1,9 @@
-import { GeneratorFunction } from '@cuillere/core'
 import type { ServerContext } from '@cuillere/server'
 
 import { Crud } from './crud'
 
 export interface CrudProvider {
-  buildCrud: GeneratorFunction<any[], Crud>
+  build(): Promise<Crud>
 }
 
 const CRUD_PROVIDERS = Symbol('CRUD_PROVIDERS')

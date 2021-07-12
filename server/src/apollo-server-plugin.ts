@@ -8,7 +8,7 @@ import type {
 import { all, call, executablePromise } from '@cuillere/core'
 
 import { CuillereConfig, ValueOrPromise } from './types'
-import { CuillereServerListener, makeAsyncTaskManagerGetterForListenerGetters, ServerPlugin } from './server-plugin'
+import { makeAsyncTaskManagerGetterFromListenerGetters, ServerPlugin } from './server-plugin'
 import { GetAsyncTaskManager } from './task-manager'
 import { CUILLERE_INSTANCE } from './schema'
 
@@ -18,23 +18,24 @@ export function apolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin
   let getTaskManager: GetAsyncTaskManager<ApolloServerPluginArgs>
 
   const listenerGetters = plugins.flatMap(plugin => plugin.graphqlRequestListeners ?? [])
-  if (listenerGetters.length !== 0) getTaskManager = makeAsyncTaskManagerGetterForListenerGetters(listenerGetters)
+  if (listenerGetters.length !== 0) getTaskManager = makeAsyncTaskManagerGetterFromListenerGetters(listenerGetters)
 
   let serverWillStart: (service: GraphQLServiceContext) => ValueOrPromise<GraphQLServerListener>
 
   const serverWillStarts = plugins
+    .filter(plugin => plugin.serverWillStart != null)
     .map(plugin => plugin.serverWillStart)
-    .filter(fn => fn != null)
   if (serverWillStarts.length !== 0) {
     serverWillStart = async (srvCtx) => {
-      const srvListeners: CuillereServerListener[] = await srvCtx.schema[CUILLERE_INSTANCE].start(all(serverWillStarts.map(fn => call(fn, srvCtx))))
+      const srvListeners = await Promise.all(serverWillStarts.map(fn => fn(srvCtx)))
+      const serverWillStops = srvListeners
+        .filter((srvListener): srvListener is GraphQLServerListener => srvListener != null)
+        .filter(srvListener => srvListener.serverWillStop != null)
+        .map(srvListener => srvListener.serverWillStop)
+      if (serverWillStops.length === 0) return
       return {
         async serverWillStop() {
-          const serverWillStops = srvListeners
-            .filter(srvListener => srvListener?.serverWillStop != null)
-            .map(srvListener => srvListener.serverWillStop)
-          if (serverWillStops.length === 0) return
-          await srvCtx.schema[CUILLERE_INSTANCE].start(all(serverWillStops.map(fn => call(fn))))
+          await Promise.all(serverWillStops.map(fn => fn()))
         },
       }
     }

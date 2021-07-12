@@ -7,7 +7,7 @@ import { apolloServerPlugin } from './apollo-server-plugin'
 import { koaMiddleware } from './koa-middleware'
 import { defaultContextKey } from './context'
 import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
-import { makeAsyncTaskManagerGetterForListenerGetters, ServerPlugin } from './server-plugin'
+import { makeAsyncTaskManagerGetterFromListenerGetters, ServerPlugin } from './server-plugin'
 import { CuillereConfig, ServerContext } from './types'
 
 export class CuillereServer extends ApolloServer {
@@ -35,7 +35,7 @@ export class CuillereServer extends ApolloServer {
     if (listenerGetters.length !== 0) {
       serverRegistration.app.use(koaMiddleware({
         context: ctx => ctx[this.cuillereConfig.contextKey] = {},
-        taskManager: makeAsyncTaskManagerGetterForListenerGetters(listenerGetters),
+        taskManager: makeAsyncTaskManagerGetterFromListenerGetters(listenerGetters),
       }))
     }
 
