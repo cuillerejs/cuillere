@@ -84,7 +84,7 @@ function buildApolloConfig(apolloConfig: ApolloConfig, config: CuillereConfig, p
   return apolloConfigOverride
 }
 
-function getContextFunction({ context } : ApolloConfig, { contextKey }: CuillereConfig): ContextFunction {
+function getContextFunction({ context }: ApolloConfig, { contextKey }: CuillereConfig): ContextFunction {
   if (typeof context === 'function') {
     return async arg => ({
       ...await context(arg),
