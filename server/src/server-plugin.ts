@@ -1,6 +1,5 @@
 import { Plugin, GeneratorFunction } from '@cuillere/core'
 import { Context, ContextFunction, GraphQLServiceContext } from 'apollo-server-core'
-import { GraphQLServerListener } from 'apollo-server-plugin-base'
 
 import { ApolloServerPluginArgs } from './apollo-server-plugin'
 import { KoaMiddlewareArgs } from './koa-middleware'
@@ -12,7 +11,7 @@ export type ServerPlugin = {
   httpRequestListeners?: OneOrMany<GetTaskListener<KoaMiddlewareArgs>>
   graphqlRequestListeners?: OneOrMany<GetTaskListener<ApolloServerPluginArgs>>
   plugins?: OneOrMany<Plugin>
-  serverWillStart?: GeneratorFunction<[GraphQLServiceContext], GraphQLServerListener>
+  serverWillStart?: GeneratorFunction<[GraphQLServiceContext], CuillereServerListener>
 }
 
 export interface GetTaskListener<Args extends any[]> {
