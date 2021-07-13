@@ -1,6 +1,6 @@
 import { Crud } from './crud'
 
-export function mergeCruds(...cruds: Crud[]): Crud {
+export function mergeCruds(cruds: Crud[]): Crud {
   const crud: Crud = {}
 
   for (const [name, provider] of cruds.flatMap(Object.entries)) {

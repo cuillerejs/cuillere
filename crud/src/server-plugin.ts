@@ -12,7 +12,7 @@ export function crudServerPlugin(srvCtx: ServerContext): ServerPlugin {
     async serverWillStart() {
       const providers = getCrudProviders(srvCtx)
       const cruds = await Promise.all(providers.map(provider => provider.build()))
-      crudHolder.crud = mergeCruds(...cruds)
+      crudHolder.crud = mergeCruds(cruds)
     },
 
     graphqlContext: crudHolder,
