@@ -18,7 +18,7 @@ export function getClientManager({ poolManager, transactionManager }: ClientMana
 }
 
 export interface ClientManagerOptions {
-  poolManager?: PoolManager
+  poolManager: PoolManager
   transactionManager?: TransactionManagerType
 }
 

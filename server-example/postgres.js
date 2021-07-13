@@ -68,7 +68,7 @@ function* ensureDatabases() {
 export const initPostgres = () => cuillere(
   taskManagerPlugin(
     getClientManager({
-      poolConfig: [
+      poolManager: new PoolManager([
         {
           name: DEFAULT_POOL,
           host: 'localhost',
@@ -78,7 +78,7 @@ export const initPostgres = () => cuillere(
           password: 'password',
         },
         ...poolConfig,
-      ],
+      ]),
       transactionManager: 'none',
     }),
   ),
