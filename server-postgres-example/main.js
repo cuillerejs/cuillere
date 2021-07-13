@@ -2,7 +2,7 @@ import { CuillereServer } from '@cuillere/server-postgres'
 
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
-import { initPostgres, poolManager } from './postgres'
+import { initPostgres, poolConfig } from './postgres'
 
 const server = new CuillereServer(
   {
@@ -10,7 +10,7 @@ const server = new CuillereServer(
     resolvers,
   },
   {
-    poolManager,
+    poolConfig,
   },
 )
 

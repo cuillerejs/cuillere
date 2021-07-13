@@ -8,7 +8,7 @@ import {
   taskManagerPlugin,
 } from '@cuillere/server-postgres'
 
-const poolConfig = [
+export const poolConfig = [
   {
     name: 'identity',
     host: 'localhost',
@@ -26,8 +26,6 @@ const poolConfig = [
     password: 'password',
   },
 ]
-
-export const poolManager = new PoolManager(poolConfig)
 
 function* ensureDatabase(name) {
   const { rowCount } = yield query({ text: 'SELECT 1 FROM pg_catalog.pg_database WHERE datname = $1', values: [name] })
@@ -68,22 +66,30 @@ function* ensureDatabases() {
   })
 }
 
-export const initPostgres = () => cuillere(
-  taskManagerPlugin(
-    getClientManager({
-      poolManager: new PoolManager([
-        {
-          name: DEFAULT_POOL,
-          host: 'localhost',
-          port: 54321,
-          database: 'postgres',
-          user: 'postgres',
-          password: 'password',
-        },
-        ...poolConfig,
-      ]),
-      transactionManager: 'none',
-    }),
-  ),
-  postgresPlugin(),
-).call(ensureDatabases)
+export const initPostgres = async () => {
+  const poolManager = new PoolManager([
+    {
+      name: DEFAULT_POOL,
+      host: 'localhost',
+      port: 54321,
+      database: 'postgres',
+      user: 'postgres',
+      password: 'password',
+    },
+    ...poolConfig,
+  ])
+
+  try {
+    await cuillere(
+      taskManagerPlugin(
+        getClientManager({
+          poolManager,
+          transactionManager: 'none',
+        }),
+      ),
+      postgresPlugin(),
+    ).call(ensureDatabases)
+  } finally {
+    await poolManager.end()
+  }
+}

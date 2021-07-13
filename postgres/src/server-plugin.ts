@@ -11,6 +11,15 @@ import { PoolManager } from './pool-manager'
 export function postgresServerPlugin(config: PostgresConfig) {
   const poolManager = config?.poolManager ?? new PoolManager(config?.poolConfig)
 
+  let serverWillStart: () => { serverWillStop: () => Promise<void> }
+  if (!config?.poolManager) {
+    serverWillStart = () => ({
+      async serverWillStop() {
+        await poolManager.end()
+      },
+    })
+  }
+
   return (srvCtx: ServerContext): ServerPlugin => {
     registerCrudProvider(srvCtx, 'postgres', {
       build() {
@@ -42,6 +51,7 @@ export function postgresServerPlugin(config: PostgresConfig) {
         })
       },
       plugins: postgresPlugin(),
+      serverWillStart,
     }
   }
 }

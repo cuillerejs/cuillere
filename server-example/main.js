@@ -4,7 +4,7 @@ import { getConnectionManager, connectionPlugin } from '@cuillere/mariadb'
 
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
-import { initPostgres, poolManager as postgresPoolManager } from './postgres'
+import { initPostgres, poolConfig as postgresPoolConfig } from './postgres'
 import { initMariadb, poolManager as mariadbPoolManager } from './mariadb'
 
 const server = new CuillereServer(
@@ -15,7 +15,7 @@ const server = new CuillereServer(
   {
     plugins: [
       postgresServerPlugin({
-        poolManager: postgresPoolManager,
+        poolManager: postgresPoolConfig,
       }),
       // FIXME use mariadbServerPlugin
       () => ({
