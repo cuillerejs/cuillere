@@ -1,5 +1,5 @@
 import { Plugin } from '@cuillere/core'
-import type { ContextFunction, PluginDefinition, Config as ApolloConfig, Context } from 'apollo-server-core'
+import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from 'apollo-server-core'
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 

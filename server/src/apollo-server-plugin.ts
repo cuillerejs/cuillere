@@ -5,12 +5,11 @@ import type {
   GraphQLServiceContext,
   GraphQLServerListener,
 } from 'apollo-server-plugin-base'
-import { all, call, executablePromise } from '@cuillere/core'
+import { executablePromise } from '@cuillere/core'
 
 import { CuillereConfig, ValueOrPromise } from './types'
 import { makeAsyncTaskManagerGetterFromListenerGetters, ServerPlugin } from './server-plugin'
 import { GetAsyncTaskManager } from './task-manager'
-import { CUILLERE_INSTANCE } from './schema'
 
 export type ApolloServerPluginArgs = [GraphQLRequestContextExecutionDidStart<BaseContext>]
 
