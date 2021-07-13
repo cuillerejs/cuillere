@@ -6,8 +6,11 @@ import { getClientManager } from './client-manager'
 import { PostgresConfig } from './config'
 import { buildCrud } from './crud'
 import { postgresPlugin } from './plugin'
+import { PoolManager } from './pool-manager'
 
 export function postgresServerPlugin(config: PostgresConfig) {
+  const poolManager = config?.poolManager ?? new PoolManager(config?.poolConfig)
+
   return (srvCtx: ServerContext): ServerPlugin => {
     registerCrudProvider(srvCtx, 'postgres', {
       build() {
@@ -15,8 +18,7 @@ export function postgresServerPlugin(config: PostgresConfig) {
           // FIXME using taskManagerPlugin means cuillere/server is not a devDependency anymore
           taskManagerPlugin(
             getClientManager({
-              // FIXME no poolConfig, same as below...
-              poolManager: config?.poolManager,
+              poolManager,
               transactionManager: 'read-only',
             }),
           ),
@@ -28,18 +30,14 @@ export function postgresServerPlugin(config: PostgresConfig) {
     return {
       httpRequestListeners() {
         return getClientManager({
-          // FIXME this isn't good, this should always be a poolManager, the poolManager should be global to the server
-          poolConfig: config?.poolConfig,
-          poolManager: config?.poolManager,
+          poolManager,
           transactionManager: 'read-only',
         })
       },
       graphqlRequestListeners(reqCtx) {
         if (reqCtx.operation.operation !== 'mutation') return
         return getClientManager({
-          // FIXME same here
-          poolConfig: config?.poolConfig,
-          poolManager: config?.poolManager,
+          poolManager,
           transactionManager: config?.transactionManager ?? 'auto',
         })
       },
