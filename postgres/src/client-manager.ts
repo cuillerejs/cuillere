@@ -9,7 +9,7 @@ import { setPoolsGetter } from './pools-getter'
 import { TransactionManager, getTransactionManager } from './transaction-manager'
 
 export function getClientManager({ poolManager, transactionManager }: ClientManagerOptions): ClientManager {
-  if (!poolManager) throw TypeError('Client manager needs one of poolConfig or poolManager')
+  if (!poolManager) throw TypeError('ClientManager needs a PoolManager')
 
   let transactionManagerType = transactionManager
   if (transactionManagerType === 'auto') transactionManagerType = Object.keys(poolManager.pools).length === 1 ? 'default' : 'two-phase'
