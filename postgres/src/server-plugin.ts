@@ -25,6 +25,8 @@ export function postgresServerPlugin(config: PostgresConfig) {
       build() {
         return cuillere(
           // FIXME using taskManagerPlugin means cuillere/server is not a devDependency anymore
+          // either move postgresServerPlugin in @cuillere/server-postgres
+          // or move a part of @cuillere/server in a third package
           taskManagerPlugin(
             getClientManager({
               poolManager,
