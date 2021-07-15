@@ -8,7 +8,7 @@ import { setConnectionGetter } from './connection-getter'
 import { TransactionManager, getTransactionManager } from './transaction-manager'
 
 export function getConnectionManager({ poolManager, transactionManager }: ConnectionManagerOptions): ConnectionManager {
-  if (!poolManager) throw TypeError('Connection manager needs one of poolConfig or poolManager')
+  if (!poolManager) throw TypeError('ConnectionManager needs one a PoolManager')
 
   let transactionManagerType = transactionManager
   if (transactionManagerType === 'auto') transactionManagerType = Object.keys(poolManager.pools).length === 1 ? 'default' : 'two-phase'
