@@ -1,7 +1,9 @@
 import { all } from '@cuillere/core'
 import type { Crud, Database, Provider } from '@cuillere/crud'
+import SQL from 'sql-template-strings'
 
 import { getPools, query } from '../plugin'
+import { makeGet } from './get'
 
 export function* buildCrud() {
   const postgres: Provider = {}
@@ -48,19 +50,23 @@ function* buildTableCrud(pool: string, schema: string, table: string) {
     pool,
   })
 
-  return {
-    * get(id: any) {
-      const { rows } = yield query({
-        text: `
-          SELECT ${columns.map(({ name }) => `"${name}"`).join(', ')}
-          FROM "${schema}"."${table}"
-          WHERE id = $1
-        `,
-        values: [id],
-        pool,
-      })
+  const { rows: primaryKeyColumns } = yield query({
+    text: `
+      SELECT ccu.column_name as name
+      FROM information_schema.table_constraints tc
+      JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
+      WHERE
+        tc.constraint_type = 'PRIMARY KEY'
+        AND tc.table_name = $1
+        AND tc.table_schema = $2
+    `,
+    values: [table, schema],
+    pool,
+  })
 
-      return rows[0]
-    },
+  const primaryKey = primaryKeyColumns.map(({ name }) => name)
+
+  return {
+    get: makeGet({ pool, schema, table, columns, primaryKey }),
   }
 }
