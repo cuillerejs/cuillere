@@ -1,5 +1,5 @@
 import { all } from '@cuillere/core'
-import { Crud, Database, Provider } from '@cuillere/crud'
+import type { Crud, Database, Provider } from '@cuillere/crud'
 
 import { getPools, query } from '../plugin'
 

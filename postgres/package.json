@@ -46,9 +46,11 @@
     "prepublishOnly": "yarn build:all && yarn lint && yarn test",
     "ci": "yarn build:node-version && yarn build:types && yarn lint && yarn test"
   },
+  "devDependencies": {
+    "@cuillere/crud": "^0.13.0"
+  },
   "peerDependencies": {
     "@cuillere/core": "^0.13.0",
-    "@cuillere/crud": "^0.13.0",
     "pg": "~7||~8"
   },
   "dependencies": {
