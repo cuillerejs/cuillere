@@ -1,6 +1,5 @@
 import { all } from '@cuillere/core'
 import type { Crud, Database, Provider } from '@cuillere/crud'
-import SQL from 'sql-template-strings'
 
 import { getPools, query } from '../plugin'
 import { makeGet } from './get'
@@ -55,10 +54,9 @@ function* buildTableCrud(pool: string, schema: string, table: string) {
       SELECT ccu.column_name as name
       FROM information_schema.table_constraints tc
       JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name)
-      WHERE
-        tc.constraint_type = 'PRIMARY KEY'
-        AND tc.table_name = $1
-        AND tc.table_schema = $2
+      WHERE tc.constraint_type = 'PRIMARY KEY'
+      AND tc.table_name = $1
+      AND tc.table_schema = $2
     `,
     values: [table, schema],
     pool,
