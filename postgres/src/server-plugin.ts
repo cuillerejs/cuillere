@@ -32,7 +32,6 @@ export function postgresServerPlugin(config: PostgresConfig) {
           postgresPlugin(),
         ).call(buildCrud)
       },
-      poolManager,
     })
 
     return {

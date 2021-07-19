@@ -1,6 +1,5 @@
 import { delegate, OperationObject } from '@cuillere/core'
-import type { ServerPlugin, ServerContext } from '@cuillere/server-plugin'
-import { getDatabaseProviders } from '@cuillere/server-plugin'
+import { ServerPlugin, ServerContext, getDatabaseProviders } from '@cuillere/server-plugin'
 
 import { Crud } from './crud'
 import { mergeCruds } from './mergeCruds'
@@ -11,8 +10,11 @@ export function crudServerPlugin(srvCtx: ServerContext): ServerPlugin {
 
   return {
     async serverWillStart() {
-      const providers = getDatabaseProviders(srvCtx)
-      const cruds = await Promise.all(providers.filter(isCrudCompatible).map(provider => provider.buildCrud()))
+      const providers = getDatabaseProviders(srvCtx).filter(isCrudProvider)
+      if (providers.length === 0) return
+
+      const cruds = await Promise.all(providers.map(provider => provider.buildCrud()))
+
       crudHolder.crud = promoteCrud(mergeCruds(cruds))
     },
 
@@ -33,6 +35,6 @@ export interface CrudProvider {
   buildCrud(): Promise<Crud>
 }
 
-function isCrudCompatible(provider: any): provider is CrudProvider {
+function isCrudProvider(provider: any): provider is CrudProvider {
   return provider.buildCrud != null
 }

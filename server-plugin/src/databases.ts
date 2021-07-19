@@ -2,9 +2,8 @@ import { ServerContext } from './types'
 
 const DATABASE_PROVIDERS = Symbol('DATABASE_PROVIDERS')
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface DatabaseProvider {
-  buildCrud
+  buildCrud?(): Promise<any>
 }
 
 export function registerDatabaseProvider(srvCtx: ServerContext, name: string, provider: DatabaseProvider) {
