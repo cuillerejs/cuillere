@@ -12,6 +12,7 @@
     "postgres",
     "server",
     "server-example",
+    "server-plugin",
     "server-postgres",
     "server-postgres-example"
   ],

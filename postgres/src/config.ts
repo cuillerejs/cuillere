@@ -1,4 +1,4 @@
-import { TransactionManagerType } from '@cuillere/server'
+import { TransactionManagerType } from '@cuillere/server-plugin'
 
 import { PoolConfig, PoolManager } from './pool-manager'
 

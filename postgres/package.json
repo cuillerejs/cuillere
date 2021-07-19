@@ -51,7 +51,7 @@
     "@cuillere/crud": "^0.13.0",
     "pg": "~7||~8"
   },
-  "devDependencies": {
-    "@cuillere/server": "^0.13.0"
+  "dependencies": {
+    "@cuillere/server-plugin": "^0.13.0"
   }
 }

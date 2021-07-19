@@ -1,15 +1,9 @@
-import type {
-  ApolloServerPlugin,
-  GraphQLRequestContextExecutionDidStart,
-  BaseContext,
-  GraphQLServerListener,
-} from 'apollo-server-plugin-base'
+import type { ApolloServerPlugin, GraphQLServerListener } from 'apollo-server-plugin-base'
 import { executablePromise } from '@cuillere/core'
+import { ServerPlugin } from '@cuillere/server-plugin'
 
-import { CuillereConfig } from './types'
-import { makeAsyncTaskManagerGetterFromListenerGetters, ServerPlugin } from './server-plugin'
-
-export type ApolloServerPluginArgs = [GraphQLRequestContextExecutionDidStart<BaseContext>]
+import { CuillereConfig } from './config'
+import { makeAsyncTaskManagerGetterFromListenerGetters } from './makeAsyncTaskManagerGetterFromListenerGetters'
 
 export function apolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin[]): ApolloServerPlugin {
   const requestDidStart = makeRequestDidStart(config, plugins)

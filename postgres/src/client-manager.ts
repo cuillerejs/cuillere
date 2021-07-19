@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg'
-import type { TaskListener, TransactionManagerType } from '@cuillere/server'
+import type { TaskListener, TransactionManagerType } from '@cuillere/server-plugin'
 
 import { setClientGetter } from './client-getter'
 import type { QueryConfig } from './query-config'

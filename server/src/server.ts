@@ -1,14 +1,15 @@
 import { Plugin } from '@cuillere/core'
+import { ServerContext, ServerPlugin } from '@cuillere/server-plugin'
 import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from 'apollo-server-core'
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
 import { apolloServerPlugin } from './apollo-server-plugin'
-import { koaMiddleware } from './koa-middleware'
+import { CuillereConfig } from './config'
 import { defaultContextKey } from './context'
+import { koaMiddleware } from './koa-middleware'
+import { makeAsyncTaskManagerGetterFromListenerGetters } from './makeAsyncTaskManagerGetterFromListenerGetters'
 import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
-import { makeAsyncTaskManagerGetterFromListenerGetters, ServerPlugin } from './server-plugin'
-import { CuillereConfig, ServerContext } from './types'
 
 export class CuillereServer extends ApolloServer {
   private cuillereConfig: CuillereConfig

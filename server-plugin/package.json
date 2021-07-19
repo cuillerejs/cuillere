@@ -1,5 +1,5 @@
 {
-  "name": "@cuillere/mariadb",
+  "name": "@cuillere/server-plugin",
   "version": "0.13.0",
   "main": "dist/node/index.js",
   "types": "dist/types",
@@ -11,6 +11,13 @@
     "name": "Nicolas LEPAGE",
     "url": "https://github.com/nlepage"
   },
+  "contributors": [
+    {
+      "name": "Valentin COCAUD",
+      "email": "v.cocaud@gmail.com",
+      "url": "https://github.com/EmrysMyrddin"
+    }
+  ],
   "license": "Apache-2.0",
   "files": [
     "src",
@@ -19,7 +26,7 @@
   ],
   "scripts": {
     "lint": "yarn eslint --ext .ts src",
-    "test": "jest --passWithNoTests",
+    "test": "jest",
     "clean:node-version": "rm -rf dist/node/$NODE_VERSION",
     "prebuild:node-version": "yarn clean:$NODE_VERSION",
     "build:node-version": "yarn tsc -p tsconfig-node$NODE_VERSION.json",
@@ -39,11 +46,12 @@
     "prepublishOnly": "yarn build:all && yarn lint && yarn test",
     "ci": "yarn build:node-version && yarn build:types && yarn lint && yarn test"
   },
-  "peerDependencies": {
-    "@cuillere/core": "^0.13.0",
-    "mariadb": "~2"
-  },
   "devDependencies": {
-    "@cuillere/server-plugin": "^0.13.0"
+    "apollo-server-core": "~2.25.1",
+    "apollo-server-plugin-base": "^0.13.0",
+    "koa": "~2"
+  },
+  "peerDependencies": {
+    "@cuillere/core": "^0.13.0"
   }
 }

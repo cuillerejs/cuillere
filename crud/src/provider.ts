@@ -1,4 +1,4 @@
-import type { ServerContext } from '@cuillere/server'
+import type { ServerContext } from '@cuillere/server-plugin'
 
 import { Crud } from './crud'
 

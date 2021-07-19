@@ -9,6 +9,7 @@ import {
   makeExecutableSchema as originalMakeExecutableSchema,
 } from 'graphql-tools'
 import mergeDeep from 'graphql-tools/dist/mergeDeep'
+
 import { defaultContextKey } from './context'
 import { wrapFieldResolvers } from './wrap-field-resolvers'
 

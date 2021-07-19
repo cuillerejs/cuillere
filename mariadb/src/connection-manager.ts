@@ -1,5 +1,5 @@
 import type { PoolConnection } from 'mariadb'
-import type { TaskListener, TransactionManagerType } from '@cuillere/server'
+import type { TaskListener, TransactionManagerType } from '@cuillere/server-plugin'
 
 import { PoolManager, DEFAULT_POOL } from './pool-manager'
 import { setQueryHandler } from './query-handler'

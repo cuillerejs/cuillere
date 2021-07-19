@@ -1,5 +1,5 @@
 import { delegate, OperationObject } from '@cuillere/core'
-import type { ServerPlugin, ServerContext } from '@cuillere/server'
+import type { ServerPlugin, ServerContext } from '@cuillere/server-plugin'
 
 import { Crud } from './crud'
 import { mergeCruds } from './mergeCruds'
