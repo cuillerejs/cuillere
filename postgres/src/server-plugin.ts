@@ -1,6 +1,5 @@
 import { cuillere } from '@cuillere/core'
-import { ServerContext, ServerPlugin, taskManagerPlugin } from '@cuillere/server-plugin'
-import { registerCrudProvider } from '@cuillere/crud'
+import { ServerContext, ServerPlugin, taskManagerPlugin, registerDatabaseProvider } from '@cuillere/server-plugin'
 
 import { getClientManager } from './client-manager'
 import { PostgresConfig } from './config'
@@ -21,8 +20,8 @@ export function postgresServerPlugin(config: PostgresConfig) {
   }
 
   return (srvCtx: ServerContext): ServerPlugin => {
-    registerCrudProvider(srvCtx, 'postgres', {
-      build() {
+    registerDatabaseProvider(srvCtx, 'postgres', {
+      buildCrud() {
         return cuillere(
           taskManagerPlugin(
             getClientManager({
@@ -33,6 +32,7 @@ export function postgresServerPlugin(config: PostgresConfig) {
           postgresPlugin(),
         ).call(buildCrud)
       },
+      poolManager,
     })
 
     return {
