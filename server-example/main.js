@@ -4,8 +4,8 @@ import { getConnectionManager, connectionPlugin } from '@cuillere/mariadb'
 
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
-import { initPostgres, poolConfig as postgresPoolConfig } from './postgres'
-import { initMariadb, poolManager as mariadbPoolManager } from './mariadb'
+import { ensurePostgresSchema, poolConfig as postgresPoolConfig } from './postgres'
+import { ensureMariadbSchema, poolManager as mariadbPoolManager } from './mariadb'
 
 const server = new CuillereServer(
   {
@@ -15,7 +15,7 @@ const server = new CuillereServer(
   {
     plugins: [
       postgresServerPlugin({
-        poolManager: postgresPoolConfig,
+        poolConfig: postgresPoolConfig,
       }),
       // FIXME use mariadbServerPlugin
       () => ({
@@ -40,8 +40,8 @@ const server = new CuillereServer(
 
 async function start() {
   try {
-    await initPostgres()
-    await initMariadb()
+    await ensurePostgresSchema()
+    await ensureMariadbSchema()
 
     server.listen({ port: 4000 }, () => console.log(`🥄 Server ready at http://localhost:4000${server.graphqlPath}`))
   } catch (err) {

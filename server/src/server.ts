@@ -74,7 +74,7 @@ function buildApolloConfig(apolloConfig: ApolloConfig, config: CuillereConfig, p
       parseOptions: apolloConfig.parseOptions,
       resolvers: apolloConfig.resolvers,
       schemaDirectives: apolloConfig.schemaDirectives, // possibility to add directives...
-      typeDefs: apolloConfig.typeDefs, // possibility to extend typeDefs...
+      typeDefs: apolloConfig.typeDefs, // possibility to extend
     })
   }
 
@@ -99,16 +99,16 @@ function getContextFunction({ context }: ApolloConfig, { contextKey }: CuillereC
 
   if (typeof context === 'function') {
     return async arg => ({
-      ...await context(arg),
       [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
       ...await pluginsContext?.(arg),
+      ...await context(arg),
     })
   }
 
   return async arg => ({
-    ...context,
     [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
     ...await pluginsContext?.(arg),
+    ...context,
   })
 }
 

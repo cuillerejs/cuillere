@@ -3,6 +3,7 @@ import type { ServerPlugin, ServerContext } from '@cuillere/server'
 
 import { Crud } from './crud'
 import { mergeCruds } from './mergeCruds'
+import { promoteCrud } from './promoteCrud'
 import { getCrudProviders } from './provider'
 
 export function crudServerPlugin(srvCtx: ServerContext): ServerPlugin {
@@ -12,7 +13,7 @@ export function crudServerPlugin(srvCtx: ServerContext): ServerPlugin {
     async serverWillStart() {
       const providers = getCrudProviders(srvCtx)
       const cruds = await Promise.all(providers.map(provider => provider.build()))
-      crudHolder.crud = mergeCruds(cruds)
+      crudHolder.crud = promoteCrud(mergeCruds(cruds))
     },
 
     graphqlContext: crudHolder,

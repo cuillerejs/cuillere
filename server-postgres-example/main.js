@@ -2,7 +2,7 @@ import { CuillereServer } from '@cuillere/server-postgres'
 
 import { typeDefs } from './schema'
 import { resolvers } from './resolvers'
-import { initPostgres, poolConfig } from './postgres'
+import { ensurePostgresSchema, poolConfig } from './postgres'
 
 const server = new CuillereServer(
   {
@@ -16,7 +16,7 @@ const server = new CuillereServer(
 
 async function start() {
   try {
-    await initPostgres()
+    await ensurePostgresSchema()
 
     server.listen({ port: 4000 }, () => console.log(`🥄 Server ready at http://localhost:4000${server.graphqlPath}`))
   } catch (err) {

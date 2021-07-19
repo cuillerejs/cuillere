@@ -1,14 +1,14 @@
-import { mergeCruds } from '.'
+import { promoteCrud } from './promoteCrud'
 
-describe('mergeCruds', () => {
+describe('promoteCrud', () => {
   it('simple case', () => {
-    const result = mergeCruds([{
+    const result = promoteCrud({
       postgres: {
         pool: {
           schema: { table: { operator } },
         },
       },
-    }])
+    })
 
     expect(result).toEqual({
       table: { operator },
@@ -29,14 +29,14 @@ describe('mergeCruds', () => {
   })
 
   it('duplicate fields', () => {
-    const result = mergeCruds([{
+    const result = promoteCrud({
       postgres: {
         pool: {
           schema: { table: { zob: operator } },
           schema2: { table: { ha: operator } },
         },
       },
-    }])
+    })
 
     expect(result).toEqual({
       schema: { table: { zob: operator } },
@@ -57,13 +57,13 @@ describe('mergeCruds', () => {
   })
 
   it('already defined fields', () => {
-    const result = mergeCruds([{
+    const result = promoteCrud({
       postgres: {
         pool: {
           test: { test: { test: operator } },
         },
       },
-    }])
+    })
 
     expect(result).toEqual({
       test: { test: { test: operator } },

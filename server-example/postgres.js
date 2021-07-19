@@ -65,7 +65,7 @@ function* ensureDatabases() {
   })
 }
 
-export const initPostgres = async () => {
+export const ensurePostgresSchema = async () => {
   const poolManager = new PoolManager([
     {
       name: DEFAULT_POOL,

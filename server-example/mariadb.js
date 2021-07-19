@@ -32,7 +32,7 @@ function* ensureDatabase(name) {
   yield query({ sql: `GRANT ALL PRIVILEGES ON ${name}.* TO ${name}` })
 }
 
-export const initMariadb = () => cuillere(
+export const ensureMariadbSchema = () => cuillere(
   taskManagerPlugin(
     getConnectionManager({
       poolManager: new PoolManager([

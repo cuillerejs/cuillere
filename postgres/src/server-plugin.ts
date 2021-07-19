@@ -42,14 +42,14 @@ export function postgresServerPlugin(config: PostgresConfig) {
       httpRequestListeners() {
         return getClientManager({
           poolManager,
-          transactionManager: 'read-only',
+          transactionManager: config?.queryTransactionManager ?? 'read-only',
         })
       },
       graphqlRequestListeners(reqCtx) {
         if (reqCtx.operation.operation !== 'mutation') return
         return getClientManager({
           poolManager,
-          transactionManager: config?.transactionManager ?? 'auto',
+          transactionManager: config?.mutationTransactionManager ?? 'auto',
         })
       },
       plugins: postgresPlugin(),
