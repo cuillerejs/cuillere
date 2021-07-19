@@ -1,8 +1,8 @@
-import { mergeCruds } from '.'
+import { promoteCrud } from './promoteCrud'
 
-describe('mergeCruds', () => {
+describe('promoteCrud', () => {
   it('simple case', () => {
-    const result = mergeCruds({
+    const result = promoteCrud({
       postgres: {
         pool: {
           schema: { table: { operator } },
@@ -29,7 +29,7 @@ describe('mergeCruds', () => {
   })
 
   it('duplicate fields', () => {
-    const result = mergeCruds({
+    const result = promoteCrud({
       postgres: {
         pool: {
           schema: { table: { zob: operator } },
@@ -57,7 +57,7 @@ describe('mergeCruds', () => {
   })
 
   it('already defined fields', () => {
-    const result = mergeCruds({
+    const result = promoteCrud({
       postgres: {
         pool: {
           test: { test: { test: operator } },

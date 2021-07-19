@@ -1,37 +1,42 @@
 import { Plugin } from '@cuillere/core'
+import { ServerContext, ServerPlugin } from '@cuillere/server-plugin'
 import type { ContextFunction, PluginDefinition, Config as ApolloConfig } from 'apollo-server-core'
 import { ApolloServer, ServerRegistration } from 'apollo-server-koa'
 import Application from 'koa'
 
-import { apolloServerPlugin, ApolloServerPluginArgs } from './apollo-server-plugin'
-import { GetAsyncTaskManager } from './task-manager'
-import { koaMiddleware, KoaMiddlewareArgs } from './koa-middleware'
+import { apolloServerPlugin } from './apollo-server-plugin'
+import { CuillereConfig } from './config'
 import { defaultContextKey } from './context'
+import { koaMiddleware } from './koa-middleware'
+import { makeAsyncTaskManagerGetterFromListenerGetters } from './makeAsyncTaskManagerGetterFromListenerGetters'
 import { CUILLERE_CONTEXT_KEY, CUILLERE_PLUGINS, isCuillereSchema, makeExecutableSchema } from './schema'
-
-export interface CuillereConfig {
-  contextKey?: string
-  httpRequestTaskManager?: GetAsyncTaskManager<KoaMiddlewareArgs>
-  graphqlRequestTaskManager?: GetAsyncTaskManager<ApolloServerPluginArgs>
-  plugins: Plugin[]
-}
 
 export class CuillereServer extends ApolloServer {
   private cuillereConfig: CuillereConfig
 
-  constructor(apolloConfig: ApolloConfig, config: CuillereConfig) {
-    super(buildApolloConfig(defaultConfig(config), apolloConfig))
+  private serverContext: ServerContext
 
-    this.cuillereConfig = defaultConfig(config)
+  private serverPlugins: ServerPlugin[]
+
+  constructor(apolloConfig: ApolloConfig, configInput: CuillereConfig) {
+    const config = defaultConfig(configInput)
+    const srvCtx: ServerContext = new Map()
+    const plugins: ServerPlugin[] = config.plugins?.map(plugin => plugin(srvCtx)) ?? []
+
+    super(buildApolloConfig(apolloConfig, config, plugins))
+
+    this.cuillereConfig = config
+    this.serverContext = srvCtx
+    this.serverPlugins = plugins
   }
 
   applyMiddleware(serverRegistration: ServerRegistration) {
-    const { httpRequestTaskManager: taskManager, contextKey } = this.cuillereConfig
+    const listenerGetters = this.serverPlugins.flatMap(plugin => plugin.httpRequestListeners ?? [])
 
-    if (taskManager) {
+    if (listenerGetters.length !== 0) {
       serverRegistration.app.use(koaMiddleware({
-        context: ctx => ctx[contextKey] = {}, // eslint-disable-line no-return-assign
-        taskManager,
+        context: ctx => ctx[this.cuillereConfig.contextKey] = {},
+        taskManager: makeAsyncTaskManagerGetterFromListenerGetters(listenerGetters),
       }))
     }
 
@@ -54,69 +59,71 @@ function defaultConfig(config: CuillereConfig): CuillereConfig {
   }
 }
 
-function buildApolloConfig(config: CuillereConfig, apolloConfig: ApolloConfig): ApolloConfig {
+function buildApolloConfig(apolloConfig: ApolloConfig, config: CuillereConfig, plugins: ServerPlugin[]): ApolloConfig {
   const apolloConfigOverride: ApolloConfig = {
-    context: getContextFunction(config, apolloConfig),
-    plugins: mergePlugins(config, apolloConfig),
+    ...apolloConfig,
+    context: getContextFunction(apolloConfig, config, plugins),
+    plugins: mergeApolloPlugins(apolloConfig, config, plugins),
   }
 
   if (apolloConfig.schema) {
     if (!isCuillereSchema(apolloConfig.schema)) {
       throw new Error('To make an executable schema, please use `makeExecutableSchema` from `@cuillere/server`.')
     }
-
-    apolloConfig.schema[CUILLERE_PLUGINS] = config.plugins
-    apolloConfig.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   } else {
     apolloConfigOverride.schema = makeExecutableSchema({
       parseOptions: apolloConfig.parseOptions,
       resolvers: apolloConfig.resolvers,
       schemaDirectives: apolloConfig.schemaDirectives, // possibility to add directives...
-      typeDefs: apolloConfig.typeDefs, // possibility to extend typeDefs...
+      typeDefs: apolloConfig.typeDefs, // possibility to extend
     })
-
-    apolloConfigOverride.schema[CUILLERE_PLUGINS] = config.plugins
-    apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
   }
 
-  return {
-    ...apolloConfig,
-    ...apolloConfigOverride,
-  }
+  apolloConfigOverride.schema[CUILLERE_PLUGINS] = getCuillerePlugins(plugins)
+  apolloConfigOverride.schema[CUILLERE_CONTEXT_KEY] = config.contextKey
+
+  return apolloConfigOverride
 }
 
-function getContextFunction({ contextKey }: CuillereConfig, { context } : ApolloConfig): ContextFunction {
+function getContextFunction({ context }: ApolloConfig, { contextKey }: CuillereConfig, plugins: ServerPlugin[]): ContextFunction {
+  let pluginsContext: ContextFunction
+
+  const pluginsContexts = plugins
+    .filter(plugin => plugin.graphqlContext != null)
+    .map(plugin => plugin.graphqlContext)
+  if (pluginsContexts.length !== 0) {
+    pluginsContext = async (arg) => {
+      const contexts = await Promise.all(pluginsContexts.map(v => (typeof v === 'function' ? v(arg) : v)))
+      return Object.assign({}, ...contexts)
+    }
+  }
+
   if (typeof context === 'function') {
     return async arg => ({
-      ...await context(arg),
       [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
+      ...await pluginsContext?.(arg),
+      ...await context(arg),
     })
   }
 
-  return ({ ctx }) => ({
+  return async arg => ({
+    [contextKey]: arg.ctx?.[contextKey], // FIXME subscriptions?
+    ...await pluginsContext?.(arg),
     ...context,
-    [contextKey]: ctx?.[contextKey], // FIXME subscriptions?
   })
 }
 
-function mergePlugins(config: CuillereConfig, { plugins } : ApolloConfig): PluginDefinition[] {
-  const plugin = getApolloServerPlugin(config)
+function mergeApolloPlugins(apolloConfig: ApolloConfig, config: CuillereConfig, plugins: ServerPlugin[]): PluginDefinition[] {
+  const plugin = apolloServerPlugin(config, plugins)
 
-  if (!plugin) return plugins
+  if (!plugin) return apolloConfig.plugins
 
   return [
-    ...(plugins ?? []),
+    ...(apolloConfig.plugins ?? []),
     plugin,
   ]
 }
 
-function getApolloServerPlugin(config: CuillereConfig) {
-  const { graphqlRequestTaskManager: taskManager, contextKey } = config
-
-  if (!taskManager) return null
-
-  return apolloServerPlugin({
-    context: reqCtx => reqCtx.context[contextKey] = {}, // eslint-disable-line no-return-assign
-    taskManager,
-  })
+function getCuillerePlugins(plugins: ServerPlugin[]): Plugin[] {
+  return plugins.flatMap(plugin => plugin.plugins ?? [])
 }

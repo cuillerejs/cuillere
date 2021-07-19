@@ -1,4 +1,4 @@
-import type { TransactionManagerType } from '@cuillere/server'
+import type { TransactionManagerType } from '@cuillere/server-plugin'
 import type { PoolConnection } from 'mariadb'
 
 export interface TransactionManager {
