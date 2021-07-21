@@ -15,6 +15,9 @@ const simpleResolvers = {
     * person(_, { id }, { crud }) {
       return yield crud.people.get(id)
     },
+    * persons(_, { ids }, { crud }) {
+      return yield crud.people.get(ids)
+    },
   },
   Person: {
     * address({ addressId }, _, { crud }) {

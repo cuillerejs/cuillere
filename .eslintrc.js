@@ -67,7 +67,12 @@ module.exports = {
     'import/prefer-default-export': 'off',
     indent: 'off',
     'max-classes-per-file': 'off',
-    'max-len': ['error', { code: 160 }],
+    'max-len': ['error', {
+      code: 160,
+      ignoreStrings: true,
+      ignoreTemplateLiterals: true,
+      ignoreRegExpLiterals: true,
+    }],
     'no-await-in-loop': 'off',
     'no-cond-assign': 'off',
     'no-console': 'off',

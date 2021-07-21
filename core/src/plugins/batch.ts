@@ -8,7 +8,7 @@ import { Plugin } from './plugin'
 export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R[]>,
   getBatchKey: (...args: Args) => any = () => func,
-): (...args: Args) => Batch<Args, R> | Execute<Args, R> {
+): (...args: Args) => OperationObject {
   return (...args) => {
     const batchKey = getBatchKey(...args)
     if (!batchKey) return { kind: `${namespace}/execute`, func, args }

@@ -9,6 +9,7 @@ export const typeDefs = gql`
     now: DateTime!
     wait: String
     person(id: ID!): Person
+    persons(ids: [ID!]!): [Person]!
   }
 
   type Person {
