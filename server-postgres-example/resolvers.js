@@ -18,6 +18,9 @@ const simpleResolvers = {
     * persons(_, { ids }, { crud }) {
       return yield crud.people.get(ids)
     },
+    * searchPersons(_, input, { crud }) {
+      return yield crud.people.list(input)
+    },
   },
   Person: {
     * address({ addressId }, _, { crud }) {

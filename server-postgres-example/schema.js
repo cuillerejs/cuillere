@@ -10,6 +10,7 @@ export const typeDefs = gql`
     wait: String
     person(id: ID!): Person
     persons(ids: [ID!]!): [Person]!
+    searchPersons(firstname: String, lastname: String): [Person!]!
   }
 
   type Person {

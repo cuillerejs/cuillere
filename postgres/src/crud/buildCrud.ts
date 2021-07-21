@@ -3,6 +3,8 @@ import type { Crud, Database, Provider } from '@cuillere/crud'
 
 import { getPools, query } from '../plugin'
 import { makeGet } from './get'
+import { makeList } from './list'
+import { TableInfo } from './types'
 
 export function* buildCrud() {
   const postgres: Provider = {}
@@ -64,7 +66,10 @@ function* buildTableCrud(pool: string, schema: string, table: string) {
 
   const primaryKey = primaryKeyColumns.map(({ name }) => name)
 
+  const tableInfo: TableInfo = { pool, schema, table, columns, primaryKey }
+
   return {
-    get: makeGet({ pool, schema, table, columns, primaryKey }),
+    get: makeGet(tableInfo),
+    list: makeList(tableInfo),
   }
 }
