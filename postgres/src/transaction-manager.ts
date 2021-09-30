@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg'
-import type { TransactionManagerType } from '@cuillere/server'
+import type { TransactionManagerType } from '@cuillere/server-plugin'
 
 export interface TransactionManager {
   connect(clientPromise: Promise<PoolClient>): Promise<PoolClient>

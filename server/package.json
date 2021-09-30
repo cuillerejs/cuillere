@@ -56,6 +56,7 @@
   },
   "dependencies": {
     "@cuillere/core": "^0.13.0",
+    "@cuillere/server-plugin": "^0.13.0",
     "apollo-server-core": "~2.25.1",
     "apollo-server-koa": "~2.25.1",
     "graphql-subscriptions": "~1.2.1",

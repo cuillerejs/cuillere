@@ -1,25 +1,24 @@
 import type { PoolClient } from 'pg'
-import type { TaskListener, TransactionManagerType } from '@cuillere/server'
+import type { TaskListener, TransactionManagerType } from '@cuillere/server-plugin'
 
-import { PoolManager, DEFAULT_POOL, PoolConfig } from './pool-manager'
-import { setQueryHandler } from './query-handler'
-import type { QueryConfig } from './query-config'
 import { setClientGetter } from './client-getter'
+import type { QueryConfig } from './query-config'
+import { setQueryHandler } from './query-handler'
+import { PoolManager, DEFAULT_POOL } from './pool-manager'
+import { setPoolsGetter } from './pools-getter'
 import { TransactionManager, getTransactionManager } from './transaction-manager'
 
-export function getClientManager(options: ClientManagerOptions): ClientManager {
-  const poolManager = options.poolManager ?? new PoolManager(options.poolConfig)
-  if (!poolManager) throw TypeError('Client manager needs one of poolConfig or poolManager')
+export function getClientManager({ poolManager, transactionManager }: ClientManagerOptions): ClientManager {
+  if (!poolManager) throw TypeError('ClientManager needs a PoolManager')
 
-  let transactionManagerType = options.transactionManager
+  let transactionManagerType = transactionManager
   if (transactionManagerType === 'auto') transactionManagerType = Object.keys(poolManager.pools).length === 1 ? 'default' : 'two-phase'
 
   return new ClientManagerImpl(poolManager, getTransactionManager(transactionManagerType))
 }
 
 export interface ClientManagerOptions {
-  poolConfig?: PoolConfig | PoolConfig[]
-  poolManager?: PoolManager
+  poolManager: PoolManager
   transactionManager?: TransactionManagerType
 }
 
@@ -43,6 +42,7 @@ class ClientManagerImpl implements ClientManager {
   initialize(ctx: any) {
     setClientGetter(ctx, name => this.getClient(name))
     setQueryHandler(ctx, query => this.query(query))
+    setPoolsGetter(ctx, () => this.getPools())
   }
 
   private async query(query: QueryConfig) {
@@ -56,6 +56,10 @@ class ClientManagerImpl implements ClientManager {
       if (this.transactionManager) this.clients[name] = this.transactionManager.connect(this.clients[name])
     }
     return this.clients[name]
+  }
+
+  private getPools() {
+    return Object.keys(this.poolManager.pools)
   }
 
   async preComplete(result: any) {

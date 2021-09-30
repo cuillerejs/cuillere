@@ -4,7 +4,7 @@ import { query } from '@cuillere/server-postgres'
 const simpleResolvers = {
   Query: {
     * hello(_, { name }) {
-      const { rows: [{ now }] } = yield query({ text: 'SELECT NOW()', pool: 'people' })
+      const { rows: [{ now }] } = yield query({ text: 'SELECT NOW()', pool: 'identity' })
       return `Hello ${name} (${now})`
     },
     wait: async () => new Promise(resolve => setTimeout(resolve, 5000)),

@@ -1,13 +1,10 @@
 import type { Middleware, ParameterizedContext, DefaultState, DefaultContext } from 'koa'
+import { AsyncTaskExecutorOptions } from '@cuillere/server-plugin'
 
-import { AsyncTaskExecutorOptions } from './task-executor'
-
-export type KoaMiddlewareArgs = [ParameterizedContext<DefaultState, DefaultContext>]
-
-export function koaMiddleware(options: AsyncTaskExecutorOptions<KoaMiddlewareArgs>): Middleware {
+export function koaMiddleware(options: AsyncTaskExecutorOptions<[ParameterizedContext<DefaultState, DefaultContext>]>): Middleware {
   return async (ctx, next) => {
     const taskManager = options.taskManager(ctx)
-    if (!taskManager) return next()
+    if (taskManager == null) return next()
 
     try {
       await taskManager.execute(next, options.context(ctx))

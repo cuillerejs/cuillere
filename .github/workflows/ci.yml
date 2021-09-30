@@ -27,6 +27,12 @@ jobs:
         env:
           NODE_VERSION: ${{matrix.node-version}}
 
+      - name: CI server-plugin
+        run: yarn ci
+        working-directory: ./server-plugin
+        env:
+          NODE_VERSION: ${{matrix.node-version}}
+
       - name: CI server
         run: yarn ci
         working-directory: ./server
