@@ -6,10 +6,29 @@
   "scripts": {
     "start": "node ."
   },
+  "devDependencies": {
+    "@tsconfig/node12": "^1.0.9",
+    "@tsconfig/node14": "^1.0.1",
+    "@tsconfig/node16": "^1.0.1",
+    "@types/jest": "^26.0.23",
+    "@types/pg": "^8.6.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.29.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jest": "^24.3.6",
+    "esm": "^3.2.25",
+    "jest": "^27.0.4",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.4"
+  },
   "dependencies": {
+    "@cuillere/core": "^0.13.0",
     "@cuillere/mariadb": "^0.13.0",
     "@cuillere/postgres": "^0.13.0",
     "@cuillere/server": "^0.13.0",
+    "graphql": "~15.6.0",
     "graphql-scalars": "^1.10.0",
     "mariadb": "~2.5.4",
     "pg": "~8.6.0"
