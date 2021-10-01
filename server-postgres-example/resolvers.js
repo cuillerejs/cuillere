@@ -1,5 +1,5 @@
 import { GraphQLDate, GraphQLDateTime } from 'graphql-scalars'
-import { query } from '@cuillere/server-postgres'
+import { query, sleep } from '@cuillere/server-postgres'
 
 const simpleResolvers = {
   Query: {
@@ -7,7 +7,10 @@ const simpleResolvers = {
       const { rows: [{ now }] } = yield query({ text: 'SELECT NOW()', pool: 'identity' })
       return `Hello ${name} (${now})`
     },
-    wait: async () => new Promise(resolve => setTimeout(resolve, 5000)),
+    * wait(_, { time = 1000 }) {
+      yield sleep(time)
+      return `waited ${time}ms`
+    },
     * now() {
       const { rows: [{ now }] } = yield query({ text: 'SELECT NOW()', pool: 'geo' })
       return now

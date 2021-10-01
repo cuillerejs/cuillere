@@ -7,6 +7,6 @@ export const typeDefs = gql`
   type Query {
     hello(name: String): String!
     now: DateTime!
-    wait: String
+    wait(time: Int): String
   }
 `
