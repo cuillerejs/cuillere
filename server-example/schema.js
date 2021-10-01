@@ -8,6 +8,6 @@ export const typeDefs = gql`
     hello(name: String): String!
     uuid: String!
     now: DateTime!
-    wait: String
+    wait(time: Int): String
   }
 `

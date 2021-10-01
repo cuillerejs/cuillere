@@ -1,38 +1,75 @@
-import type { ApolloServerPlugin, GraphQLRequestContextExecutionDidStart, BaseContext } from 'apollo-server-plugin-base'
+import type { ApolloServerPlugin, GraphQLServerListener } from 'apollo-server-plugin-base'
 import { executablePromise } from '@cuillere/core'
+import { ServerPlugin } from '@cuillere/server-plugin'
 
-import { AsyncTaskExecutorOptions } from './task-executor'
+import { CuillereConfig } from './config'
+import { makeAsyncTaskManagerGetterFromListenerGetters } from './makeAsyncTaskManagerGetterFromListenerGetters'
 
-export type ApolloServerPluginArgs = [GraphQLRequestContextExecutionDidStart<BaseContext>]
+export function apolloServerPlugin(config: CuillereConfig, plugins: ServerPlugin[]): ApolloServerPlugin {
+  const requestDidStart = makeRequestDidStart(config, plugins)
+  const serverWillStart = makeServerWillStart(plugins)
 
-export function apolloServerPlugin(options: AsyncTaskExecutorOptions<ApolloServerPluginArgs>): ApolloServerPlugin {
+  if (requestDidStart == null && serverWillStart == null) return null
+
   return {
-    requestDidStart() {
-      let didEncounterErrors = false
+    serverWillStart,
+    requestDidStart,
+  }
+}
 
-      return {
-        // WORKAROUND: https://github.com/cuillerejs/cuillere/issues/25
-        didEncounterErrors() {
-          didEncounterErrors = true
-        },
+function makeServerWillStart(plugins: ServerPlugin[]): ApolloServerPlugin['serverWillStart'] {
+  const serverWillStarts = plugins
+    .filter(plugin => plugin.serverWillStart != null)
+    .map(plugin => plugin.serverWillStart)
 
-        executionDidStart(reqCtx) {
-          const taskManager = options.taskManager(reqCtx)
+  if (serverWillStarts.length === 0) return null
 
-          if (!taskManager) return undefined
+  return async (srvCtx) => {
+    const srvListeners = await Promise.all(serverWillStarts.map(fn => fn(srvCtx)))
+    const serverWillStops = srvListeners
+      .filter((srvListener): srvListener is GraphQLServerListener => srvListener != null)
+      .filter(srvListener => srvListener.serverWillStop != null)
+      .map(srvListener => srvListener.serverWillStop)
+    if (serverWillStops.length === 0) return
+    return {
+      async serverWillStop() {
+        await Promise.all(serverWillStops.map(fn => fn()))
+      },
+    }
+  }
+}
 
-          const [task, resolve, reject] = executablePromise()
+function makeRequestDidStart(config: CuillereConfig, plugins: ServerPlugin[]): ApolloServerPlugin['requestDidStart'] {
+  const listenerGetters = plugins.flatMap(plugin => plugin.graphqlRequestListeners ?? [])
+  if (listenerGetters.length === 0) return null
 
-          taskManager
-            .execute(() => task, options.context(reqCtx))
-            .catch(() => { /* Avoids unhandled promise rejection */ })
+  const getTaskManager = makeAsyncTaskManagerGetterFromListenerGetters(listenerGetters)
 
-          return () => {
-            if (didEncounterErrors) reject(true)
-            else resolve()
-          }
-        },
-      }
-    },
+  return () => {
+    let didEncounterErrors = false
+
+    return {
+      // WORKAROUND: https://github.com/cuillerejs/cuillere/issues/25
+      didEncounterErrors() {
+        didEncounterErrors = true
+      },
+
+      executionDidStart(reqCtx) {
+        const taskManager = getTaskManager?.(reqCtx)
+
+        if (!taskManager) return undefined
+
+        const [task, resolve, reject] = executablePromise()
+
+        taskManager
+          .execute(() => task, reqCtx.context[config.contextKey] = {})
+          .catch(() => { /* Avoids unhandled promise rejection */ })
+
+        return () => {
+          if (didEncounterErrors) reject(true)
+          else resolve()
+        }
+      },
+    }
   }
 }

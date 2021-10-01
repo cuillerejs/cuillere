@@ -24,4 +24,6 @@ export * from 'graphql-subscriptions'
 
 export * from '@cuillere/core'
 
+export * from '@cuillere/server-plugin'
+
 export { Operation } from '@cuillere/core'

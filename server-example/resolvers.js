@@ -1,6 +1,7 @@
 import { GraphQLDate, GraphQLDateTime } from 'graphql-scalars'
 import { query as postgresQuery } from '@cuillere/postgres'
 import { query as mariadbQuery } from '@cuillere/mariadb'
+import { sleep } from '@cuillere/core'
 
 const simpleResolvers = {
   Query: {
@@ -8,7 +9,10 @@ const simpleResolvers = {
       const { rows: [{ now }] } = yield postgresQuery({ text: 'SELECT NOW()', pool: 'people' })
       return `Hello ${name} (${now})`
     },
-    wait: async () => new Promise(resolve => setTimeout(resolve, 5000)),
+    * wait(_, { time = 1000 }) {
+      yield sleep(time)
+      return `waited ${time}ms`
+    },
   },
 }
 

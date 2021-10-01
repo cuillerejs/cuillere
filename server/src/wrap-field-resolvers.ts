@@ -1,6 +1,7 @@
 import { isGeneratorFunction } from '@cuillere/core'
 import type { IEnumResolver, IResolverObject, IResolverOptions, IResolvers } from 'graphql-tools'
 import { isScalarType, GraphQLFieldResolver } from 'graphql'
+
 import { defaultContextKey } from './context'
 import { CUILLERE_CONTEXT_KEY, CUILLERE_INSTANCE, isCuillereSchema } from './schema'
 
