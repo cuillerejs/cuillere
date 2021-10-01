@@ -61,6 +61,6 @@
   },
   "peerDependencies": {
     "@cuillere/core": "^0.13.0",
-    "graphql": "~15"
+    "graphql": "^15.6.1"
   }
 }
