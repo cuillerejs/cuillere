@@ -32,21 +32,13 @@
     "lint": "yarn eslint --ext .ts src",
     "test": "jest --passWithNoTests",
     "clean:node-version": "rm -rf dist/node/$NODE_VERSION",
-    "prebuild:node-version": "yarn clean:$NODE_VERSION",
-    "build:node-version": "yarn tsc -p tsconfig-node$NODE_VERSION.json",
-    "clean:12": "NODE_VERSION=12 yarn clean:node-version",
-    "prebuild:12": "NODE_VERSION=12 yarn prebuild:node-version",
+    "build:node-version": "yarn clean:node-version && yarn tsc -p tsconfig-node$NODE_VERSION.json",
     "build:12": "NODE_VERSION=12 yarn build:node-version",
-    "clean:14": "NODE_VERSION=14 yarn clean:node-version",
-    "prebuild:14": "NODE_VERSION=14 yarn prebuild:node-version",
     "build:14": "NODE_VERSION=14 yarn build:node-version",
-    "clean:16": "NODE_VERSION=16 yarn clean:node-version",
-    "prebuild:16": "NODE_VERSION=16 yarn prebuild:node-version",
     "build:16": "NODE_VERSION=16 yarn build:node-version",
     "clean:types": "rm -rf dist/types",
-    "prebuild:types": "yarn clean:types",
-    "build:types": "yarn tsc -p tsconfig-types.json",
-    "build:all": "yarn build:12 && yarn build:14 && yarn build:16 && yarn build:types",
+    "build:types": "yarn clean:types && yarn tsc -p tsconfig-types.json",
+    "build:all": "yarn build:types && yarn build:12 && yarn build:14 && yarn build:16",
     "prepublishOnly": "yarn build:all && yarn lint && yarn test",
     "ci": "yarn build:node-version && yarn build:types && yarn lint && yarn test"
   },
@@ -56,5 +48,27 @@
     "apollo-server-core": "~2.25.1",
     "graphql-subscriptions": "~1.2.1",
     "graphql-tools": "~4"
+  },
+  "devDependencies": {
+    "@tsconfig/node12": "^1.0.9",
+    "@tsconfig/node14": "^1.0.1",
+    "@tsconfig/node16": "^1.0.1",
+    "@types/jest": "^26.0.23",
+    "@types/pg": "^8.6.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.29.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jest": "^24.3.6",
+    "esm": "^3.2.25",
+    "jest": "^27.0.4",
+    "ts-jest": "^27.0.3",
+    "typescript": "^4.3.4"
+  },
+  "peerDependencies": {
+    "@cuillere/core": "^0.13.0",
+    "graphql": "~15",
+    "pg": "~8"
   }
 }

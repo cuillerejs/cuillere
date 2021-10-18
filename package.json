@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build:all": "for project in core channels server-plugin server mariadb postgres server-postgres ; do echo Building $project...; (cd $project && yarn build:all); done",
-    "publish:all": "for project in core channels server-plugin server mariadb postgres server-postgres ; do echo Publishing $project...; (cd $project && yarn publish --no-git-tag-version --non-interactive); done"
+    "build:all": "yarn workspaces foreach --no-private --all --topological run build:all",
+    "publish:all": "yarn workspaces foreach --no-private --all --topological publish --no-git-tag-version --non-interactive"
   },
   "workspaces": [
     "channels",
@@ -36,5 +36,6 @@
     "graphql": "~15.5.1",
     "mariadb": "^2.5.4",
     "pg": "^8.6.0"
-  }
+  },
+  "packageManager": "yarn@3.0.2"
 }
