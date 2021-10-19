@@ -35,7 +35,7 @@
     "clean:types": "rm -rf dist/types",
     "build:types": "yarn clean:types && yarn tsc -p tsconfig-types.json",
     "build:all": "yarn build:12 & yarn build:14 & yarn build:16 & yarn build:types",
-    "prepublishOnly": "yarn build:all & yarn lint & yarn test",
+    "prepack": "yarn build:all & yarn lint & yarn test",
     "ci": "yarn build:node-version & yarn build:types & yarn lint & yarn test"
   },
   "devDependencies": {
