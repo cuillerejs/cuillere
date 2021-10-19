@@ -29,9 +29,9 @@
     "build:16": "NODE_VERSION=16 yarn build:node-version",
     "clean:types": "rm -rf dist/types",
     "build:types": "yarn clean:types && yarn tsc -p tsconfig-types.json",
-    "build:all": "yarn build:types && yarn build:12 && yarn build:14 && yarn build:16",
-    "prepublishOnly": "yarn build:all && yarn lint && yarn test",
-    "ci": "yarn build:node-version && yarn build:types && yarn lint && yarn test"
+    "build:all": "yarn build:types & yarn build:12 & yarn build:14 & yarn build:16",
+    "prepublishOnly": "yarn build:all & yarn lint & yarn test",
+    "ci": "yarn build:node-version & yarn build:types & yarn lint & yarn test"
   },
   "devDependencies": {
     "@tsconfig/node12": "^1.0.9",
