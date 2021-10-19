@@ -21,7 +21,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "lint": "yarn eslint --ext .ts src",
-    "test": "jest --passWithNoTests",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests",
     "clean:node-version": "rm -rf dist/node/$NODE_VERSION",
     "build:node-version": "yarn clean:node-version && yarn tsc -p tsconfig-node$NODE_VERSION.json",
     "build:12": "NODE_VERSION=12 yarn build:node-version",
@@ -59,6 +59,7 @@
     "eslint-plugin-jest": "^24.7.0",
     "esm": "^3.2.25",
     "jest": "^27.3.0",
+    "node-fetch": "^3.0.0",
     "ts-jest": "^27.0.7",
     "typescript": "^4.4.4"
   },

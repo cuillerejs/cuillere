@@ -7,11 +7,13 @@ else if (nodeMajorVersion >= 14) tsconfig = 'tsconfig-node14.json'
 else tsconfig = 'tsconfig-node12.json'
 
 module.exports = {
-  preset: 'ts-jest',
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
   globals: {
     'ts-jest': {
       tsconfig,
+      useESM: true,
     },
   },
+  moduleNameMapper: {    '^(\\.{1,2}/.*)\\.js$': '$1',  },
 }

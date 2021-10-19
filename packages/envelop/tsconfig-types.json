@@ -2,7 +2,8 @@
   "extends": "../tsconfig-types.json",
   "compilerOptions": {
     "outDir": "dist/types",
-    "rootDir": "src"
+    "rootDir": "src",
+    "allowJs": true
   },
   "exclude": [
     "src/**/*.spec.ts"
