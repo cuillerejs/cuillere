@@ -38,33 +38,34 @@
     "build:16": "NODE_VERSION=16 yarn build:node-version",
     "clean:types": "rm -rf dist/types",
     "build:types": "yarn clean:types && yarn tsc -p tsconfig-types.json",
-    "build:all": "yarn build:types && yarn build:12 && yarn build:14 && yarn build:16",
-    "prepublishOnly": "yarn build:all && yarn lint && yarn test",
-    "ci": "yarn build:node-version && yarn build:types && yarn lint && yarn test"
+    "build:all": "yarn build:types & yarn build:12 & yarn build:14 & yarn build:16",
+    "prepack": "yarn build:all & yarn lint & yarn test",
+    "ci": "yarn build:node-version & yarn build:types & yarn lint & yarn test"
   },
   "dependencies": {
     "@cuillere/postgres": "^0.13.0",
     "@cuillere/server": "^0.13.0",
-    "apollo-server-core": "~2.25.1",
+    "apollo-server-core": "~2.25.2",
     "graphql-subscriptions": "~1.2.1",
-    "graphql-tools": "~4"
+    "graphql-tools": "~4.0.8"
   },
   "devDependencies": {
+    "@cuillere/core": "^0.13.0",
     "@tsconfig/node12": "^1.0.9",
     "@tsconfig/node14": "^1.0.1",
-    "@tsconfig/node16": "^1.0.1",
-    "@types/jest": "^26.0.23",
-    "@types/pg": "^8.6.0",
+    "@tsconfig/node16": "^1.0.2",
+    "@types/jest": "^27.0.2",
+    "@types/pg": "^8.6.1",
     "@typescript-eslint/eslint-plugin": "^4.28.0",
     "@typescript-eslint/parser": "^4.28.0",
-    "eslint": "^7.29.0",
+    "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.23.4",
-    "eslint-plugin-jest": "^24.3.6",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-jest": "^24.7.0",
     "esm": "^3.2.25",
-    "jest": "^27.0.4",
-    "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "jest": "^27.3.0",
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.4.4"
   },
   "peerDependencies": {
     "@cuillere/core": "^0.13.0",
