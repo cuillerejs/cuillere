@@ -8,17 +8,27 @@ import { useCuillere } from './envelop'
 const schema = makeExecutableSchema({
   typeDefs: /* GraphQL */ `
     type Query {
-      hello: String
-      bye: String
+      hello(name: String): Greeting
+      bye(name: String): Greeting
+    }
+
+    type Greeting {
+      message: String
     }
   `,
   resolvers: {
     Query: {
-      * hello() {
-        return 'hello'
+      * hello(_, { name }) {
+        return { prefix: 'Hello ', suffix: '!', name }
       },
-      bye() {
-        return 'bye'
+      bye(_, { name }) {
+        return { prefix: 'Bye ', suffix: '.', name }
+      },
+    },
+
+    Greeting: {
+      * message({ prefix, suffix, name }) {
+        return `${prefix}${name}${suffix}`
       },
     },
   },
