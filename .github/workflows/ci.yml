@@ -23,42 +23,42 @@ jobs:
 
       - name: CI core
         run: yarn ci
-        working-directory: ./core
+        working-directory: ./packages/core
         env:
           NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server-plugin
         run: yarn ci
-        working-directory: ./server-plugin
+        working-directory: ./packages/server-plugin
         env:
           NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server
         run: yarn ci
-        working-directory: ./server
+        working-directory: ./packages/server
         env:
           NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI postgres
         run: yarn ci
-        working-directory: ./postgres
+        working-directory: ./packages/postgres
         env:
           NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server-postgres
         run: yarn ci
-        working-directory: ./server-postgres
+        working-directory: ./packages/server-postgres
         env:
           NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI mariadb
         run: yarn ci
-        working-directory: ./mariadb
+        working-directory: ./packages/mariadb
         env:
           NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI channels
         run: yarn ci
-        working-directory: ./channels
+        working-directory: ./packages/channels
         env:
           NODE_VERSION: ${{matrix.node-version}}

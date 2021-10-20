@@ -716,9 +716,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cuillere/channels@workspace:channels":
+"@cuillere/channels@workspace:packages/channels":
   version: 0.0.0-use.local
-  resolution: "@cuillere/channels@workspace:channels"
+  resolution: "@cuillere/channels@workspace:packages/channels"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@tsconfig/node12": ^1.0.9
@@ -741,9 +741,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/core@^0.13.0, @cuillere/core@workspace:core":
+"@cuillere/core@^0.13.0, @cuillere/core@workspace:packages/core":
   version: 0.0.0-use.local
-  resolution: "@cuillere/core@workspace:core"
+  resolution: "@cuillere/core@workspace:packages/core"
   dependencies:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
@@ -763,9 +763,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/mariadb@^0.13.0, @cuillere/mariadb@workspace:mariadb":
+"@cuillere/mariadb@^0.13.0, @cuillere/mariadb@workspace:packages/mariadb":
   version: 0.0.0-use.local
-  resolution: "@cuillere/mariadb@workspace:mariadb"
+  resolution: "@cuillere/mariadb@workspace:packages/mariadb"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@tsconfig/node12": ^1.0.9
@@ -790,9 +790,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/postgres@^0.13.0, @cuillere/postgres@workspace:postgres":
+"@cuillere/postgres@^0.13.0, @cuillere/postgres@workspace:packages/postgres":
   version: 0.0.0-use.local
-  resolution: "@cuillere/postgres@workspace:postgres"
+  resolution: "@cuillere/postgres@workspace:packages/postgres"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/server-plugin": ^0.13.0
@@ -818,9 +818,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-example@workspace:server-example":
+"@cuillere/server-example@workspace:examples/server-example":
   version: 0.0.0-use.local
-  resolution: "@cuillere/server-example@workspace:server-example"
+  resolution: "@cuillere/server-example@workspace:examples/server-example"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/mariadb": ^0.13.0
@@ -848,9 +848,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-plugin@^0.13.0, @cuillere/server-plugin@workspace:server-plugin":
+"@cuillere/server-plugin@^0.13.0, @cuillere/server-plugin@workspace:packages/server-plugin":
   version: 0.0.0-use.local
-  resolution: "@cuillere/server-plugin@workspace:server-plugin"
+  resolution: "@cuillere/server-plugin@workspace:packages/server-plugin"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@tsconfig/node12": ^1.0.9
@@ -877,9 +877,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-postgres-example@workspace:server-postgres-example":
+"@cuillere/server-postgres-example@workspace:examples/server-postgres-example":
   version: 0.0.0-use.local
-  resolution: "@cuillere/server-postgres-example@workspace:server-postgres-example"
+  resolution: "@cuillere/server-postgres-example@workspace:examples/server-postgres-example"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/server-postgres": ^0.13.0
@@ -904,9 +904,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-postgres@^0.13.0, @cuillere/server-postgres@workspace:server-postgres":
+"@cuillere/server-postgres@^0.13.0, @cuillere/server-postgres@workspace:packages/server-postgres":
   version: 0.0.0-use.local
-  resolution: "@cuillere/server-postgres@workspace:server-postgres"
+  resolution: "@cuillere/server-postgres@workspace:packages/server-postgres"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/postgres": ^0.13.0
@@ -936,9 +936,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server@^0.13.0, @cuillere/server@workspace:server":
+"@cuillere/server@^0.13.0, @cuillere/server@workspace:packages/server":
   version: 0.0.0-use.local
-  resolution: "@cuillere/server@workspace:server"
+  resolution: "@cuillere/server@workspace:packages/server"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/server-plugin": ^0.13.0

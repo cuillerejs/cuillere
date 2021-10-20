@@ -1,6 +1,6 @@
 .vscode
-*/dist/node/*/
-*/dist/types/
+**/dist/node/*/
+**/dist/types/
 node_modules/
 yarn-error.log
 .pnp.*

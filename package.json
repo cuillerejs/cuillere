@@ -3,18 +3,11 @@
   "scripts": {
     "build:all": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel run build:all",
     "publish:all": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel publish --no-git-tag-version --non-interactive",
-    "test": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel run test"
+    "test": "yarn workspaces foreach --all --verbose --parallel run test"
   },
   "workspaces": [
-    "channels",
-    "core",
-    "mariadb",
-    "postgres",
-    "server",
-    "server-example",
-    "server-plugin",
-    "server-postgres",
-    "server-postgres-example"
+    "packages/*",
+    "examples/*"
   ],
   "devDependencies": {
     "@tsconfig/node12": "^1.0.9",
