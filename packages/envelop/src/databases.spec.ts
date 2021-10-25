@@ -1,12 +1,22 @@
-import {envelop, useSchema} from "@envelop/core";
-import {useCuillere} from "./envelop";
-import {usePostgres} from "./databases";
+import {envelop, useEnvelop, useSchema, Plugin as EnvelopPlugin} from "@envelop/core";
+import {usePostgres, useTransactions} from "./databases";
 import fetch from "node-fetch";
 import {makeExecutableSchema} from "@graphql-tools/schema";
 import {fastify} from "fastify";
 import {getGraphQLParameters, processRequest, renderGraphiQL, shouldRenderGraphiQL} from "graphql-helix";
+import {TaskListener} from "@cuillere/server-plugin";
+import {jest} from '@jest/globals'
 
+let api
 describe('databases', () => {
+  beforeAll(async () => {
+    api = await app.listen(0)
+  })
+  
+  afterAll(async () => {
+    await app.close()
+  })
+  
   it('should allow to register a database', () => {
     getEnveloped = envelop({ plugins: [
       usePostgres({
@@ -20,12 +30,56 @@ describe('databases', () => {
       })
     ]})
   })
+  
+  it("should allow to register a task listener and call its methods", async () => {
+    const listener: TaskListener = {
+      initialize: jest.fn(),
+      preComplete: jest.fn(),
+      complete: jest.fn(),
+      error: jest.fn(),
+      finalize: jest.fn(),
+    }
+    
+    testPlugin(useTransactions()).addTaskListener({ query: listener, mutation: listener })
+    
+    await query(/* GraphQL */`{ hello }`)
+    expect(listener.initialize).toHaveBeenCalled()
+    expect(listener.preComplete).toHaveBeenCalled()
+    expect(listener.complete).toHaveBeenCalled()
+    expect(listener.error).not.toHaveBeenCalled()
+    expect(listener.finalize).toHaveBeenCalled()
+  })
+  
+  it('should call the error and finalize handlers on error', async () => {
+    const listener: TaskListener = {
+      complete: jest.fn(),
+      error: jest.fn(),
+      finalize: jest.fn(),
+    }
+    
+    testPlugin(useTransactions()).addTaskListener({ query: listener, mutation: listener })
+    
+    await query(/* GraphQL */`{ throwing }`)
+    expect(listener.complete).not.toHaveBeenCalled()
+    expect(listener.error).toHaveBeenCalled()
+    expect(listener.finalize).toHaveBeenCalled()
+  })
+  
+  it('should allow to populate context in initialize handler', async () => {
+    const listener: TaskListener = {
+      initialize(ctx) {
+        ctx.test = 'test'
+      }
+    }
+    testPlugin(useTransactions()).addTaskListener({ query: listener, mutation: listener })
+    
+    const data = await query(/* GraphQL */`{ getContext }`)
+    expect(data).toEqual({ data: { getContext: "test" } })
+  })
 })
 
-
-
 async function query(query, variables = {}): Promise<any> {
-  const response = await fetch('http://localhost:3000/graphql', {
+  const response = await fetch(`${api}/graphql`, {
     method: 'POST',
     body: JSON.stringify({ query, variables }),
     headers: { accept: 'application/json', 'content-type': 'application/json' },
@@ -34,13 +88,38 @@ async function query(query, variables = {}): Promise<any> {
   return response.json()
 }
 
-let getEnveloped = envelop({ plugins: [] })
+const baseEnveloped = envelop({ plugins: [useSchema(makeExecutableSchema({
+    typeDefs: /* GraphQL */`
+      type Query {
+        hello: String,
+        throwing: String,
+        getContext: String
+      }
+    `,
+    resolvers: {
+      Query: {
+        *hello() {
+          return "test"
+        },
+        *throwing() {
+          throw new Error("test")
+        },
+        *getContext(_, __, ctx) {
+          return ctx.cuillereContext.test
+        }
+      }
+    }
+  }))]
+})
 
-function setSchema(typeDefs, resolvers) {
-  getEnveloped = envelop({ plugins: [
-      useSchema(makeExecutableSchema({ typeDefs, resolvers })),
-      useCuillere(),
-    ] })
+let getEnveloped = baseEnveloped
+
+function testPlugin<T extends EnvelopPlugin>(plugin: T): T {
+  const transactionPlugin = useTransactions()
+  getEnveloped = envelop({
+    plugins: [useEnvelop(baseEnveloped), plugin]
+  })
+  return plugin
 }
 
 const app = fastify()

@@ -763,7 +763,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/envelop@workspace:packages/envelop":
+"@cuillere/envelop@^0.13.0, @cuillere/envelop@workspace:packages/envelop":
   version: 0.0.0-use.local
   resolution: "@cuillere/envelop@workspace:packages/envelop"
   dependencies:
@@ -3683,6 +3683,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"envelop-example@workspace:examples/envelop-example":
+  version: 0.0.0-use.local
+  resolution: "envelop-example@workspace:examples/envelop-example"
+  dependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/envelop": ^0.13.0
+    "@cuillere/mariadb": ^0.13.0
+    "@cuillere/postgres": ^0.13.0
+    "@cuillere/server": ^0.13.0
+    "@envelop/core": ^1.4.0
+    eslint: ^7.32.0
+    eslint-config-airbnb-base: ^14.2.1
+    eslint-plugin-import: ^2.25.2
+    graphql: ^15.6.1
+    graphql-scalars: ^1.12.0
+    mariadb: ~2.5.4
+    nodemon: ^2.0.14
+    pg: ~8.7.1
+  languageName: unknown
+  linkType: soft
+
 "err-code@npm:^2.0.2":
   version: 2.0.3
   resolution: "err-code@npm:2.0.3"
@@ -4642,6 +4663,17 @@ __metadata:
   peerDependencies:
     graphql: ^15.3.0
   checksum: ab64d55074e6b73d6126033c75f40828071bd8772764265488b77e687d7dfc7fb163045113f33878ca4e3bcde02ab1d2d1d998bbd062a35754df39ee5bf7c1ed
+  languageName: node
+  linkType: hard
+
+"graphql-scalars@npm:^1.12.0":
+  version: 1.13.6
+  resolution: "graphql-scalars@npm:1.13.6"
+  dependencies:
+    tslib: ~2.3.0
+  peerDependencies:
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: e6cb445e303ff0aea0b39555a38a2522267287e187fee4b7c8ca81daac527f7ff50894187864335210a903973c0dee1c8136aadaa02de9633bad77e5d3f9e0d3
   languageName: node
   linkType: hard
 
@@ -6397,7 +6429,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:^2.5.5, mariadb@npm:~2.5.5":
+"mariadb@npm:^2.5.5, mariadb@npm:~2.5.4, mariadb@npm:~2.5.5":
   version: 2.5.5
   resolution: "mariadb@npm:2.5.5"
   dependencies:

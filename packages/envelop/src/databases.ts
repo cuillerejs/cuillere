@@ -1,8 +1,15 @@
 import type {Plugin as EnvelopPlugin} from '@envelop/core'
 import {getClientManager, PoolManager, PostgresConfig, postgresPlugin} from "@cuillere/postgres";
 import {TaskListener} from "@cuillere/server-plugin";
-import {CuillereEnvelopPlugin, IS_CUILLERE_PLUGIN, isCuillereCoreEnvelopPlugin, useCuillere} from "./envelop";
-import {handleStreamOrSingleExecutionResult, isAsyncIterable} from "@envelop/core";
+import {
+  CuillereCoreEnvelopPlugin,
+  CuillereEnvelopPlugin,
+  IS_CUILLERE_PLUGIN,
+  isCuillereCoreEnvelopPlugin,
+  useCuillere
+} from "./envelop";
+import {isAsyncIterable} from "@envelop/core";
+import {AsyncTaskManager} from "@cuillere/server-plugin";
 
 export function usePostgres(config: PostgresConfig): PostgresPlugin {
   const poolManager = config?.poolManager ?? new PoolManager(config?.poolConfig)
@@ -17,24 +24,26 @@ export function usePostgres(config: PostgresConfig): PostgresPlugin {
     onPluginInit({ plugins, addPlugin }) {
       let transactionsPlugin = plugins.find(isTransactionsPlugin)
       if (!transactionsPlugin) {
-        transactionsPlugin = useTransactions({})
+        transactionsPlugin = useTransactions()
         addPlugin(transactionsPlugin)
       }
       
       transactionsPlugin.addTaskListener({
         query: getClientManager({
-          poolManager, transactionManager: config.queryTransactionManager ?? 'read-only',
+          poolManager, transactionManager: config?.queryTransactionManager ?? 'read-only',
         }),
         mutation: getClientManager({
-          poolManager, transactionManager: config.mutationTransactionManager ?? 'auto',
+          poolManager, transactionManager: config?.mutationTransactionManager ?? 'auto',
         })
       })
     }
   }
 }
 
-export function useTransactions(options): TransactionsPlugin {
+export function useTransactions(): TransactionsPlugin {
   const listeners: { query: TaskListener[], mutation: TaskListener[] } = { query: [], mutation: [] }
+  
+  let cllrPlugin: CuillereCoreEnvelopPlugin
   return {
     [IS_TRANSACTIONS_PLUGIN]: true,
     addTaskListener({ query, mutation }) {
@@ -43,35 +52,31 @@ export function useTransactions(options): TransactionsPlugin {
     },
     
     onPluginInit({ plugins, addPlugin }) {
-      if(!plugins.find(isCuillereCoreEnvelopPlugin)) addPlugin(useCuillere())
+      cllrPlugin = plugins.find(isCuillereCoreEnvelopPlugin)
+      if(!cllrPlugin) {
+        cllrPlugin = useCuillere()
+        addPlugin(cllrPlugin)
+      }
     },
     
     async onExecute({ args: { contextValue } }) {
       const operationType = getOperationType(contextValue)
       if(operationType != 'query' && operationType != 'mutation') return
-      const operationListeners = listeners[operationType]
       
-      await Promise.all(operationListeners.map(listener =>
-        listener.initialize(contextValue)
-      ))
+      let resolve, reject
+      const taskPromise = new AsyncTaskManager(...listeners[operationType]).execute(() => new Promise((res, rej) => {
+        resolve = res
+        reject = rej
+      }), contextValue[cllrPlugin.contextKey])
       
       return {
-        async onExecuteDone({result}) {
+        async onExecuteDone({ result }) {
           if(isAsyncIterable(result)) throw TypeError('Async Iterable results are not implemented')
-          let error
-          try {
-            if(result.errors) {
-              await Promise.all(operationListeners.map(listener => listener.error(result.errors[0])))
-              error = result.errors[0]
-            } else {
-              await Promise.all(operationListeners.map(listener => listener.complete(result)))
-            }
-          } catch (err) {
-            error = err
-            await Promise.all(operationListeners.map(listener => listener.error(err)))
-          } finally {
-            await Promise.all(operationListeners.map(listener => listener.finalize(error)))
+          if(result.errors) {
+            reject(result.errors)
           }
+          else resolve()
+          await taskPromise.catch(() => {})
         }
       }
     }

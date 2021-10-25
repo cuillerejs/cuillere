@@ -1,0 +1,33 @@
+{
+  "name": "envelop-example",
+  "packageManager": "yarn@3.0.2",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon src"
+  },
+  "devDependencies": {
+    "@cuillere/core": "^0.13.0",
+    "@cuillere/mariadb": "^0.13.0",
+    "@cuillere/postgres": "^0.13.0",
+    "@cuillere/server": "^0.13.0",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.25.2"
+  },
+  "dependencies": {
+    "@cuillere/core": "^0.13.0",
+    "@cuillere/envelop": "^0.13.0",
+    "@cuillere/mariadb": "^0.13.0",
+    "@cuillere/postgres": "^0.13.0",
+    "@cuillere/server": "^0.13.0",
+    "@envelop/core": "^1.4.0",
+    "graphql": "^15.6.1",
+    "graphql-scalars": "^1.12.0",
+    "mariadb": "~2.5.4",
+    "nodemon": "^2.0.14",
+    "pg": "~8.7.1"
+  }
+}
