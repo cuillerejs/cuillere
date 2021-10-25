@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "start": "nodemon src"
+    "start": "docker-compose up -d && nodemon src"
   },
   "devDependencies": {
     "@cuillere/core": "^0.13.0",
