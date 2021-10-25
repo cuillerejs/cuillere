@@ -1,11 +1,9 @@
-import cuillereEnvelop from '@cuillere/envelop'
+import postgres from '@cuillere/postgres-envelop'
 import {envelop, useSchema} from "@envelop/core";
 import {schema} from "./schema.js";
 
-const { usePostgres } = cuillereEnvelop
-
 export const getEnveloped = envelop({
-  plugins: [useSchema(schema), usePostgres({
+  plugins: [useSchema(schema), postgres.usePostgres({
     poolConfig: {
       host: 'localhost',
       port: 54321,

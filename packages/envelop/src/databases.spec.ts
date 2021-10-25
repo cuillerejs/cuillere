@@ -1,5 +1,5 @@
 import {envelop, useEnvelop, useSchema, Plugin as EnvelopPlugin} from "@envelop/core";
-import {usePostgres, useTransactions} from "./databases";
+import {useTransactions} from "./databases";
 import fetch from "node-fetch";
 import {makeExecutableSchema} from "@graphql-tools/schema";
 import {fastify} from "fastify";
@@ -15,20 +15,6 @@ describe('databases', () => {
   
   afterAll(async () => {
     await app.close()
-  })
-  
-  it('should allow to register a database', () => {
-    getEnveloped = envelop({ plugins: [
-      usePostgres({
-        poolConfig: {
-          host: 'localhost',
-          port: 54321,
-          database: 'people',
-          user: 'people',
-          password: 'password',
-        }
-      })
-    ]})
   })
   
   it("should allow to register a task listener and call its methods", async () => {
@@ -115,7 +101,6 @@ const baseEnveloped = envelop({ plugins: [useSchema(makeExecutableSchema({
 let getEnveloped = baseEnveloped
 
 function testPlugin<T extends EnvelopPlugin>(plugin: T): T {
-  const transactionPlugin = useTransactions()
   getEnveloped = envelop({
     plugins: [useEnvelop(baseEnveloped), plugin]
   })

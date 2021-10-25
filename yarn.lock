@@ -822,6 +822,43 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@cuillere/postgres-envelop@workspace:packages/postgres-envelop":
+  version: 0.0.0-use.local
+  resolution: "@cuillere/postgres-envelop@workspace:packages/postgres-envelop"
+  dependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/envelop": ^0.13.0
+    "@cuillere/postgres": ^0.13.0
+    "@envelop/core": ^1.4.0
+    "@graphql-tools/schema": ^8.2.0
+    "@tsconfig/node12": ^1.0.9
+    "@tsconfig/node14": ^1.0.1
+    "@tsconfig/node16": ^1.0.2
+    "@types/jest": ^27.0.2
+    "@types/pg": ^8.6.1
+    "@typescript-eslint/eslint-plugin": ^4.28.0
+    "@typescript-eslint/parser": ^4.28.0
+    eslint: ^7.32.0
+    eslint-config-airbnb-base: ^14.2.1
+    eslint-plugin-import: ^2.25.2
+    eslint-plugin-jest: ^24.7.0
+    esm: ^3.2.25
+    fastify: ^3.22.0
+    graphql-helix: ^1.8.0
+    jest: ^27.3.0
+    node-fetch: ^3.0.0
+    nodemon: ^2.0.14
+    ts-jest: ^27.0.7
+    typescript: ^4.4.4
+  peerDependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/envelop": ^0.13.0
+    "@cuillere/postgres": ^0.13.0
+    graphql: ^15.6.1
+    pg: ~7||~8
+  languageName: unknown
+  linkType: soft
+
 "@cuillere/postgres@^0.13.0, @cuillere/postgres@workspace:packages/postgres":
   version: 0.0.0-use.local
   resolution: "@cuillere/postgres@workspace:packages/postgres"

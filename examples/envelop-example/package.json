@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@cuillere/core": "^0.13.0",
-    "@cuillere/envelop": "^0.13.0",
+    "@cuillere/postgres-envelop": "^0.13.0",
     "@cuillere/mariadb": "^0.13.0",
     "@cuillere/postgres": "^0.13.0",
     "@cuillere/server": "^0.13.0",
