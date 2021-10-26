@@ -1,17 +1,26 @@
 import {ensurePlugin, IS_CUILLERE_PLUGIN, isTransactionsPlugin, useTransactions, CuillereEnvelopPlugin} from "@cuillere/envelop";
-import {PostgresConfig, PoolManager, postgresPlugin, getClientManager} from "@cuillere/postgres";
+import {PoolManager, connectionPlugin, getConnectionManager} from "@cuillere/mariadb";
+import {PoolConfig} from "mariadb";
+import {TransactionManagerType} from "@cuillere/server-plugin";
 
-export interface PostgresPlugin extends CuillereEnvelopPlugin {
+export interface MariaPlugin extends CuillereEnvelopPlugin {
   end(): Promise<void> | void
 }
 
-export function usePostgres(config: PostgresConfig): PostgresPlugin {
+export interface MariaConfig {
+  poolConfig?: PoolConfig
+  poolManager?: PoolManager
+  queryTransactionManager?: TransactionManagerType
+  mutationTransactionManager?: TransactionManagerType
+}
+
+export function useMaria(config: MariaConfig): MariaPlugin {
   const poolManager = config?.poolManager ?? new PoolManager(config?.poolConfig)
   
   return {
     [IS_CUILLERE_PLUGIN]: true,
     cuillere: {
-      plugins: [postgresPlugin()]
+      plugins: [connectionPlugin()]
     },
     end: config?.poolManager ? () => {} : () => poolManager.end(),
     
@@ -19,10 +28,10 @@ export function usePostgres(config: PostgresConfig): PostgresPlugin {
       const transactionsPlugin = ensurePlugin(plugins, addPlugin, isTransactionsPlugin, useTransactions)
       
       transactionsPlugin.addTaskListener({
-        query: getClientManager({
+        query: getConnectionManager({
           poolManager, transactionManager: config?.queryTransactionManager ?? 'read-only',
         }),
-        mutation: getClientManager({
+        mutation: getConnectionManager({
           poolManager, transactionManager: config?.mutationTransactionManager ?? 'auto',
         })
       })

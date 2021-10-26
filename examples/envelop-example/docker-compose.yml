@@ -7,3 +7,10 @@ services:
       - "54321:5432"
     environment:
       POSTGRES_PASSWORD: password
+
+  maria:
+    image: mariadb
+    ports:
+      - "33061:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
