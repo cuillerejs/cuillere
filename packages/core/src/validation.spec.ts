@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, defer, fork, recover, terminal } from '.'
+import cuillere, { Cuillere, fork, Plugin, recover, terminal } from '.'
 import { OperationObject } from './operations'
 
 describe('validation', () => {
@@ -53,14 +53,6 @@ describe('validation', () => {
       await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal forks are forbidden'))
     })
 
-    it('should not accept defer operation', async () => {
-      function* test() {
-        yield terminal(defer(dummy()))
-      }
-
-      await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal defers are forbidden'))
-    })
-
     it('should not accept recover operation', async () => {
       function* test() {
         yield terminal(recover())
@@ -85,7 +77,7 @@ describe('validation', () => {
       answer: 42
     }
 
-    await cuillere({
+    const plugin: Plugin = {
       namespace: '@cuillere/test',
       handlers: {
         * test({ answer }: TestOperation) {
@@ -97,7 +89,9 @@ describe('validation', () => {
           if (answer !== 42) throw TypeError('answer should be 42')
         },
       },
-    }).call(function* test() {
+    }
+
+    await cuillere(plugin).call(function* test() {
       yield { kind: '@cuillere/test/test', answer: 42 }
       try {
         yield { kind: '@cuillere/test/test', answer: 666 }
