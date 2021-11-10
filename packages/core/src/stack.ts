@@ -270,7 +270,6 @@ export class Stack {
   coreValidators: Record<string, (operation: OperationObject) => void> = {
     [`${coreNamespace}/terminal`]({ operation }: Wrapper) {
       if (isFork(operation)) throw new TypeError('terminal forks are forbidden')
-      // if (isDefer(operation)) throw new TypeError('terminal defers are forbidden')
       if (isRecover(operation)) throw new TypeError('terminal recovers are forbidden')
       if (isTerminal(operation)) throw new TypeError('terminals cannot be nested')
     },
