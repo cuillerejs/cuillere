@@ -45,7 +45,7 @@
   "dependencies": {
     "@cuillere/postgres": "^0.13.0",
     "@cuillere/server": "^0.13.0",
-    "apollo-server-core": "~2.25.2",
+    "apollo-server-core": "~2.25.3",
     "graphql-subscriptions": "~1.2.1",
     "graphql-tools": "~4.0.8"
   },
@@ -56,14 +56,14 @@
     "@tsconfig/node16": "^1.0.2",
     "@types/jest": "^27.0.2",
     "@types/pg": "^8.6.1",
-    "@typescript-eslint/eslint-plugin": "^4.28.0",
-    "@typescript-eslint/parser": "^4.28.0",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-jest": "^24.7.0",
     "esm": "^3.2.25",
-    "jest": "^27.3.0",
+    "jest": "^27.3.1",
     "ts-jest": "^27.0.7",
     "typescript": "^4.4.4"
   },
