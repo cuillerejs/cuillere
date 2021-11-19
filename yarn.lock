@@ -735,7 +735,7 @@ __metadata:
     esm: ^3.2.25
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
   languageName: unknown
@@ -759,11 +759,11 @@ __metadata:
     esm: ^3.2.25
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
-"@cuillere/envelop@workspace:packages/envelop":
+"@cuillere/envelop@^0.13.0, @cuillere/envelop@workspace:packages/envelop":
   version: 0.0.0-use.local
   resolution: "@cuillere/envelop@workspace:packages/envelop"
   dependencies:
@@ -788,10 +788,47 @@ __metadata:
     node-fetch: ^3.0.0
     nodemon: ^2.0.14
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
+  languageName: unknown
+  linkType: soft
+
+"@cuillere/mariadb-envelop@workspace:packages/mariadb-envelop":
+  version: 0.0.0-use.local
+  resolution: "@cuillere/mariadb-envelop@workspace:packages/mariadb-envelop"
+  dependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/envelop": ^0.13.0
+    "@cuillere/mariadb": ^0.13.0
+    "@envelop/core": ^1.4.0
+    "@graphql-tools/schema": ^8.2.0
+    "@tsconfig/node12": ^1.0.9
+    "@tsconfig/node14": ^1.0.1
+    "@tsconfig/node16": ^1.0.2
+    "@types/jest": ^27.0.2
+    "@types/pg": ^8.6.1
+    "@typescript-eslint/eslint-plugin": ^4.28.0
+    "@typescript-eslint/parser": ^4.28.0
+    eslint: ^7.32.0
+    eslint-config-airbnb-base: ^14.2.1
+    eslint-plugin-import: ^2.25.2
+    eslint-plugin-jest: ^24.7.0
+    esm: ^3.2.25
+    fastify: ^3.22.0
+    graphql-helix: ^1.8.0
+    jest: ^27.3.0
+    node-fetch: ^3.0.0
+    nodemon: ^2.0.14
+    ts-jest: ^27.0.7
+    typescript: ^4.5.2
+  peerDependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/envelop": ^0.13.0
+    "@cuillere/mariadb": ^0.13.0
+    graphql: ^15.6.1
+    mariadb: ~2
   languageName: unknown
   linkType: soft
 
@@ -814,11 +851,48 @@ __metadata:
     esm: ^3.2.25
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
     mariadb: ~2
+  languageName: unknown
+  linkType: soft
+
+"@cuillere/postgres-envelop@^0.13.0, @cuillere/postgres-envelop@workspace:packages/postgres-envelop":
+  version: 0.0.0-use.local
+  resolution: "@cuillere/postgres-envelop@workspace:packages/postgres-envelop"
+  dependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/envelop": ^0.13.0
+    "@cuillere/postgres": ^0.13.0
+    "@envelop/core": ^1.4.0
+    "@graphql-tools/schema": ^8.2.0
+    "@tsconfig/node12": ^1.0.9
+    "@tsconfig/node14": ^1.0.1
+    "@tsconfig/node16": ^1.0.2
+    "@types/jest": ^27.0.2
+    "@types/pg": ^8.6.1
+    "@typescript-eslint/eslint-plugin": ^4.28.0
+    "@typescript-eslint/parser": ^4.28.0
+    eslint: ^7.32.0
+    eslint-config-airbnb-base: ^14.2.1
+    eslint-plugin-import: ^2.25.2
+    eslint-plugin-jest: ^24.7.0
+    esm: ^3.2.25
+    fastify: ^3.22.0
+    graphql-helix: ^1.8.0
+    jest: ^27.3.0
+    node-fetch: ^3.0.0
+    nodemon: ^2.0.14
+    ts-jest: ^27.0.7
+    typescript: ^4.5.2
+  peerDependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/envelop": ^0.13.0
+    "@cuillere/postgres": ^0.13.0
+    graphql: ^15.6.1
+    pg: ~7||~8
   languageName: unknown
   linkType: soft
 
@@ -843,7 +917,7 @@ __metadata:
     graphql: ^15.6.1
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     pg: ~7||~8
@@ -876,7 +950,7 @@ __metadata:
     mariadb: ~2.5.5
     pg: ~8.7.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -902,7 +976,7 @@ __metadata:
     jest: ^27.3.1
     koa: ~2.13.4
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -932,7 +1006,7 @@ __metadata:
     jest: ^27.3.1
     pg: ~8.7.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -960,7 +1034,7 @@ __metadata:
     graphql-tools: ~4.0.8
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -995,7 +1069,7 @@ __metadata:
     jest: ^27.3.1
     koa: ~2.13.4
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     graphql: ^15.6.1
   languageName: unknown
@@ -3683,6 +3757,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"envelop-example@workspace:examples/envelop-example":
+  version: 0.0.0-use.local
+  resolution: "envelop-example@workspace:examples/envelop-example"
+  dependencies:
+    "@cuillere/core": ^0.13.0
+    "@cuillere/mariadb": ^0.13.0
+    "@cuillere/postgres": ^0.13.0
+    "@cuillere/postgres-envelop": ^0.13.0
+    "@cuillere/server": ^0.13.0
+    "@envelop/core": ^1.4.0
+    eslint: ^7.32.0
+    eslint-config-airbnb-base: ^14.2.1
+    eslint-plugin-import: ^2.25.2
+    graphql: ^15.6.1
+    graphql-scalars: ^1.12.0
+    mariadb: ~2.5.4
+    nodemon: ^2.0.14
+    pg: ~8.7.1
+  languageName: unknown
+  linkType: soft
+
 "err-code@npm:^2.0.2":
   version: 2.0.3
   resolution: "err-code@npm:2.0.3"
@@ -4642,6 +4737,17 @@ __metadata:
   peerDependencies:
     graphql: ^15.3.0
   checksum: ab64d55074e6b73d6126033c75f40828071bd8772764265488b77e687d7dfc7fb163045113f33878ca4e3bcde02ab1d2d1d998bbd062a35754df39ee5bf7c1ed
+  languageName: node
+  linkType: hard
+
+"graphql-scalars@npm:^1.12.0":
+  version: 1.13.6
+  resolution: "graphql-scalars@npm:1.13.6"
+  dependencies:
+    tslib: ~2.3.0
+  peerDependencies:
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: e6cb445e303ff0aea0b39555a38a2522267287e187fee4b7c8ca81daac527f7ff50894187864335210a903973c0dee1c8136aadaa02de9633bad77e5d3f9e0d3
   languageName: node
   linkType: hard
 
@@ -6397,7 +6503,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:^2.5.5, mariadb@npm:~2.5.5":
+"mariadb@npm:^2.5.5, mariadb@npm:~2.5.4, mariadb@npm:~2.5.5":
   version: 2.5.5
   resolution: "mariadb@npm:2.5.5"
   dependencies:
@@ -7650,7 +7756,7 @@ resolve@^1.3.2:
     nodemon: ^2.0.14
     pg: ^8.7.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -8553,23 +8659,23 @@ resolve@^1.3.2:
   languageName: node
   linkType: hard
 
-typescript@^4.4.4:
-  version: 4.4.4
-  resolution: "typescript@npm:4.4.4"
+typescript@^4.5.2:
+  version: 4.5.2
+  resolution: "typescript@npm:4.5.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 89ecb8436bb48ef5594d49289f5f89103071716b6e4844278f4fb3362856e31203e187a9c76d205c3f0b674d221a058fd28310dbcbcf5d95e9a57229bb5203f1
+  checksum: 74f9ce65d532bdf5d0214b3f60cf37992180023388c87a11ee6f838a803067ef0b63c600fa501b0deb07f989257dce1e244c9635ed79feca40bbccf6e0aa1ebc
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.4.4#~builtin<compat/typescript>":
-  version: 4.4.4
-  resolution: "typescript@patch:typescript@npm%3A4.4.4#~builtin<compat/typescript>::version=4.4.4&hash=32657b"
+"typescript@patch:typescript@^4.5.2#~builtin<compat/typescript>":
+  version: 4.5.2
+  resolution: "typescript@patch:typescript@npm%3A4.5.2#~builtin<compat/typescript>::version=4.5.2&hash=32657b"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: c97c33903f1eb4f9e178649befdfc859d93157db1eccd1e521e84976ec6861db53412d8018e5e4c5d09268771c65498d42caa64bd881878346c3644f6b7cd202
+  checksum: 02cf0f190f0cb6d216558d8db9c3a968feeab4965c340a351e5e6e84a42a3946e5e200a9538b6e427af9d17e4f713254dd0707d5fd6f238ce93f0aee1986ab57
   languageName: node
   linkType: hard
 
