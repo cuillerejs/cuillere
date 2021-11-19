@@ -23,11 +23,12 @@
     "eslint-plugin-jest": "^24.7.0",
     "esm": "^3.2.25",
     "jest": "^27.3.1",
+    "nodemon": "^2.0.14",
     "ts-jest": "^27.0.7",
     "typescript": "^4.4.4"
   },
   "dependencies": {
-    "graphql": "~15.6.1",
+    "graphql": "^15.6.1",
     "mariadb": "^2.5.5",
     "pg": "^8.7.1"
   },

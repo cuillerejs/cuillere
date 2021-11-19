@@ -73,6 +73,6 @@
     "koa": "~2.13.4"
   },
   "peerDependencies": {
-    "graphql": "~14||~15"
+    "graphql": "^15.6.1"
   }
 }
