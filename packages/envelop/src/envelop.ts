@@ -1,7 +1,7 @@
-import {Cuillere, cuillere, isGeneratorFunction, Plugin} from '@cuillere/core'
-import {Plugin as EnvelopPlugin} from '@envelop/core'
+import { Cuillere, cuillere, isGeneratorFunction, Plugin } from '@cuillere/core'
+import { Plugin as EnvelopPlugin } from '@envelop/core'
 
-export function useCuillere({ plugins: cllrPlugins = [], contextKey = 'cuillereContext', instanceKey = 'cuillere' }: { plugins?: Plugin[]; contextKey?: string, instanceKey?: string } = {}): CuillereCoreEnvelopPlugin {
+export function useCuillere({ plugins: cllrPlugins = [], contextKey = 'cuillereContext', instanceKey = 'cuillere' }: { plugins?: Plugin[]; contextKey?: string; instanceKey?: string } = {}): CuillereCoreEnvelopPlugin {
   let cllr
 
   const plugin: CuillereCoreEnvelopPlugin = {
@@ -49,7 +49,7 @@ export function isCuillereCoreEnvelopPlugin(plugin: EnvelopPlugin): plugin is Cu
 
 const CUILLERE_CORE_ENVELOP_PLUGIN = Symbol('CUILLERE_CORE_ENVELOP_PLUGIN')
 
-export const IS_CUILLERE_PLUGIN = Symbol("IS_CUILLERE_PLUGIN")
+export const IS_CUILLERE_PLUGIN = Symbol('IS_CUILLERE_PLUGIN')
 
 export interface CuillereEnvelopPlugin extends EnvelopPlugin {
   [IS_CUILLERE_PLUGIN]: true
@@ -62,10 +62,10 @@ export function isCuillerePlugin(plugin: any): plugin is CuillereEnvelopPlugin {
 
 export function ensurePlugin(plugins, addPlugin, predicate, factory) {
   let plugin = plugins.find(predicate)
-  if(!plugin) {
+  if (!plugin) {
     plugin = factory()
     addPlugin(plugin)
   }
-  
+
   return plugin
 }
