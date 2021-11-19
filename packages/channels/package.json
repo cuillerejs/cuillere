@@ -40,7 +40,7 @@
     "@tsconfig/node12": "^1.0.9",
     "@tsconfig/node14": "^1.0.1",
     "@tsconfig/node16": "^1.0.2",
-    "@types/jest": "^27.0.2",
+    "@types/jest": "^27.0.3",
     "@types/pg": "^8.6.1",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
@@ -51,7 +51,7 @@
     "esm": "^3.2.25",
     "jest": "^27.3.1",
     "ts-jest": "^27.0.7",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.2"
   },
   "peerDependencies": {
     "@cuillere/core": "^0.13.0"

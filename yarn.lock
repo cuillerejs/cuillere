@@ -724,7 +724,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -735,7 +735,7 @@ __metadata:
     esm: ^3.2.25
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
   languageName: unknown
@@ -748,7 +748,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -759,7 +759,7 @@ __metadata:
     esm: ^3.2.25
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -768,27 +768,27 @@ __metadata:
   resolution: "@cuillere/envelop@workspace:packages/envelop"
   dependencies:
     "@cuillere/core": ^0.13.0
-    "@envelop/core": ^1.4.0
-    "@graphql-tools/schema": ^8.2.0
+    "@envelop/core": ^1.6.2
+    "@graphql-tools/schema": ^8.3.1
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
-    "@typescript-eslint/eslint-plugin": ^4.28.0
-    "@typescript-eslint/parser": ^4.28.0
+    "@typescript-eslint/eslint-plugin": ^4.33.0
+    "@typescript-eslint/parser": ^4.33.0
     eslint: ^7.32.0
     eslint-config-airbnb-base: ^14.2.1
-    eslint-plugin-import: ^2.25.2
+    eslint-plugin-import: ^2.25.3
     eslint-plugin-jest: ^24.7.0
     esm: ^3.2.25
-    fastify: ^3.22.0
-    graphql-helix: ^1.8.0
-    jest: ^27.3.0
-    node-fetch: ^3.0.0
-    nodemon: ^2.0.14
+    fastify: ^3.24.0
+    graphql-helix: ^1.10.2
+    jest: ^27.3.1
+    node-fetch: ^3.1.0
+    nodemon: ^2.0.15
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -803,7 +803,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -814,7 +814,7 @@ __metadata:
     esm: ^3.2.25
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -831,7 +831,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -840,10 +840,10 @@ __metadata:
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jest: ^24.7.0
     esm: ^3.2.25
-    graphql: ^15.6.1
+    graphql: ^15.7.2
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     pg: ~7||~8
@@ -861,7 +861,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -870,13 +870,13 @@ __metadata:
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jest: ^24.7.0
     esm: ^3.2.25
-    graphql: ^15.6.1
-    graphql-scalars: ^1.13.1
+    graphql: ^15.7.2
+    graphql-scalars: ^1.13.6
     jest: ^27.3.1
     mariadb: ~2.5.5
     pg: ~8.7.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -888,7 +888,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -902,7 +902,7 @@ __metadata:
     jest: ^27.3.1
     koa: ~2.13.4
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -918,7 +918,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -927,12 +927,12 @@ __metadata:
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jest: ^24.7.0
     esm: ^3.2.25
-    graphql: ^15.6.1
-    graphql-scalars: ^1.13.1
+    graphql: ^15.7.2
+    graphql-scalars: ^1.13.6
     jest: ^27.3.1
     pg: ~8.7.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -946,7 +946,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -960,7 +960,7 @@ __metadata:
     graphql-tools: ~4.0.8
     jest: ^27.3.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -977,7 +977,7 @@ __metadata:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -990,18 +990,18 @@ __metadata:
     eslint-plugin-jest: ^24.7.0
     esm: ^3.2.25
     graphql-subscriptions: ~1.2.1
-    graphql-tag: ^2.12.5
+    graphql-tag: ^2.12.6
     graphql-tools: ~4.0.8
     jest: ^27.3.1
     koa: ~2.13.4
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   peerDependencies:
     graphql: ^15.6.1
   languageName: unknown
   linkType: soft
 
-"@envelop/core@npm:^1.4.0":
+"@envelop/core@npm:^1.6.2":
   version: 1.6.2
   resolution: "@envelop/core@npm:1.6.2"
   dependencies:
@@ -1054,40 +1054,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-tools/merge@npm:^8.2.0":
-  version: 8.2.0
-  resolution: "@graphql-tools/merge@npm:8.2.0"
+"@graphql-tools/merge@npm:^8.2.1":
+  version: 8.2.1
+  resolution: "@graphql-tools/merge@npm:8.2.1"
   dependencies:
-    "@graphql-tools/utils": ^8.4.0
+    "@graphql-tools/utils": ^8.5.1
     tslib: ~2.3.0
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 9ae3b35fd3d53fff3f649831be27fbc8c1c89ba3cdaf7d7bad5f7216b5ee8b358aabb0ac9404f5b2b02fe66f68c04ea9d7fd64422d52847dbc59e5fb102127c8
+  checksum: b2c126fc697ad1cf0fb2c09d3766d791ba6243a318edfa24932b558628244f822b9454bd47cd98f5a7eee90caca264573695c582e10730b7a67785fea21c346c
   languageName: node
   linkType: hard
 
-"@graphql-tools/schema@npm:^8.2.0":
-  version: 8.3.0
-  resolution: "@graphql-tools/schema@npm:8.3.0"
+"@graphql-tools/schema@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "@graphql-tools/schema@npm:8.3.1"
   dependencies:
-    "@graphql-tools/merge": ^8.2.0
-    "@graphql-tools/utils": ^8.4.0
+    "@graphql-tools/merge": ^8.2.1
+    "@graphql-tools/utils": ^8.5.1
     tslib: ~2.3.0
     value-or-promise: 1.0.11
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 0a253276efd4d90f04558a9e43969d1fee63b9ce4af4a1201989889125e9254e5892569c7db8596547d9ebdb3fdff363de3dd0c99cd78e073288a2f166fd5d00
+  checksum: 5fd6dbd3f4e92fd1b9a627e04b339bf2a4564768299e45576f79df70e167c3ec6c822576c37b3ba6537e2dd561b3b445b322bc90b205389260b7084fe777f5d4
   languageName: node
   linkType: hard
 
-"@graphql-tools/utils@npm:^8.4.0":
-  version: 8.4.0
-  resolution: "@graphql-tools/utils@npm:8.4.0"
+"@graphql-tools/utils@npm:^8.5.1":
+  version: 8.5.3
+  resolution: "@graphql-tools/utils@npm:8.5.3"
   dependencies:
     tslib: ~2.3.0
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 6419efadba50d7b6a8e36c1a34665a963d36771a9ca0ea0e86c08088badcf109cc4dba03b611cbb14f3fc37142339536dc13cbc41f3288ca799da2034019b3c8
+  checksum: f5f8e82c46f205c0d48c2d6d160e28183706a86755e7ea31db6e54b32da7db9eecf988d0935538e27cc3706b5031b75798dc85532e11724fdb4578a9a1b00450
   languageName: node
   linkType: hard
 
@@ -1729,13 +1729,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^27.0.2":
-  version: 27.0.2
-  resolution: "@types/jest@npm:27.0.2"
+"@types/jest@npm:^27.0.3":
+  version: 27.0.3
+  resolution: "@types/jest@npm:27.0.3"
   dependencies:
     jest-diff: ^27.0.0
     pretty-format: ^27.0.0
-  checksum: 814ad5f5d2f277849f47e52906da4b745758e555630fc8cb46a071bde648eefeffb1b35710c530a8cea7fc4ea7c1d813812c120484bf7902ab6c5e473cdd49c9
+  checksum: 3683a9945821966f6dccddf337219a5d682633687c9d30df859223db553589f63e9b2c34e69f0cc845c86ffcf115742f25c12ea03c8d33d2244890fdc0af61e2
   languageName: node
   linkType: hard
 
@@ -1937,7 +1937,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:^4.28.0, @typescript-eslint/eslint-plugin@npm:^4.33.0":
+"@typescript-eslint/eslint-plugin@npm:^4.33.0":
   version: 4.33.0
   resolution: "@typescript-eslint/eslint-plugin@npm:4.33.0"
   dependencies:
@@ -1991,7 +1991,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:^4.28.0, @typescript-eslint/parser@npm:^4.33.0":
+"@typescript-eslint/parser@npm:^4.33.0":
   version: 4.33.0
   resolution: "@typescript-eslint/parser@npm:4.33.0"
   dependencies:
@@ -3333,10 +3333,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"data-uri-to-buffer@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "data-uri-to-buffer@npm:3.0.1"
-  checksum: c59c3009686a78c071806b72f4810856ec28222f0f4e252aa495ec027ed9732298ceea99c50328cf59b151dd34cbc3ad6150bbb43e41fc56fa19f48c99e9fc30
+"data-uri-to-buffer@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "data-uri-to-buffer@npm:4.0.0"
+  checksum: a010653869abe8bb51259432894ac62c52bf79ad761d418d94396f48c346f2ae739c46b254e8bb5987bded8a653d467db1968db3a69bab1d33aa5567baa5cfc7
   languageName: node
   linkType: hard
 
@@ -3864,7 +3864,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import@npm:^2.25.2, eslint-plugin-import@npm:^2.25.3":
+"eslint-plugin-import@npm:^2.25.3":
   version: 2.25.3
   resolution: "eslint-plugin-import@npm:2.25.3"
   dependencies:
@@ -4201,9 +4201,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastify@npm:^3.22.0":
-  version: 3.22.1
-  resolution: "fastify@npm:3.22.1"
+"fastify@npm:^3.24.0":
+  version: 3.24.0
+  resolution: "fastify@npm:3.24.0"
   dependencies:
     "@fastify/ajv-compiler": ^1.0.0
     abstract-logging: ^2.0.0
@@ -4220,7 +4220,7 @@ __metadata:
     secure-json-parse: ^2.0.0
     semver: ^7.3.2
     tiny-lru: ^7.0.0
-  checksum: 057f29045629250923b962c5fbd421811378ef32c497bc02bb1c0a75294f43ca73e7041262a306b7c1d6bf243d2096d63cc4192aaa6c9053efcd4557e225d470
+  checksum: 206e7b74068b7a3a39d1144bd2c453141216527fd9face960d3f20d33edb86a71421afb5d1ee15633712e8b50886db625c6f2d8dfca2b97739c01fa128cb7e8d
   languageName: node
   linkType: hard
 
@@ -4341,6 +4341,15 @@ __metadata:
     combined-stream: ^1.0.8
     mime-types: ^2.1.12
   checksum: 60ec3fe7e23154949ab6fef31baedf5afbfb8d6441ea8d19b211b43a5d0448be2918c9bba6218cade56a7cbd43f670d6e75f41f626f8d397d56bf8c60f4a829d
+  languageName: node
+  linkType: hard
+
+"formdata-polyfill@npm:^4.0.10":
+  version: 4.0.10
+  resolution: "formdata-polyfill@npm:4.0.10"
+  dependencies:
+    fetch-blob: ^3.1.2
+  checksum: 82a34df292afadd82b43d4a740ce387bc08541e0a534358425193017bf9fb3567875dc5f69564984b1da979979b70703aa73dee715a17b6c229752ae736dd9db
   languageName: node
   linkType: hard
 
@@ -4636,23 +4645,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-helix@npm:^1.8.0":
-  version: 1.8.3
-  resolution: "graphql-helix@npm:1.8.3"
+"graphql-helix@npm:^1.10.2":
+  version: 1.10.2
+  resolution: "graphql-helix@npm:1.10.2"
   peerDependencies:
-    graphql: ^15.3.0
-  checksum: ab64d55074e6b73d6126033c75f40828071bd8772764265488b77e687d7dfc7fb163045113f33878ca4e3bcde02ab1d2d1d998bbd062a35754df39ee5bf7c1ed
+    graphql: ^15.3.0 || ^16.0.0
+  checksum: bcdd7f9c6e3eb4e7a99a30bcd95b76e25562749477520429cc0224a8c902ca0238122eaf25e2fb04c55824af6b393978344b91e7a0b7504d48b5df95ee7c9f19
   languageName: node
   linkType: hard
 
-"graphql-scalars@npm:^1.13.1":
-  version: 1.13.1
-  resolution: "graphql-scalars@npm:1.13.1"
+"graphql-scalars@npm:^1.13.6":
+  version: 1.13.6
+  resolution: "graphql-scalars@npm:1.13.6"
   dependencies:
     tslib: ~2.3.0
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 476e0fb997c04c2bc2348e2d11fae9f4ea5da062cae1f71fb647580576dd6010bedba9443856ca0b1620dc4adffb22994299933aa74ece1a5c8cd007ec5e41a6
+  checksum: e6cb445e303ff0aea0b39555a38a2522267287e187fee4b7c8ca81daac527f7ff50894187864335210a903973c0dee1c8136aadaa02de9633bad77e5d3f9e0d3
   languageName: node
   linkType: hard
 
@@ -4678,14 +4687,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-tag@npm:^2.12.5":
-  version: 2.12.5
-  resolution: "graphql-tag@npm:2.12.5"
+"graphql-tag@npm:^2.12.6":
+  version: 2.12.6
+  resolution: "graphql-tag@npm:2.12.6"
   dependencies:
     tslib: ^2.1.0
   peerDependencies:
-    graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-  checksum: 7afe8b0a261bc81278e8350cbc48a641986665fa88521ece137feb8d1d62aacbe79afd4e159b618d56af106291ae8369592e46584fd8fbaf4f440201ea884fdd
+    graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: b15162a3d62f17b9b79302445b9ee330e041582f1c7faca74b9dec5daa74272c906ec1c34e1c50592bb6215e5c3eba80a309103f6ba9e4c1cddc350c46f010df
   languageName: node
   linkType: hard
 
@@ -4704,10 +4713,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^15.6.1":
-  version: 15.6.1
-  resolution: "graphql@npm:15.6.1"
-  checksum: 4c6dcf385f7a87a5103fcb7640394244ae8d1d4ede521085192a1cf1e60115c4f6285d783961575d908709f7ee3e4cdd16b3f7c54eb37499c0420c6301e98968
+"graphql@npm:^15.7.2":
+  version: 15.7.2
+  resolution: "graphql@npm:15.7.2"
+  checksum: eacb746e2981d0c346ef7365601873963af5356f64ce4d890ab89d213c67bf5bc1ae957b93c3902198798774c842b55dff219f38bad858691765e4debc265750
   languageName: node
   linkType: hard
 
@@ -5934,7 +5943,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:^27.3.0, jest@npm:^27.3.1":
+"jest@npm:^27.3.1":
   version: 27.3.1
   resolution: "jest@npm:27.3.1"
   dependencies:
@@ -6636,13 +6645,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "node-fetch@npm:3.0.0"
+"node-fetch@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "node-fetch@npm:3.1.0"
   dependencies:
-    data-uri-to-buffer: ^3.0.1
+    data-uri-to-buffer: ^4.0.0
     fetch-blob: ^3.1.2
-  checksum: 50224bf682a0bc3d44faee0f38df6269d8ae646de343595ef37f9d94b4322d3763a49819fb7b2df9330fcae16e0a20e5fb129dfed8725cf0e8f720277db7611c
+    formdata-polyfill: ^4.0.10
+  checksum: 23b5977554d21b72d7d99145d00bcf06e463fa621bf0afc276ad121a79509a133f38c7e470b34aad45d4032d3315bf5584ff6a1cb83e8f01be7a44cc7ac72693
   languageName: node
   linkType: hard
 
@@ -6687,7 +6697,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemon@npm:^2.0.14":
+"nodemon@npm:^2.0.15":
   version: 2.0.15
   resolution: "nodemon@npm:2.0.15"
   dependencies:
@@ -7635,7 +7645,7 @@ resolve@^1.3.2:
     "@tsconfig/node12": ^1.0.9
     "@tsconfig/node14": ^1.0.1
     "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.0.2
+    "@types/jest": ^27.0.3
     "@types/pg": ^8.6.1
     "@typescript-eslint/eslint-plugin": ^4.33.0
     "@typescript-eslint/parser": ^4.33.0
@@ -7644,13 +7654,13 @@ resolve@^1.3.2:
     eslint-plugin-import: ^2.25.3
     eslint-plugin-jest: ^24.7.0
     esm: ^3.2.25
-    graphql: ^15.6.1
+    graphql: ^15.7.2
     jest: ^27.3.1
     mariadb: ^2.5.5
-    nodemon: ^2.0.14
+    nodemon: ^2.0.15
     pg: ^8.7.1
     ts-jest: ^27.0.7
-    typescript: ^4.4.4
+    typescript: ^4.5.2
   languageName: unknown
   linkType: soft
 
@@ -8553,23 +8563,23 @@ resolve@^1.3.2:
   languageName: node
   linkType: hard
 
-typescript@^4.4.4:
-  version: 4.4.4
-  resolution: "typescript@npm:4.4.4"
+typescript@^4.5.2:
+  version: 4.5.2
+  resolution: "typescript@npm:4.5.2"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 89ecb8436bb48ef5594d49289f5f89103071716b6e4844278f4fb3362856e31203e187a9c76d205c3f0b674d221a058fd28310dbcbcf5d95e9a57229bb5203f1
+  checksum: 74f9ce65d532bdf5d0214b3f60cf37992180023388c87a11ee6f838a803067ef0b63c600fa501b0deb07f989257dce1e244c9635ed79feca40bbccf6e0aa1ebc
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.4.4#~builtin<compat/typescript>":
-  version: 4.4.4
-  resolution: "typescript@patch:typescript@npm%3A4.4.4#~builtin<compat/typescript>::version=4.4.4&hash=32657b"
+"typescript@patch:typescript@^4.5.2#~builtin<compat/typescript>":
+  version: 4.5.2
+  resolution: "typescript@patch:typescript@npm%3A4.5.2#~builtin<compat/typescript>::version=4.5.2&hash=32657b"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: c97c33903f1eb4f9e178649befdfc859d93157db1eccd1e521e84976ec6861db53412d8018e5e4c5d09268771c65498d42caa64bd881878346c3644f6b7cd202
+  checksum: 02cf0f190f0cb6d216558d8db9c3a968feeab4965c340a351e5e6e84a42a3946e5e200a9538b6e427af9d17e4f713254dd0707d5fd6f238ce93f0aee1986ab57
   languageName: node
   linkType: hard
 
