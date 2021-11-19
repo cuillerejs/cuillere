@@ -13,7 +13,7 @@ class BaseTaskManager {
 
   async preComplete(result: any) {
     for (const listener of this.listeners) {
-      await listener.preComplete(result)
+      await listener.preComplete?.(result)
     }
   }
 

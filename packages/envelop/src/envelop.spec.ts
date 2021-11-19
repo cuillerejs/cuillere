@@ -6,9 +6,10 @@ import fetch from 'node-fetch'
 
 import { useCuillere } from './envelop'
 
+let api
 describe('envelop', () => {
   beforeAll(async () => {
-    await app.listen(3000)
+    api = await app.listen(0)
   })
 
   afterAll(async () => {
@@ -16,7 +17,7 @@ describe('envelop', () => {
   })
 
   it('should have a graphql server started', async () => {
-    const response = await fetch('http://localhost:3000/graphql', { headers: { accept: 'text/html' } })
+    const response = await fetch(`${api}/graphql`, { headers: { accept: 'text/html' } })
     expect(response.status).toBe(200)
   })
 
@@ -69,8 +70,6 @@ describe('envelop', () => {
       },
     )
 
-    console.log('coucou')
-
     expect(await query(/* GraphQL */`
       query { hello { message } }
     `)).toEqual({ data: {
@@ -80,7 +79,7 @@ describe('envelop', () => {
 })
 
 async function query(query, variables = {}): Promise<any> {
-  const response = await fetch('http://localhost:3000/graphql', {
+  const response = await fetch(`${api}/graphql`, {
     method: 'POST',
     body: JSON.stringify({ query, variables }),
     headers: { accept: 'application/json', 'content-type': 'application/json' },

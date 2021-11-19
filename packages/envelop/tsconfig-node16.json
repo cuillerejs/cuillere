@@ -3,9 +3,11 @@
   "compilerOptions": {
     "outDir": "dist/node/16",
     "rootDir": "src",
-    "allowJs": true
+    "moduleResolution": "node"
   },
   "exclude": [
-    "src/**/*.spec.ts"
+    "src/**/*.spec.ts",
+    "*.js",
+    "dist/**"
   ]
 }
