@@ -1,8 +1,8 @@
-import { Cuillere, cuillere, isGeneratorFunction, Plugin } from '@cuillere/core'
-import { Plugin as EnvelopPlugin } from '@envelop/core'
+import { type Cuillere, type Plugin, cuillere, isGeneratorFunction } from '@cuillere/core'
+import type { Plugin as EnvelopPlugin } from '@envelop/core'
 
 export function useCuillere({ plugins: cllrPlugins = [], contextKey = 'cuillereContext', instanceKey = 'cuillere' }: { plugins?: Plugin[]; contextKey?: string; instanceKey?: string } = {}): CuillereCoreEnvelopPlugin {
-  let cllr
+  let cllr: Cuillere
 
   const plugin: CuillereCoreEnvelopPlugin = {
     get cuillere() {

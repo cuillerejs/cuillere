@@ -64,7 +64,7 @@
     "node-fetch": "^3.0.0",
     "nodemon": "^2.0.14",
     "ts-jest": "^27.0.7",
-    "typescript": "^4.4.4"
+    "typescript": "^4.5.2"
   },
   "peerDependencies": {
     "@cuillere/core": "^0.13.0",
