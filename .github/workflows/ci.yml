@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12, 14, 16]
+        node-version: [16, 17]
 
     steps:
       - name: Checkout repository
@@ -24,41 +24,27 @@ jobs:
       - name: CI core
         run: yarn ci
         working-directory: ./packages/core
-        env:
-          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server-plugin
         run: yarn ci
         working-directory: ./packages/server-plugin
-        env:
-          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server
         run: yarn ci
         working-directory: ./packages/server
-        env:
-          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI postgres
         run: yarn ci
         working-directory: ./packages/postgres
-        env:
-          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI server-postgres
         run: yarn ci
         working-directory: ./packages/server-postgres
-        env:
-          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI mariadb
         run: yarn ci
         working-directory: ./packages/mariadb
-        env:
-          NODE_VERSION: ${{matrix.node-version}}
 
       - name: CI channels
         run: yarn ci
         working-directory: ./packages/channels
-        env:
-          NODE_VERSION: ${{matrix.node-version}}
