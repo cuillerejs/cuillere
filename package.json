@@ -1,8 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "build:all": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel run build:all",
-    "publish:all": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel publish --no-git-tag-version --non-interactive",
+    "build": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel run build",
+    "publish": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel publish --no-git-tag-version --non-interactive",
     "test": "yarn workspaces foreach --all --verbose --parallel run test"
   },
   "workspaces": [
@@ -10,8 +10,6 @@
     "examples/*"
   ],
   "devDependencies": {
-    "@tsconfig/node12": "^1.0.9",
-    "@tsconfig/node14": "^1.0.1",
     "@tsconfig/node16": "^1.0.2",
     "@types/jest": "^27.0.2",
     "@types/pg": "^8.6.1",
@@ -32,5 +30,5 @@
     "mariadb": "^2.5.5",
     "pg": "^8.7.1"
   },
-  "packageManager": "yarn@3.0.2"
+  "packageManager": "yarn@3.1.1"
 }

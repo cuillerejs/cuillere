@@ -1,9 +1,0 @@
-{
-  "extends": "@tsconfig/node14/tsconfig.json",
-  "compileOnSave": true,
-  "compilerOptions": {
-    "sourceMap": true,
-    "strict": false,
-    "esModuleInterop": true,
-  }
-}

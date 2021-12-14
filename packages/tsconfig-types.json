@@ -1,9 +1,0 @@
-{
-  "extends": "@tsconfig/node12/tsconfig.json",
-  "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
-    "emitDeclarationOnly": true,
-    "strict": false,
-  }
-}
