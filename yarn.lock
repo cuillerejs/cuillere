@@ -843,9 +843,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-example@workspace:examples/server-example":
+"@cuillere/server-example@workspace:examples/server":
   version: 0.0.0-use.local
-  resolution: "@cuillere/server-example@workspace:examples/server-example"
+  resolution: "@cuillere/server-example@workspace:examples/server"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/mariadb": ^0.13.0
@@ -886,9 +886,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-postgres-example@workspace:examples/server-postgres-example":
+"@cuillere/server-postgres-example@workspace:examples/server-postgres":
   version: 0.0.0-use.local
-  resolution: "@cuillere/server-postgres-example@workspace:examples/server-postgres-example"
+  resolution: "@cuillere/server-postgres-example@workspace:examples/server-postgres"
   dependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/server-postgres": ^0.13.0
