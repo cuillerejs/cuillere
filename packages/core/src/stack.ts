@@ -1,4 +1,4 @@
-import { HandlerDescriptor, Validator } from './plugins'
+import { HandleFunction, Validator } from './plugins'
 import {
   Operation, OperationObject, Wrapper, Execute, CallOperation, NextOperation,
   execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
@@ -9,7 +9,7 @@ import { isGenerator, Generator } from './generator'
 export class Stack {
   result: Promise<any>
 
-  private handlers: Record<string, HandlerDescriptor[]>
+  private handlers: Record<string, HandleFunction[]>
 
   private ctx: any
 
@@ -23,7 +23,7 @@ export class Stack {
 
   private canceled = false
 
-  constructor(handlers: Record<string, HandlerDescriptor[]>, ctx: any, validators?: Record<string, Validator>) {
+  constructor(handlers: Record<string, HandleFunction[]>, ctx: any, validators?: Record<string, Validator>) {
     this.handlers = handlers
     this.ctx = ctx
     this.validators = validators
@@ -56,7 +56,7 @@ export class Stack {
     }
   }
 
-  stackFrameFor(pOperation: Operation, curFrame: StackFrame, handlerFirstIndex = 0): StackFrame {
+  stackFrameFor(pOperation: Operation, curFrame: StackFrame, handlerIndex = 0): StackFrame {
     let operation = pOperation
 
     // Equivalent to isGenerator(operation) but gives priority to the OperationObject
@@ -69,18 +69,10 @@ export class Stack {
 
     const handlers = this.handlers[operation.kind]
 
-    // There is no handler for this kind of operation
-    if (!handlers) return this.handleCore(operation, curFrame)
+    // If no (or no more) handler for this kind of operation
+    if (!handlers || handlerIndex === handlers.length) return this.handleCore(operation, curFrame)
 
-    let handlerIndex = handlerFirstIndex
-    for (; handlerIndex < handlers.length; handlerIndex++) {
-      if (!handlers[handlerIndex].filter || handlers[handlerIndex].filter(operation, this.ctx)) break
-    }
-
-    // No handler left for this kind of operation
-    if (handlerIndex === handlers.length) return this.handleCore(operation, curFrame)
-
-    const gen = handlers[handlerIndex].handle(operation, this.ctx)
+    const gen = handlers[handlerIndex](operation, this.ctx)
 
     return new HandlerStackFrame(gen, curFrame, operation.kind, handlerIndex)
   }
