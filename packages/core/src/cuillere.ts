@@ -1,4 +1,4 @@
-import { HandlerDescriptor, Plugin, Validator, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
+import { HandleFunction, Plugin, Validator, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
 import { Operation, call, start, coreNamespace } from './operations'
 import { Stack } from './stack'
@@ -21,7 +21,7 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
     contextPlugin(),
   ])
 
-  const handlers: Record<string, HandlerDescriptor[]> = {}
+  const handlers: Record<string, HandleFunction[]> = {}
   const validators: Record<string, Validator> = {}
 
   for (const plugin of plugins) {
@@ -41,8 +41,7 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
 
       if (!handlers[nsKind]) handlers[nsKind] = []
 
-      if (Array.isArray(handler)) handlers[nsKind].push(...handler)
-      else handlers[nsKind].push(typeof handler === 'function' ? { handle: handler } : handler)
+      handlers[nsKind].push(handler)
     })
 
     if ('validators' in plugin) {
