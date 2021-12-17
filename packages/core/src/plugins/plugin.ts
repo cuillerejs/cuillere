@@ -1,7 +1,7 @@
-import { OperationObject, Operation } from '../operations'
+import { Operation, Effect } from '../operations'
 import { GeneratorFunction } from '../generator'
 
-export type HandleFunction<Context = any> = GeneratorFunction<[OperationObject, Context], any, Operation>
+export type HandleFunction<Context = any> = GeneratorFunction<[Operation, Context], any, Effect>
 
 export interface Plugin<Context = any> {
   handlers: Record<string, HandleFunction<Context>>
@@ -9,4 +9,4 @@ export interface Plugin<Context = any> {
   validators?: Record<string, Validator>
 }
 
-export type Validator = (operation: OperationObject) => void
+export type Validator = (operation: Operation) => void

@@ -21,7 +21,7 @@ describe('batch', () => {
     })
   })
 
-  it('should call a given operation', async () => {
+  it('should call the batched function', async () => {
     await cllr.start(fn())
 
     expect(mock).toBeCalled()

@@ -1,5 +1,5 @@
-import { OperationObject, coreNamespace } from './operation'
+import { Operation, coreNamespace } from './operation'
 
-const generatorOperation: OperationObject = Object.freeze({ kind: `${coreNamespace}/generator` })
+const generatorOperation: Operation = Object.freeze({ kind: `${coreNamespace}/generator` })
 
 export function generator() { return generatorOperation }

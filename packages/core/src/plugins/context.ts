@@ -1,5 +1,5 @@
 import { Plugin } from './plugin'
-import { OperationObject } from '../operations'
+import { Operation } from '../operations'
 
 const namespace = '@cuillere/context'
 
@@ -25,11 +25,11 @@ export function set(key: ContextKey, value: any): Set {
   return { kind: `${namespace}/set`, key, value }
 }
 
-export interface Get extends OperationObject {
+export interface Get extends Operation {
   key: ContextKey
 }
 
-export interface Set extends OperationObject {
+export interface Set extends Operation {
   key: ContextKey
   value: any
 }

@@ -1,31 +1,31 @@
 import { Generator, isGenerator } from '../generator'
 
-export interface OperationObject {
+export interface Operation {
   readonly kind: string
 }
 
-export type Operation = OperationObject | Generator
+export type Effect = Operation | Generator
 
-export function isOperation(value: any): value is Operation {
-  return isOperationObject(value) || isGenerator(value)
+export function isEffect(value: any): value is Effect {
+  return isOperation(value) || isGenerator(value)
 }
 
-export function isOperationObject(value: any): value is OperationObject {
+export function isOperation(value: any): value is Operation {
   return 'kind' in value
 }
 
-export function isOfKind<T extends OperationObject>(kind: string) {
-  return function (operation: Operation): operation is T {
-    return isOperationObject(operation) && operation.kind === kind
+export function isOfKind<T extends Operation>(kind: string) {
+  return function (effect: Effect): effect is T {
+    return isOperation(effect) && effect.kind === kind
   }
 }
 
-export interface Wrapper<T extends Operation = Operation> extends OperationObject {
-  readonly operation: T
+export interface Wrapper<T extends Effect = Effect> extends Operation {
+  readonly effect: T
 }
 
 export function isWrapper(operation: Operation): operation is Wrapper {
-  return 'operation' in operation
+  return 'effect' in operation
 }
 
 export const coreNamespace = '@cuillere/core'

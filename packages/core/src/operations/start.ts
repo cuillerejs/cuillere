@@ -1,7 +1,7 @@
-import { Operation, Wrapper, coreNamespace } from './operation'
+import { Effect, Wrapper, coreNamespace } from './operation'
 
 const kind = `${coreNamespace}/start`
 
-export function start(operation: Operation): Wrapper {
-  return { kind, operation }
+export function start(effect: Effect): Wrapper {
+  return { kind, effect }
 }

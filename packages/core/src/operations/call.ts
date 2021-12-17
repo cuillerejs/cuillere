@@ -1,7 +1,7 @@
 import { GeneratorFunction } from '../generator'
-import { OperationObject, coreNamespace } from './operation'
+import { Operation, coreNamespace } from './operation'
 
-export interface CallOperation extends OperationObject {
+export interface CallOperation extends Operation {
   func: GeneratorFunction
   args?: any[]
 }

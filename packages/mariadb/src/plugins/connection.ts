@@ -1,4 +1,4 @@
-import type { Plugin, OperationObject } from '@cuillere/core'
+import type { Plugin, Operation } from '@cuillere/core'
 
 import { getQueryHandler } from '../query-handler'
 import type { QueryOptions } from '../query-options'
@@ -26,7 +26,7 @@ export function connectionPlugin(): Plugin {
   }
 }
 
-export interface GetConnection extends OperationObject {
+export interface GetConnection extends Operation {
   name?: string
 }
 
@@ -34,7 +34,7 @@ export function getConnection(name?: string): GetConnection {
   return { kind: `${namespace}/getConnection`, name }
 }
 
-export interface Query extends OperationObject {
+export interface Query extends Operation {
   options: QueryOptions
 }
 

@@ -1,9 +1,9 @@
-import { fork, Operation, OperationObject } from '../operations'
+import { fork, Effect, Operation } from '../operations'
 import { Task } from '../stack'
 import { Plugin } from './plugin'
 
-export interface Concurrent extends OperationObject {
-  operations: Iterable<Operation>
+export interface Concurrent extends Operation {
+  effects: Iterable<Effect>
 }
 
 const namespace = '@cuillere/concurrent'
@@ -12,9 +12,9 @@ export const concurrentPlugin = (): Plugin => ({
   namespace,
 
   handlers: {
-    async* all({ operations }: Concurrent) {
+    async* all({ effects }: Concurrent) {
       const tasks: Task[] = []
-      for (const op of operations) tasks.push(yield fork(op))
+      for (const effect of effects) tasks.push(yield fork(effect))
 
       try {
         return await Promise.all(tasks.map(({ result }) => result))
@@ -28,9 +28,9 @@ export const concurrentPlugin = (): Plugin => ({
       }
     },
 
-    async* allSettled({ operations }: Concurrent) {
+    async* allSettled({ effects }: Concurrent) {
       const tasks = []
-      for (const op of operations) tasks.push(yield fork(op))
+      for (const effect of effects) tasks.push(yield fork(effect))
       return Promise.allSettled(tasks.map(({ result }) => result))
     },
   },
@@ -41,8 +41,8 @@ function concurrent(kind: string) {
 
   const fn = {
     // Set the function name
-    [kind](operations: Iterable<Operation>): Concurrent {
-      return { kind: nsKind, operations }
+    [kind](effects: Iterable<Effect>): Concurrent {
+      return { kind: nsKind, effects }
     },
   }
   return fn[kind]

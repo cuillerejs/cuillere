@@ -13,7 +13,7 @@ describe('fork', () => {
     cllr = cuillere()
   })
 
-  it('should fork an operation', async () => {
+  it('should fork an effect', async () => {
     async function* test() {
       const { result } = yield fork(call(identity, 'foo'))
       return result

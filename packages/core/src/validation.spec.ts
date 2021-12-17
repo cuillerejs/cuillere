@@ -1,5 +1,5 @@
 import cuillere, { Cuillere, defer, fork, recover, terminal } from '.'
-import { OperationObject } from './operations'
+import { Operation } from './operations'
 
 describe('validation', () => {
   let cllr: Cuillere
@@ -12,36 +12,36 @@ describe('validation', () => {
     // dummy
   }
 
-  it('should throw error for undefined start operation', async () => {
+  it('should throw error for undefined start effect', async () => {
     await expect(cllr.start(undefined))
-      .rejects.toStrictEqual(new TypeError('undefined operation is forbidden'))
+      .rejects.toStrictEqual(new TypeError('undefined effect is forbidden'))
   })
 
-  it('should throw error for undefined operation', async () => {
+  it('should throw error for undefined effect', async () => {
     function* test() {
       yield undefined
     }
 
     await expect(cllr.call(test))
-      .rejects.toStrictEqual(new TypeError('undefined operation is forbidden'))
+      .rejects.toStrictEqual(new TypeError('undefined effect is forbidden'))
   })
 
-  it('should throw error for undefined wrapped operation', async () => {
+  it('should throw error for undefined wrapped effect', async () => {
     function* test() {
-      yield { kind: 'test', operation: undefined }
+      yield { kind: 'test', effect: undefined }
     }
 
     await expect(cllr.call(test))
-      .rejects.toStrictEqual(new TypeError('undefined operation is forbidden'))
+      .rejects.toStrictEqual(new TypeError('undefined effect is forbidden'))
   })
 
-  it('should throw error for null operation', async () => {
+  it('should throw error for null effect', async () => {
     function* test() {
       yield null
     }
 
     await expect(cllr.call(test))
-      .rejects.toStrictEqual(new TypeError('null operation is forbidden'))
+      .rejects.toStrictEqual(new TypeError('null effect is forbidden'))
   })
 
   describe('terminal', () => {
@@ -81,7 +81,7 @@ describe('validation', () => {
   it('should allow custom validators', async () => {
     let catched: any
 
-    interface TestOperation extends OperationObject {
+    interface TestOperation extends Operation {
       answer: 42
     }
 

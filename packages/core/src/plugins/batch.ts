@@ -1,5 +1,5 @@
 import { GeneratorFunction } from '../generator'
-import { OperationObject, fork } from '../operations'
+import { Operation, fork } from '../operations'
 import { Task } from '../stack'
 import { executablePromise } from '../executable-promise'
 import { after } from '../time'
@@ -8,7 +8,7 @@ import { Plugin } from './plugin'
 export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R[]>,
   getBatchKey: (...args: Args) => any = () => func,
-): (...args: Args) => OperationObject {
+): (...args: Args) => Operation {
   return (...args) => {
     const batchKey = getBatchKey(...args)
     if (!batchKey) return { kind: `${namespace}/execute`, func, args }
@@ -46,9 +46,9 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => 
       return res[0]
     },
 
-    async* executeBatch(operation: ExecuteBatch, ctx) {
-      const entry = ctx[BATCH_CTX].get(operation.key)
-      ctx[BATCH_CTX].delete(operation.key)
+    async* executeBatch({ key }: ExecuteBatch, ctx) {
+      const entry = ctx[BATCH_CTX].get(key)
+      ctx[BATCH_CTX].delete(key)
       return yield entry.func(...entry.args)
     },
   },
@@ -72,18 +72,18 @@ interface BatchEntry {
   args: any[][]
 }
 
-interface Batch<Args extends any[] = any[], R = any> extends OperationObject {
+interface Batch<Args extends any[] = any[], R = any> extends Operation {
   func: GeneratorFunction<Args[], R[]>
   args: Args
   key: any
 }
 
-interface Execute<Args extends any[] = any[], R = any> extends OperationObject {
+interface Execute<Args extends any[] = any[], R = any> extends Operation {
   func: GeneratorFunction<Args[], R[]>
   args: Args
 }
 
-interface ExecuteBatch extends OperationObject {
+interface ExecuteBatch extends Operation {
   key: any
 }
 

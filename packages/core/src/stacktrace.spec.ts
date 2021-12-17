@@ -143,8 +143,8 @@ describe('stacktrace', () => {
       stack = e.stack.split('\n')
     }
 
-    expect(stack[0]).toBe('TypeError: null operation is forbidden')
-    expect(stack[1]).toMatch(/^ +at Stack.validateOperation \(.+\)$/)
+    expect(stack[0]).toBe('TypeError: null effect is forbidden')
+    expect(stack[1]).toMatch(/^ +at Stack.validateEffect \(.+\)$/)
     expect(stack[2]).toMatch(/^ +at Stack.handle \(.+\)$/)
     expect(stack[3]).toBe('    at <anonymous generator> (<unknown>)')
     expect(stack[4]).toBe('    at test (<unknown>)')
@@ -159,8 +159,8 @@ describe('stacktrace', () => {
       stack = e.stack.split('\n')
     }
 
-    expect(stack[0]).toBe('TypeError: null operation is forbidden')
-    expect(stack[1]).toMatch(/^ +at Stack.validateOperation \(.+\)$/)
+    expect(stack[0]).toBe('TypeError: null effect is forbidden')
+    expect(stack[1]).toMatch(/^ +at Stack.validateEffect \(.+\)$/)
     expect(stack[2]).toMatch(/^ +at Stack.handle \(.+\)$/)
     expect(stack[3]).toMatch(/^ +at Stack.start \(.+\)$/)
   })

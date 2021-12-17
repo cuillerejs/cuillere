@@ -1,4 +1,4 @@
-import { Plugin, OperationObject } from '@cuillere/core'
+import { Plugin, Operation } from '@cuillere/core'
 
 import { getQueryHandler } from './query-handler'
 import type { QueryConfig } from './query-config'
@@ -24,7 +24,7 @@ export function postgresPlugin(): Plugin {
         return queryHandler(config)
       },
 
-      async* getPools(_: OperationObject, ctx) {
+      async* getPools(_: Operation, ctx) {
         const getPools = getPoolsGetter(ctx)
         if (!getPools) throw new Error('No pools getter in context, you probably forgot to setup a client manager')
         return getPools()
@@ -33,7 +33,7 @@ export function postgresPlugin(): Plugin {
   }
 }
 
-export interface GetClient extends OperationObject {
+export interface GetClient extends Operation {
   name?: string
 }
 
@@ -41,7 +41,7 @@ export function getClient(name?: string): GetClient {
   return { kind: `${namespace}/getClient`, name }
 }
 
-export interface Query extends OperationObject {
+export interface Query extends Operation {
   config: QueryConfig
 }
 
@@ -49,6 +49,6 @@ export function query(config: QueryConfig): Query {
   return { kind: `${namespace}/query`, config }
 }
 
-export function getPools(): OperationObject {
+export function getPools(): Operation {
   return { kind: `${namespace}/getPools` }
 }
