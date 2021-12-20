@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, call, fork } from '@cuillere/core'
+import { Cuillere, call, cuillere, fork } from '@cuillere/core'
 import { chan, send, recv, close, range, select, channelsPlugin } from '.'
 
 describe('channels', () => {

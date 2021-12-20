@@ -1,4 +1,4 @@
-import cuillere, { generator } from '..'
+import { cuillere, generator } from '..'
 
 describe('generator', () => {
   it("should return the current frame's generator", async () => {

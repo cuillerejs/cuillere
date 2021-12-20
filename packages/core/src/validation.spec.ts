@@ -1,5 +1,4 @@
-import cuillere, { Cuillere, defer, fork, recover, terminal } from '.'
-import { Operation } from './operation'
+import { Cuillere, Operation, cuillere, defer, fork, recover, terminal } from '.'
 
 describe('validation', () => {
   let cllr: Cuillere

@@ -1,4 +1,4 @@
-import cuillere, { Plugin } from '.'
+import { Plugin, cuillere } from '.'
 
 describe('examples', () => {
   it('promise plugin with custom operations', async () => {

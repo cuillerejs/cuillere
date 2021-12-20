@@ -1,4 +1,4 @@
-import cuillere, { Cuillere } from '.'
+import { Cuillere, cuillere } from '.'
 
 describe('stacktrace', () => {
   let cllr: Cuillere

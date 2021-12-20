@@ -1,5 +1,4 @@
-import cuillere, { Plugin, next } from '..'
-import { delegate } from './next'
+import { Plugin, cuillere, delegate, next } from '..'
 
 describe('next', () => {
   it('should not be allowed outside handlers', async () => {

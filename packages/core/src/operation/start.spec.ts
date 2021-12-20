@@ -1,4 +1,4 @@
-import cuillere, { delegate } from '..'
+import { cuillere, delegate } from '..'
 
 describe('start', () => {
   it('should call start handler once at startup', async () => {

@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, call } from '.'
+import { Cuillere, call, cuillere } from '.'
 
 describe('run', () => {
   let cllr: Cuillere

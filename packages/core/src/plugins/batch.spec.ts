@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, batched, batchPlugin, callable } from '..'
+import { Cuillere, batched, batchPlugin, callable, cuillere } from '..'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
