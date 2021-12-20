@@ -1,6 +1,5 @@
 import { coreNamespace } from './core-namespace'
 import { type Effect } from '../effect'
-import { isOfKind } from './operation'
 import { type WrapperOperation } from './wrapper'
 
 const kind = `${coreNamespace}/next`
@@ -16,5 +15,3 @@ export function next<T extends Effect = Effect>(effect: T): NextOperation<T> {
 export function delegate<T extends Effect = Effect>(effect: T): NextOperation<T> {
   return { kind, effect, terminal: true }
 }
-
-export const isNext = isOfKind<WrapperOperation>(kind)

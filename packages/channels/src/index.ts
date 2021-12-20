@@ -1,4 +1,4 @@
-import { Plugin, Operation, fork, isOfKind, isGeneratorFunction } from '@cuillere/core'
+import { Plugin, Operation, fork, isGeneratorFunction, isOperation } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
@@ -247,7 +247,9 @@ export function recv(chanKey: ChanKey, detail = false): Recv {
   return { kind: `${namespace}/recv`, chanKey, detail }
 }
 
-const isRecv = isOfKind<Recv>(`${namespace}/recv`)
+export function isRecv(value: any): value is Recv {
+  return isOperation(value) && value.kind === `${namespace}/recv`
+}
 
 function isRecvReady({ chanKey }: Recv): boolean {
   const ch = chans.get(chanKey)
@@ -312,7 +314,9 @@ export function send(chanKey: ChanKey, value: any): Send {
   return { kind: `${namespace}/send`, chanKey, value }
 }
 
-const isSend = isOfKind<Send>(`${namespace}/send`)
+export function isSend(value: any): value is Send {
+  return isOperation(value) && value.kind === `${namespace}/send`
+}
 
 function isSendReady({ chanKey }: Send): boolean {
   const ch = chans.get(chanKey)

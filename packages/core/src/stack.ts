@@ -4,7 +4,7 @@ import { isGenerator, Generator } from './generator'
 import { HandleFunction, Validator } from './plugins'
 import {
   Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
-  coreNamespace, execute, isOperation, isWrapperOperation, isFork, isDefer, isRecover, isTerminal,
+  coreNamespace, execute, isOperation, isWrapperOperation,
 } from './operation'
 
 export class Stack {
@@ -265,10 +265,11 @@ export class Stack {
 
   coreValidators: Record<string, (operation: Operation) => void> = {
     [`${coreNamespace}/terminal`]({ effect }: WrapperOperation) {
-      if (isFork(effect)) throw new TypeError('terminal forks are forbidden')
-      if (isDefer(effect)) throw new TypeError('terminal defers are forbidden')
-      if (isRecover(effect)) throw new TypeError('terminal recovers are forbidden')
-      if (isTerminal(effect)) throw new TypeError('terminals cannot be nested')
+      if (!isOperation(effect)) return
+      if (effect.kind === `${coreNamespace}/fork`) throw new TypeError('terminal fork is forbidden')
+      if (effect.kind === `${coreNamespace}/defer`) throw new TypeError('terminal defer is forbidden')
+      if (effect.kind === `${coreNamespace}/recover`) throw new TypeError('terminal recover is forbidden')
+      if (effect.kind === `${coreNamespace}/terminal`) throw new TypeError('terminals cannot be nested')
     },
   }
 

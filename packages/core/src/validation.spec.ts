@@ -50,7 +50,7 @@ describe('validation', () => {
         yield terminal(fork(dummy()))
       }
 
-      await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal forks are forbidden'))
+      await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal fork is forbidden'))
     })
 
     it('should not accept defer operation', async () => {
@@ -58,7 +58,7 @@ describe('validation', () => {
         yield terminal(defer(dummy()))
       }
 
-      await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal defers are forbidden'))
+      await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal defer is forbidden'))
     })
 
     it('should not accept recover operation', async () => {
@@ -66,7 +66,7 @@ describe('validation', () => {
         yield terminal(recover())
       }
 
-      await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal recovers are forbidden'))
+      await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminal recover is forbidden'))
     })
 
     it('should not accept terminal operation', async () => {
