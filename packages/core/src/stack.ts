@@ -3,7 +3,7 @@ import { error, unrecognizedEffect, CancellationError, captured } from './errors
 import { isGenerator, Generator } from './generator'
 import { HandleFunction, Validator } from './plugins'
 import {
-  Operation, WrapperOperation, Execute, CallOperation, NextOperation,
+  Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
   coreNamespace, execute, isOperation, isWrapperOperation, isFork, isDefer, isRecover, isTerminal,
 } from './operation'
 
@@ -99,7 +99,7 @@ export class Stack {
       return new StackFrame(gen, curFrame)
     },
 
-    [`${coreNamespace}/execute`]: ({ gen }: Execute, curFrame) => {
+    [`${coreNamespace}/execute`]: ({ gen }: ExecuteOperation, curFrame) => {
       if (!isGenerator(gen)) throw new TypeError(`execute: ${gen} is not a Generator`)
 
       return new StackFrame(gen, curFrame)
