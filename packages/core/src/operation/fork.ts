@@ -1,7 +1,8 @@
 import { type CallOperation, call } from './call'
+import { coreNamespace } from './core-namespace'
 import { type Effect, isEffect } from '../effect'
 import { GeneratorFunction } from '../generator'
-import { coreNamespace, isOfKind } from './operation'
+import { isOfKind } from './operation'
 import { type WrapperOperation } from './wrapper'
 
 const kind = `${coreNamespace}/fork`

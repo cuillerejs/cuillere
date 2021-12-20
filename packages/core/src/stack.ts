@@ -4,7 +4,7 @@ import { isGenerator, Generator } from './generator'
 import { HandleFunction, Validator } from './plugins'
 import {
   Operation, WrapperOperation, Execute, CallOperation, NextOperation,
-  execute, isOperation, isWrapperOperation, isFork, isDefer, isRecover, isTerminal, coreNamespace,
+  coreNamespace, execute, isOperation, isWrapperOperation, isFork, isDefer, isRecover, isTerminal,
 } from './operation'
 
 export class Stack {

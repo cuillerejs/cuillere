@@ -1,5 +1,5 @@
+import { coreNamespace } from './core-namespace'
 import { type Effect } from '../effect'
-import { coreNamespace } from './operation'
 import { type WrapperOperation } from './wrapper'
 
 const kind = `${coreNamespace}/start`

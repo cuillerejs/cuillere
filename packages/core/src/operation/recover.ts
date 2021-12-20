@@ -1,4 +1,5 @@
-import { Operation, isOfKind, coreNamespace } from './operation'
+import { coreNamespace } from './core-namespace'
+import { Operation, isOfKind } from './operation'
 
 const kind = `${coreNamespace}/recover`
 

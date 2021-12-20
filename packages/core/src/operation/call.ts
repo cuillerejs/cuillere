@@ -1,5 +1,6 @@
+import { coreNamespace } from './core-namespace'
 import { GeneratorFunction } from '../generator'
-import { Operation, coreNamespace } from './operation'
+import { Operation } from './operation'
 
 export interface CallOperation extends Operation {
   func: GeneratorFunction

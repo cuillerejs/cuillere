@@ -13,5 +13,3 @@ export function isOfKind<T extends Operation>(kind: string) {
     return isOperation(effect) && effect.kind === kind
   }
 }
-
-export const coreNamespace = '@cuillere/core'
