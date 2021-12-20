@@ -1,5 +1,5 @@
 import { type Generator, isGenerator } from './generator'
-import { type Operation, isOperation } from './operations'
+import { type Operation, isOperation } from './operation'
 
 export type Effect = Operation | Generator
 

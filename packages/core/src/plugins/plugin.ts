@@ -1,5 +1,5 @@
 import { Effect } from '../effect'
-import { Operation } from '../operations'
+import { Operation } from '../operation'
 import { GeneratorFunction } from '../generator'
 
 export type HandleFunction<Context = any> = GeneratorFunction<[Operation, Context], any, Effect>

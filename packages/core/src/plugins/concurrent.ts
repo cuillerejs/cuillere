@@ -1,5 +1,5 @@
 import { Effect } from '../effect'
-import { fork, Operation } from '../operations'
+import { fork, Operation } from '../operation'
 import { Plugin } from './plugin'
 import { Task } from '../stack'
 

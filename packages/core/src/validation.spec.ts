@@ -1,5 +1,5 @@
 import cuillere, { Cuillere, defer, fork, recover, terminal } from '.'
-import { Operation } from './operations'
+import { Operation } from './operation'
 
 describe('validation', () => {
   let cllr: Cuillere

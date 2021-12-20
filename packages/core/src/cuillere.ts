@@ -1,6 +1,6 @@
 import { Effect } from './effect'
 import { Generator, GeneratorFunction } from './generator'
-import { call, start, coreNamespace } from './operations'
+import { call, start, coreNamespace } from './operation'
 import { HandleFunction, Plugin, Validator, batchPlugin, concurrentPlugin } from './plugins'
 import { Stack } from './stack'
 

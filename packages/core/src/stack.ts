@@ -5,7 +5,7 @@ import { HandleFunction, Validator } from './plugins'
 import {
   Operation, Wrapper, Execute, CallOperation, NextOperation,
   execute, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
-} from './operations'
+} from './operation'
 
 export class Stack {
   result: Promise<any>

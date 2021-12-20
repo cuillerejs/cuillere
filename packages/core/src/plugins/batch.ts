@@ -1,5 +1,5 @@
 import { GeneratorFunction } from '../generator'
-import { Operation, fork } from '../operations'
+import { Operation, fork } from '../operation'
 import { Task } from '../stack'
 import { executablePromise } from '../executable-promise'
 import { after } from '../time'
