@@ -1,10 +1,11 @@
 import { Effect } from '../effect'
-import { Wrapper, isOfKind, coreNamespace } from './operation'
+import { coreNamespace, isOfKind } from './operation'
+import { WrapperOperation } from './wrapper'
 
 const kind = `${coreNamespace}/terminal`
 
-export function terminal(effect: Effect): Wrapper {
+export function terminal<T extends Effect>(effect: T): WrapperOperation<T> {
   return { kind, effect }
 }
 
-export const isTerminal = isOfKind<Wrapper>(kind)
+export const isTerminal = isOfKind<WrapperOperation>(kind)

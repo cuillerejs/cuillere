@@ -3,8 +3,8 @@ import { error, unrecognizedEffect, CancellationError, captured } from './errors
 import { isGenerator, Generator } from './generator'
 import { HandleFunction, Validator } from './plugins'
 import {
-  Operation, Wrapper, Execute, CallOperation, NextOperation,
-  execute, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
+  Operation, WrapperOperation, Execute, CallOperation, NextOperation,
+  execute, isOperation, isWrapperOperation, isFork, isDefer, isRecover, isTerminal, coreNamespace,
 } from './operation'
 
 export class Stack {
@@ -105,15 +105,15 @@ export class Stack {
       return new StackFrame(gen, curFrame)
     },
 
-    [`${coreNamespace}/fork`]: ({ effect }: Wrapper, curFrame) => {
+    [`${coreNamespace}/fork`]: ({ effect }: WrapperOperation, curFrame) => {
       curFrame.result.value = new Task(new Stack(this.handlers, this.ctx, this.validators).start(effect))
 
       return curFrame
     },
 
-    [`${coreNamespace}/start`]: ({ effect }: Wrapper, curFrame) => this.stackFrameFor(effect, curFrame),
+    [`${coreNamespace}/start`]: ({ effect }: WrapperOperation, curFrame) => this.stackFrameFor(effect, curFrame),
 
-    [`${coreNamespace}/defer`]: ({ effect }: Wrapper, curFrame) => {
+    [`${coreNamespace}/defer`]: ({ effect }: WrapperOperation, curFrame) => {
       curFrame.defers.unshift(effect)
 
       return curFrame
@@ -129,7 +129,7 @@ export class Stack {
       return curFrame
     },
 
-    [`${coreNamespace}/terminal`]: ({ effect }: Wrapper, curFrame) => {
+    [`${coreNamespace}/terminal`]: ({ effect }: WrapperOperation, curFrame) => {
       curFrame.terminate()
 
       return this.stackFrameFor(effect, curFrame.previous)
@@ -255,7 +255,7 @@ export class Stack {
       this.coreValidators[effect.kind]?.(effect)
       this.validators?.[effect.kind]?.(effect)
 
-      if (isWrapper(effect)) this.validateEffect(effect.effect)
+      if (isWrapperOperation(effect)) this.validateEffect(effect.effect)
     }
 
     // FIXME additional validations when stack is starting (on rootFrame)
@@ -264,7 +264,7 @@ export class Stack {
   }
 
   coreValidators: Record<string, (operation: Operation) => void> = {
-    [`${coreNamespace}/terminal`]({ effect }: Wrapper) {
+    [`${coreNamespace}/terminal`]({ effect }: WrapperOperation) {
       if (isFork(effect)) throw new TypeError('terminal forks are forbidden')
       if (isDefer(effect)) throw new TypeError('terminal defers are forbidden')
       if (isRecover(effect)) throw new TypeError('terminal recovers are forbidden')

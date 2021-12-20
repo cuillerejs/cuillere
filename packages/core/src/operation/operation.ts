@@ -14,12 +14,4 @@ export function isOfKind<T extends Operation>(kind: string) {
   }
 }
 
-export interface Wrapper<T extends Effect = Effect> extends Operation {
-  readonly effect: T
-}
-
-export function isWrapper(operation: Operation): operation is Wrapper {
-  return 'effect' in operation
-}
-
 export const coreNamespace = '@cuillere/core'
