@@ -1,16 +1,25 @@
-import cuillere, { get, delegate } from '..'
+import cuillere, { delegate } from '..'
 
 describe('start', () => {
   it('should call start handler once at startup', async () => {
-    await expect(cuillere({
+    // given
+    const ctx = {
+      started: 0,
+    }
+
+    // when
+    await cuillere({
       handlers: {
         * '@cuillere/core/start'(operation, ctx) {
-          ctx.value = 'started'
+          ctx.started++
           yield delegate(operation)
         },
       },
-    }).call(function* test() {
-      return yield get('value')
-    })).resolves.toBe('started')
+    }).ctx(ctx).call(function* () {
+      // does nothing
+    })
+
+    // then
+    expect(ctx).toEqual({ started: 1 })
   })
 })

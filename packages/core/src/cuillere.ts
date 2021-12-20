@@ -1,4 +1,4 @@
-import { HandleFunction, Plugin, Validator, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
+import { HandleFunction, Plugin, Validator, batchPlugin, concurrentPlugin } from './plugins'
 import { Generator, GeneratorFunction } from './generator'
 import { Effect, call, start, coreNamespace } from './operations'
 import { Stack } from './stack'
@@ -18,7 +18,6 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
   const plugins = pPlugins.concat([
     batchPlugin(),
     concurrentPlugin(),
-    contextPlugin(),
   ])
 
   const handlers: Record<string, HandleFunction[]> = {}
