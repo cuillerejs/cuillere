@@ -1,5 +1,6 @@
+import { type Effect, isEffect } from '../effect'
 import { GeneratorFunction } from '../generator'
-import { Effect, Wrapper, isOfKind, isEffect, coreNamespace } from './operation'
+import { Wrapper, isOfKind, coreNamespace } from './operation'
 import { call } from './call'
 
 const kind = `${coreNamespace}/defer`

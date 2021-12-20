@@ -1,13 +1,7 @@
-import { Generator, isGenerator } from '../generator'
+import type { Effect } from '../effect'
 
 export interface Operation {
   readonly kind: string
-}
-
-export type Effect = Operation | Generator
-
-export function isEffect(value: any): value is Effect {
-  return isOperation(value) || isGenerator(value)
 }
 
 export function isOperation(value: any): value is Operation {

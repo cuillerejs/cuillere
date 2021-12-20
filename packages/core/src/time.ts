@@ -1,4 +1,4 @@
-import { Effect } from './operations'
+import { Effect } from './effect'
 
 export async function* sleep(delay?: number) {
   await new Promise(resolve => (delay ? setTimeout(resolve, delay) : setImmediate(resolve)))

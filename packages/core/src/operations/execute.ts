@@ -1,4 +1,5 @@
-import { Effect, Operation, coreNamespace } from './operation'
+import { Effect } from '../effect'
+import { Operation, coreNamespace } from './operation'
 import { Generator } from '../generator'
 
 const kind = `${coreNamespace}/execute`

@@ -1,4 +1,5 @@
-import { Effect, Wrapper, isOfKind, coreNamespace } from './operation'
+import { Effect } from '../effect'
+import { Wrapper, isOfKind, coreNamespace } from './operation'
 
 const kind = `${coreNamespace}/next`
 

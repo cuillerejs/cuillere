@@ -1,10 +1,11 @@
-import { HandleFunction, Validator } from './plugins'
-import {
-  Effect, Operation, Wrapper, Execute, CallOperation, NextOperation,
-  execute, isOperation, isEffect, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
-} from './operations'
+import { type Effect, isEffect } from './effect'
 import { error, unrecognizedEffect, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
+import { HandleFunction, Validator } from './plugins'
+import {
+  Operation, Wrapper, Execute, CallOperation, NextOperation,
+  execute, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
+} from './operations'
 
 export class Stack {
   result: Promise<any>
@@ -245,7 +246,7 @@ export class Stack {
   }
 
   validateEffect(effect: any): Effect {
-    if (effect === undefined || effect === null) throw new TypeError(`${effect} effect is forbidden`)
+    if (effect == undefined) throw new TypeError(`${effect} effect is forbidden`)
 
     // FIXME change to a more general message
     if (!isEffect(effect)) throw new TypeError(`${effect} is neither an operation nor a generator`)
