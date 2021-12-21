@@ -1,8 +1,8 @@
-import { coreNamespace } from './core-namespace'
+import { CORE_NAMESPACE } from '../core-namespace'
 import { type Effect } from '../effect'
 import { type WrapperOperation } from './wrapper'
 
-const kind = `${coreNamespace}/next`
+const kind = `${CORE_NAMESPACE}/next`
 
 export interface NextOperation<T extends Effect = Effect> extends WrapperOperation<T> {
   terminal?: true

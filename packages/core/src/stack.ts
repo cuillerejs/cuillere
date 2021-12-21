@@ -1,10 +1,11 @@
+import { CORE_NAMESPACE } from './core-namespace'
 import { type Effect, isEffect } from './effect'
 import { error, unrecognizedEffect, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
 import { HandleFunction, Validator } from './plugins'
 import {
   Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
-  coreNamespace, execute, isOperation, isWrapperOperation,
+  execute, isOperation, isWrapperOperation,
 } from './operation'
 
 export class Stack {
@@ -65,7 +66,7 @@ export class Stack {
       operation = effect
     } else {
       // No handler for generator execution, directly put it on the stack
-      if (!(`${coreNamespace}/execute` in this.handlers)) return new StackFrame(effect, curFrame)
+      if (!(`${CORE_NAMESPACE}/execute` in this.handlers)) return new StackFrame(effect, curFrame)
 
       operation = execute(effect)
     }
@@ -87,7 +88,7 @@ export class Stack {
   }
 
   coreHandlers: Record<string, (operation: Effect, curFrame: StackFrame) => StackFrame> = {
-    [`${coreNamespace}/call`]: ({ func, args }: CallOperation, curFrame) => {
+    [`${CORE_NAMESPACE}/call`]: ({ func, args }: CallOperation, curFrame) => {
       if (!func) throw new TypeError(`call: cannot call ${func}`) // FIXME improve and move to validator
 
       const gen = func(...args)
@@ -99,27 +100,27 @@ export class Stack {
       return new StackFrame(gen, curFrame)
     },
 
-    [`${coreNamespace}/execute`]: ({ gen }: ExecuteOperation, curFrame) => {
+    [`${CORE_NAMESPACE}/execute`]: ({ gen }: ExecuteOperation, curFrame) => {
       if (!isGenerator(gen)) throw new TypeError(`execute: ${gen} is not a Generator`)
 
       return new StackFrame(gen, curFrame)
     },
 
-    [`${coreNamespace}/fork`]: ({ effect }: WrapperOperation, curFrame) => {
+    [`${CORE_NAMESPACE}/fork`]: ({ effect }: WrapperOperation, curFrame) => {
       curFrame.result.value = new Task(new Stack(this.handlers, this.ctx, this.validators).start(effect))
 
       return curFrame
     },
 
-    [`${coreNamespace}/start`]: ({ effect }: WrapperOperation, curFrame) => this.stackFrameFor(effect, curFrame),
+    [`${CORE_NAMESPACE}/start`]: ({ effect }: WrapperOperation, curFrame) => this.stackFrameFor(effect, curFrame),
 
-    [`${coreNamespace}/defer`]: ({ effect }: WrapperOperation, curFrame) => {
+    [`${CORE_NAMESPACE}/defer`]: ({ effect }: WrapperOperation, curFrame) => {
       curFrame.defers.unshift(effect)
 
       return curFrame
     },
 
-    [`${coreNamespace}/recover`]: (_, curFrame) => {
+    [`${CORE_NAMESPACE}/recover`]: (_, curFrame) => {
       if (curFrame.previous.done && curFrame.previous.result.hasError) {
         curFrame.result = { hasError: false, value: curFrame.previous.result.error }
         curFrame.previous.result.hasError = false
@@ -129,22 +130,22 @@ export class Stack {
       return curFrame
     },
 
-    [`${coreNamespace}/terminal`]: ({ effect }: WrapperOperation, curFrame) => {
+    [`${CORE_NAMESPACE}/terminal`]: ({ effect }: WrapperOperation, curFrame) => {
       curFrame.terminate()
 
       return this.stackFrameFor(effect, curFrame.previous)
     },
 
-    [`${coreNamespace}/generator`]: (_, curFrame) => {
+    [`${CORE_NAMESPACE}/generator`]: (_, curFrame) => {
       curFrame.result.value = curFrame.gen
 
       return curFrame
     },
 
-    [`${coreNamespace}/next`]: ({ effect, terminal }: NextOperation, curFrame) => {
+    [`${CORE_NAMESPACE}/next`]: ({ effect, terminal }: NextOperation, curFrame) => {
       if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
 
-      const kind = isOperation(effect) ? effect.kind : `${coreNamespace}/execute`
+      const kind = isOperation(effect) ? effect.kind : `${CORE_NAMESPACE}/execute`
 
       if (curFrame.kind !== kind) throw TypeError(`next: operation kind mismatch, expected "${curFrame.kind}", received "${kind}"`)
 
@@ -264,12 +265,12 @@ export class Stack {
   }
 
   coreValidators: Record<string, (operation: Operation) => void> = {
-    [`${coreNamespace}/terminal`]({ effect }: WrapperOperation) {
+    [`${CORE_NAMESPACE}/terminal`]({ effect }: WrapperOperation) {
       if (!isOperation(effect)) return
-      if (effect.kind === `${coreNamespace}/fork`) throw new TypeError('terminal fork is forbidden')
-      if (effect.kind === `${coreNamespace}/defer`) throw new TypeError('terminal defer is forbidden')
-      if (effect.kind === `${coreNamespace}/recover`) throw new TypeError('terminal recover is forbidden')
-      if (effect.kind === `${coreNamespace}/terminal`) throw new TypeError('terminals cannot be nested')
+      if (effect.kind === `${CORE_NAMESPACE}/fork`) throw new TypeError('terminal fork is forbidden')
+      if (effect.kind === `${CORE_NAMESPACE}/defer`) throw new TypeError('terminal defer is forbidden')
+      if (effect.kind === `${CORE_NAMESPACE}/recover`) throw new TypeError('terminal recover is forbidden')
+      if (effect.kind === `${CORE_NAMESPACE}/terminal`) throw new TypeError('terminals cannot be nested')
     },
   }
 

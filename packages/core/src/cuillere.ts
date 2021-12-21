@@ -1,6 +1,7 @@
+import { CORE_NAMESPACE } from './core-namespace'
 import { Effect } from './effect'
 import { Generator, GeneratorFunction } from './generator'
-import { call, start, coreNamespace } from './operation'
+import { call, start } from './operation'
 import { HandleFunction, Plugin, Validator, batchPlugin, concurrentPlugin } from './plugins'
 import { Stack } from './stack'
 
@@ -64,7 +65,7 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
 
     const cllr: Cuillere = {
       ctx: make,
-      start: `${coreNamespace}/start` in handlers
+      start: `${CORE_NAMESPACE}/start` in handlers
         ? effect => new Stack(handlers, ctx, validators).start(start(effect)).result
         : effect => new Stack(handlers, ctx, validators).start(effect).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),

@@ -1,6 +1,5 @@
 export * from './call'
 export * from './callable'
-export * from './core-namespace'
 export * from './defer'
 export * from './execute'
 export * from './fork'

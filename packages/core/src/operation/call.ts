@@ -1,4 +1,4 @@
-import { coreNamespace } from './core-namespace'
+import { CORE_NAMESPACE } from '../core-namespace'
 import { GeneratorFunction } from '../generator'
 import { Operation } from './operation'
 
@@ -7,7 +7,7 @@ export interface CallOperation extends Operation {
   args?: any[]
 }
 
-const kind = `${coreNamespace}/call`
+const kind = `${CORE_NAMESPACE}/call`
 
 export function call<Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args): CallOperation {
   return { kind, func, args }

@@ -1,10 +1,10 @@
 import { type CallOperation, call } from './call'
-import { coreNamespace } from './core-namespace'
+import { CORE_NAMESPACE } from '../core-namespace'
 import { type Effect, isEffect } from '../effect'
 import { GeneratorFunction } from '../generator'
 import { type WrapperOperation } from './wrapper'
 
-const kind = `${coreNamespace}/fork`
+const kind = `${CORE_NAMESPACE}/fork`
 
 export function fork<Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args): WrapperOperation<CallOperation>
 export function fork<T extends Effect>(effect: T): WrapperOperation<T>
