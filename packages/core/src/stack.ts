@@ -2,11 +2,12 @@ import { CORE_NAMESPACE } from './core-namespace'
 import { type Effect, isEffect } from './effect'
 import { error, unrecognizedEffect, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
-import { HandleFunction, ValidatorFunction } from './plugin'
 import {
   Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
   execute, isOperation, isWrapperOperation,
 } from './operation'
+import { HandleFunction, ValidatorFunction } from './plugin'
+import { Task } from './task'
 
 export class Stack {
   result: Promise<any>
@@ -107,7 +108,7 @@ export class Stack {
     },
 
     [`${CORE_NAMESPACE}/fork`]: ({ effect }: WrapperOperation, curFrame) => {
-      curFrame.result.value = new Task(new Stack(this.handlers, this.ctx, this.validators).start(effect))
+      curFrame.result.value = new TaskImpl(new Stack(this.handlers, this.ctx, this.validators).start(effect))
 
       return curFrame
     },
@@ -327,7 +328,7 @@ export class Stack {
   }
 }
 
-export class Task {
+class TaskImpl implements Task {
   private stack: Stack
 
   constructor(stack: Stack) {

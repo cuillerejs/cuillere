@@ -1,7 +1,7 @@
 import { Effect } from './effect'
 import { fork, Operation } from './operation'
 import { Plugin } from './plugin'
-import { Task } from './stack'
+import { type Task } from './task'
 
 export interface Concurrent extends Operation {
   effects: Iterable<Effect>

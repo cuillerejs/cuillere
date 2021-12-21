@@ -1,7 +1,7 @@
 import { GeneratorFunction } from './generator'
 import { Operation, fork } from './operation'
 import { Plugin } from './plugin'
-import { Task } from './stack'
+import { type Task } from './task'
 import { after } from './time'
 
 export function batched<Args extends any[] = any[], R = any>(
