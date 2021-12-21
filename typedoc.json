@@ -5,6 +5,5 @@
     "packages/core",
     "packages/envelop"
   ],
-  "gitRevision": "main",
-  "out": "docs/api/tip"
+  "gitRevision": "main"
 }
