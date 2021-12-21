@@ -2,7 +2,7 @@ import { CORE_NAMESPACE } from './core-namespace'
 import { Effect } from './effect'
 import { Generator, GeneratorFunction } from './generator'
 import { call, start } from './operation'
-import { HandleFunction, Plugin, Validator, batchPlugin, concurrentPlugin } from './plugins'
+import { HandleFunction, Plugin, ValidatorFunction, batchPlugin, concurrentPlugin } from './plugins'
 import { Stack } from './stack'
 
 export interface Cuillere {
@@ -23,7 +23,7 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
   ])
 
   const handlers: Record<string, HandleFunction[]> = {}
-  const validators: Record<string, Validator> = {}
+  const validators: Record<string, ValidatorFunction> = {}
 
   for (const plugin of plugins) {
     const pluginHasNamespace = 'namespace' in plugin

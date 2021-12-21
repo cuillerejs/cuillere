@@ -2,7 +2,7 @@ import { CORE_NAMESPACE } from './core-namespace'
 import { type Effect, isEffect } from './effect'
 import { error, unrecognizedEffect, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
-import { HandleFunction, Validator } from './plugins'
+import { HandleFunction, ValidatorFunction } from './plugins'
 import {
   Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
   execute, isOperation, isWrapperOperation,
@@ -15,7 +15,7 @@ export class Stack {
 
   private ctx: any
 
-  private validators?: Record<string, Validator>
+  private validators?: Record<string, ValidatorFunction>
 
   private rootFrame = new StackFrame(null, null)
 
@@ -25,7 +25,7 @@ export class Stack {
 
   private canceled = false
 
-  constructor(handlers: Record<string, HandleFunction[]>, ctx: any, validators?: Record<string, Validator>) {
+  constructor(handlers: Record<string, HandleFunction[]>, ctx: any, validators?: Record<string, ValidatorFunction>) {
     this.handlers = handlers
     this.ctx = ctx
     this.validators = validators
