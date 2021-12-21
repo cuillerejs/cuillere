@@ -1,4 +1,3 @@
-import { executablePromise } from './executable-promise'
 import { GeneratorFunction } from './generator'
 import { Operation, fork } from './operation'
 import { Plugin } from './plugin'
@@ -22,19 +21,21 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => 
   namespace: NAMESPACE,
 
   handlers: {
-    async* batch({ key, func, args }: Batch, ctx) {
+    async* batch({ key, func, args }: Batch, ctx: any) {
       if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
       let entry: BatchEntry
       if (ctx[BATCH_CTX].has(key)) {
         entry = ctx[BATCH_CTX].get(key)
       } else {
-        const [result, resolve] = executablePromise<any[]>()
+        let resolveResult: (value?: any[] | PromiseLike<any[]>) => void
+        const result = new Promise<any[]>((resolve) => { resolveResult = resolve })
+
         entry = { resolves: [], rejects: [], args: [], func, result }
         ctx[BATCH_CTX].set(key, entry)
 
         const task: Task = yield fork(after, executeBatch(key), timeout)
-        resolve(task.result)
+        resolveResult(task.result)
       }
 
       const index = entry.args.push(args) - 1
