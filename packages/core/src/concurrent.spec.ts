@@ -1,6 +1,6 @@
 /* eslint-disable no-throw-literal */
 
-import { Cuillere, all, allSettled, call, cuillere } from '..'
+import { Cuillere, all, allSettled, call, cuillere } from '.'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 

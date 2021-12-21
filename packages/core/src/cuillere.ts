@@ -1,8 +1,10 @@
+import { batchPlugin } from './batch'
+import { concurrentPlugin } from './concurrent'
 import { CORE_NAMESPACE } from './core-namespace'
 import { Effect } from './effect'
 import { Generator, GeneratorFunction } from './generator'
 import { call, start } from './operation'
-import { HandleFunction, Plugin, ValidatorFunction, batchPlugin, concurrentPlugin } from './plugins'
+import { HandleFunction, Plugin, ValidatorFunction } from './plugin'
 import { Stack } from './stack'
 
 export interface Cuillere {

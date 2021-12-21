@@ -1,16 +1,16 @@
-import { Effect } from '../effect'
-import { fork, Operation } from '../operation'
+import { Effect } from './effect'
+import { fork, Operation } from './operation'
 import { Plugin } from './plugin'
-import { Task } from '../stack'
+import { Task } from './stack'
 
 export interface Concurrent extends Operation {
   effects: Iterable<Effect>
 }
 
-const namespace = '@cuillere/concurrent'
+const NAMESPACE = '@cuillere/concurrent'
 
 export const concurrentPlugin = (): Plugin => ({
-  namespace,
+  namespace: NAMESPACE,
 
   handlers: {
     async* all({ effects }: Concurrent) {
@@ -38,7 +38,7 @@ export const concurrentPlugin = (): Plugin => ({
 })
 
 function concurrent(kind: string) {
-  const nsKind = `${namespace}/${kind}`
+  const nsKind = `${NAMESPACE}/${kind}`
 
   const fn = {
     // Set the function name

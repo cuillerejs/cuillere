@@ -2,7 +2,7 @@ import { CORE_NAMESPACE } from './core-namespace'
 import { type Effect, isEffect } from './effect'
 import { error, unrecognizedEffect, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
-import { HandleFunction, ValidatorFunction } from './plugins'
+import { HandleFunction, ValidatorFunction } from './plugin'
 import {
   Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
   execute, isOperation, isWrapperOperation,

@@ -1,6 +1,6 @@
-import { Effect } from '../effect'
-import { Operation } from '../operation'
-import { GeneratorFunction } from '../generator'
+import { Effect } from './effect'
+import { Operation } from './operation'
+import { GeneratorFunction } from './generator'
 
 export interface Plugin<Context = any> {
   namespace?: string

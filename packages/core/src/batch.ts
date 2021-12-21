@@ -1,9 +1,9 @@
-import { GeneratorFunction } from '../generator'
-import { Operation, fork } from '../operation'
-import { Task } from '../stack'
-import { executablePromise } from '../executable-promise'
-import { after } from '../time'
+import { executablePromise } from './executable-promise'
+import { GeneratorFunction } from './generator'
+import { Operation, fork } from './operation'
 import { Plugin } from './plugin'
+import { Task } from './stack'
+import { after } from './time'
 
 export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R[]>,
@@ -11,15 +11,15 @@ export function batched<Args extends any[] = any[], R = any>(
 ): (...args: Args) => Operation {
   return (...args) => {
     const batchKey = getBatchKey(...args)
-    if (!batchKey) return { kind: `${namespace}/execute`, func, args }
-    return { kind: `${namespace}/batch`, func, args, key: batchKey }
+    if (!batchKey) return { kind: `${NAMESPACE}/execute`, func, args }
+    return { kind: `${NAMESPACE}/batch`, func, args, key: batchKey }
   }
 }
 
-const namespace = '@cuillere/batch'
+const NAMESPACE = '@cuillere/batch'
 
 export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => ({
-  namespace,
+  namespace: NAMESPACE,
 
   handlers: {
     async* batch({ key, func, args }: Batch, ctx) {
@@ -88,5 +88,5 @@ interface ExecuteBatch extends Operation {
 }
 
 function executeBatch(key: any): ExecuteBatch {
-  return { kind: `${namespace}/executeBatch`, key }
+  return { kind: `${NAMESPACE}/executeBatch`, key }
 }
