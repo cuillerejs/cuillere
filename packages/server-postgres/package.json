@@ -32,15 +32,16 @@
     "test": "jest --passWithNoTests",
     "clean": "rm -rf dist",
     "build": "yarn clean && tsc",
-    "prepack": "yarn build && yarn lint && yarn test",
-    "ci": "yarn build && yarn lint && yarn test"
+    "prepack": "yarn ci",
+    "ci": "yarn run-p build lint test"
   },
   "dependencies": {
     "@cuillere/postgres": "^0.13.0",
     "@cuillere/server": "^0.13.0",
     "apollo-server-core": "~2.25.3",
     "graphql-subscriptions": "~1.2.1",
-    "graphql-tools": "~4.0.8"
+    "graphql-tools": "~4.0.8",
+    "npm-run-all": "^4.1.5"
   },
   "devDependencies": {
     "@cuillere/core": "^0.13.0",

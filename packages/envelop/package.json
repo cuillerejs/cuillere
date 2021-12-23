@@ -23,8 +23,8 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "clean": "rm -rf dist",
     "build": "yarn clean && tsc",
-    "prepack": "yarn build && yarn lint && yarn test",
-    "ci": "yarn build && yarn lint && yarn test"
+    "prepack": "yarn ci",
+    "ci": "yarn run-p build lint test"
   },
   "files": [
     "src",
@@ -32,7 +32,8 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@envelop/core": "^1.6.4"
+    "@envelop/core": "^1.6.4",
+    "npm-run-all": "^4.1.5"
   },
   "devDependencies": {
     "@cuillere/core": "^0.13.0",
