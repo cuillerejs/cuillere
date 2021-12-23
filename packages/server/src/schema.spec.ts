@@ -1,5 +1,4 @@
 import gql from 'graphql-tag'
-import { get } from '@cuillere/core'
 import { GraphQLObjectType } from 'graphql'
 import { makeExecutableSchema as originalMakeExecutableSchema } from 'graphql-tools'
 import { CUILLERE_PLUGINS, makeExecutableSchema } from './schema'
@@ -7,10 +6,13 @@ import { CuillereServer } from './server'
 
 describe('Schema', () => {
   describe('makeExecutableSchema', () => {
+    function* returnTest() {
+      return 'test'
+    }
+
     it('should wrap generator resolvers', async () => {
       const { field, schema } = makeSchema(function* () {
-        yield get('something')
-        return 'test'
+        return yield returnTest()
       })
 
       schema[CUILLERE_PLUGINS] = []
@@ -20,8 +22,7 @@ describe('Schema', () => {
 
     it('should throw if the schema is used without initalisation', async () => {
       const { field } = makeSchema(function* () {
-        yield get('something')
-        return 'test'
+        return yield returnTest()
       })
 
       await expect(field.resolve({}, {}, {}, null)).rejects.toThrow()
@@ -34,10 +35,7 @@ describe('Schema', () => {
     })
 
     it('should not wrap non generator functions in cuillere', async () => {
-      const { field } = makeSchema(async () => {
-        await Promise.resolve('something')
-        return 'test'
-      })
+      const { field } = makeSchema(async () => Promise.resolve('test'))
 
       expect(await field.resolve({}, {}, {}, null)).toBe('test')
     })

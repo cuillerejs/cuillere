@@ -1,4 +1,4 @@
-import cuillere, { defer, generator, recover } from '..'
+import { cuillere, defer, generator, recover } from '..'
 
 describe('recover', () => {
   it('should recover from error', async () => {

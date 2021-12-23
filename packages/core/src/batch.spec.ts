@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, batched, batchPlugin, callable } from '..'
+import { Cuillere, batched, batchPlugin, callable, cuillere } from '.'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
@@ -21,7 +21,7 @@ describe('batch', () => {
     })
   })
 
-  it('should call a given operation', async () => {
+  it('should call the batched function', async () => {
     await cllr.start(fn())
 
     expect(mock).toBeCalled()

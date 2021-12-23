@@ -1,4 +1,4 @@
-import { Plugin, OperationObject, fork, isOfKind, isGeneratorFunction } from '@cuillere/core'
+import { Plugin, Operation, fork, isGeneratorFunction, isOperation } from '@cuillere/core'
 
 const namespace = '@cuillere/channels'
 
@@ -184,11 +184,11 @@ interface Recver extends Cancellable {
   ([any, boolean]): void
 }
 
-export interface ChanOperation extends OperationObject {
+export interface ChanOperation extends Operation {
   chanKey: ChanKey
 }
 
-export interface Chan extends OperationObject {
+export interface Chan extends Operation {
   bufferCapacity: number
 }
 
@@ -247,7 +247,9 @@ export function recv(chanKey: ChanKey, detail = false): Recv {
   return { kind: `${namespace}/recv`, chanKey, detail }
 }
 
-const isRecv = isOfKind<Recv>(`${namespace}/recv`)
+export function isRecv(value: any): value is Recv {
+  return isOperation(value) && value.kind === `${namespace}/recv`
+}
 
 function isRecvReady({ chanKey }: Recv): boolean {
   const ch = chans.get(chanKey)
@@ -295,7 +297,7 @@ const isCallbackCase = Array.isArray as (caze: Case) => caze is CallbackCase
 
 const isDefault = (caze: Case): caze is typeof DEFAULT => caze === DEFAULT
 
-export interface Select extends OperationObject {
+export interface Select extends Operation {
   cases: Case[]
 }
 
@@ -312,7 +314,9 @@ export function send(chanKey: ChanKey, value: any): Send {
   return { kind: `${namespace}/send`, chanKey, value }
 }
 
-const isSend = isOfKind<Send>(`${namespace}/send`)
+export function isSend(value: any): value is Send {
+  return isOperation(value) && value.kind === `${namespace}/send`
+}
 
 function isSendReady({ chanKey }: Send): boolean {
   const ch = chans.get(chanKey)
@@ -344,7 +348,7 @@ async function* executeCallback(callback: (...args: any[]) => any, args = []) {
   else await callback(...args)
 }
 
-export interface After extends OperationObject {
+export interface After extends Operation {
   duration: number
 }
 
@@ -352,7 +356,7 @@ export function after(duration: number): After {
   return { kind: `${namespace}/after`, duration }
 }
 
-export interface Tick extends OperationObject {
+export interface Tick extends Operation {
   interval: number
 }
 

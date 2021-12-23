@@ -1,5 +1,4 @@
 import type { ApolloServerPlugin, GraphQLServerListener } from 'apollo-server-plugin-base'
-import { executablePromise } from '@cuillere/core'
 import { ServerPlugin } from '@cuillere/server-plugin'
 
 import { CuillereConfig } from './config'
@@ -59,15 +58,20 @@ function makeRequestDidStart(config: CuillereConfig, plugins: ServerPlugin[]): A
 
         if (!taskManager) return undefined
 
-        const [task, resolve, reject] = executablePromise()
+        let resolveTask: (value?: any | PromiseLike<any>) => void
+        let rejectTask: (err?: any) => void
+        const task = new Promise((resolve, reject) => {
+          resolveTask = resolve
+          rejectTask = reject
+        })
 
         taskManager
           .execute(() => task, reqCtx.context[config.contextKey] = {})
           .catch(() => { /* Avoids unhandled promise rejection */ })
 
         return () => {
-          if (didEncounterErrors) reject(true)
-          else resolve()
+          if (didEncounterErrors) rejectTask()
+          else resolveTask()
         }
       },
     }

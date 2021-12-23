@@ -2,18 +2,21 @@ export const captured = Symbol('captured')
 
 const formatMessage = (message: string, ...args: any[]) => `cuillere: ${message}${args.map(arg => JSON.stringify(arg, null, 2)).join(' ')}`
 
+// FIXME delete this ?
 export const error = (message: string, ...args: any[]) => new Error(formatMessage(message, ...args))
 
-class UnrecognizedOperationError extends TypeError {
-  operation: any
+// FIXME export and rename to UnhandledEffectError
+class UnrecognizedEffectError extends TypeError {
+  effect: any
 
-  constructor(operation: any) {
-    super(formatMessage(`operation could not be handled, misformed operation or missing plugin: ${operation?.kind}`))
-    this.operation = operation
+  constructor(effect: any) {
+    super(`no handler defined for this knind of effect: ${effect?.kind ?? typeof effect}`)
+    this.effect = effect
   }
 }
 
-export const unrecognizedOperation = (operation: any) => new UnrecognizedOperationError(operation)
+// FIXME delete this
+export const unrecognizedEffect = (effect: any) => new UnrecognizedEffectError(effect)
 
 export class CancellationError extends Error {
   constructor() {
@@ -23,6 +26,7 @@ export class CancellationError extends Error {
 
   private static CANCELED = Symbol('CANCELED')
 
+  // FIXME replace by instanceof?
   static isCancellationError(e: any): e is CancellationError {
     return e[CancellationError.CANCELED]
   }

@@ -1,40 +1,41 @@
-import { GeneratorFunction } from '../generator'
-import { OperationObject, fork } from '../operations'
-import { Task } from '../stack'
-import { executablePromise } from '../executable-promise'
-import { after } from '../time'
+import { GeneratorFunction } from './generator'
+import { Operation, fork } from './operation'
 import { Plugin } from './plugin'
+import { type Task } from './task'
+import { after } from './time'
 
 export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R[]>,
   getBatchKey: (...args: Args) => any = () => func,
-): (...args: Args) => OperationObject {
+): (...args: Args) => Operation {
   return (...args) => {
     const batchKey = getBatchKey(...args)
-    if (!batchKey) return { kind: `${namespace}/execute`, func, args }
-    return { kind: `${namespace}/batch`, func, args, key: batchKey }
+    if (!batchKey) return { kind: `${NAMESPACE}/execute`, func, args }
+    return { kind: `${NAMESPACE}/batch`, func, args, key: batchKey }
   }
 }
 
-const namespace = '@cuillere/batch'
+const NAMESPACE = '@cuillere/batch'
 
 export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => ({
-  namespace,
+  namespace: NAMESPACE,
 
   handlers: {
-    async* batch({ key, func, args }: Batch, ctx) {
+    async* batch({ key, func, args }: Batch, ctx: any) {
       if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
       let entry: BatchEntry
       if (ctx[BATCH_CTX].has(key)) {
         entry = ctx[BATCH_CTX].get(key)
       } else {
-        const [result, resolve] = executablePromise<any[]>()
+        let resolveResult: (value?: any[] | PromiseLike<any[]>) => void
+        const result = new Promise<any[]>((resolve) => { resolveResult = resolve })
+
         entry = { resolves: [], rejects: [], args: [], func, result }
         ctx[BATCH_CTX].set(key, entry)
 
         const task: Task = yield fork(after, executeBatch(key), timeout)
-        resolve(task.result)
+        resolveResult(task.result)
       }
 
       const index = entry.args.push(args) - 1
@@ -46,9 +47,9 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => 
       return res[0]
     },
 
-    async* executeBatch(operation: ExecuteBatch, ctx) {
-      const entry = ctx[BATCH_CTX].get(operation.key)
-      ctx[BATCH_CTX].delete(operation.key)
+    async* executeBatch({ key }: ExecuteBatch, ctx) {
+      const entry = ctx[BATCH_CTX].get(key)
+      ctx[BATCH_CTX].delete(key)
       return yield entry.func(...entry.args)
     },
   },
@@ -72,21 +73,21 @@ interface BatchEntry {
   args: any[][]
 }
 
-interface Batch<Args extends any[] = any[], R = any> extends OperationObject {
+interface Batch<Args extends any[] = any[], R = any> extends Operation {
   func: GeneratorFunction<Args[], R[]>
   args: Args
   key: any
 }
 
-interface Execute<Args extends any[] = any[], R = any> extends OperationObject {
+interface Execute<Args extends any[] = any[], R = any> extends Operation {
   func: GeneratorFunction<Args[], R[]>
   args: Args
 }
 
-interface ExecuteBatch extends OperationObject {
+interface ExecuteBatch extends Operation {
   key: any
 }
 
 function executeBatch(key: any): ExecuteBatch {
-  return { kind: `${namespace}/executeBatch`, key }
+  return { kind: `${NAMESPACE}/executeBatch`, key }
 }

@@ -1,13 +1,17 @@
-import { HandleFunction, Plugin, Validator, batchPlugin, concurrentPlugin, contextPlugin } from './plugins'
+import { batchPlugin } from './batch'
+import { concurrentPlugin } from './concurrent'
+import { CORE_NAMESPACE } from './core-namespace'
+import { Effect } from './effect'
 import { Generator, GeneratorFunction } from './generator'
-import { Operation, call, start, coreNamespace } from './operations'
+import { call, start } from './operation'
+import { HandleFunction, Plugin, ValidatorFunction } from './plugin'
 import { Stack } from './stack'
 
 export interface Cuillere {
   ctx: (ctx: any) => Cuillere
-  start: (operation: Operation) => Promise<any>
+  start: (effect: Effect) => Promise<any>
   call: <Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args) => Promise<R>
-  execute: <R>(gen: Generator<R, Operation>) => Promise<R>
+  execute: <R>(gen: Generator<R, Effect>) => Promise<R>
 }
 
 const namespacePrefix = '@'
@@ -18,11 +22,10 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
   const plugins = pPlugins.concat([
     batchPlugin(),
     concurrentPlugin(),
-    contextPlugin(),
   ])
 
   const handlers: Record<string, HandleFunction[]> = {}
-  const validators: Record<string, Validator> = {}
+  const validators: Record<string, ValidatorFunction> = {}
 
   for (const plugin of plugins) {
     const pluginHasNamespace = 'namespace' in plugin
@@ -64,9 +67,9 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
 
     const cllr: Cuillere = {
       ctx: make,
-      start: `${coreNamespace}/start` in handlers
-        ? operation => new Stack(handlers, ctx, validators).start(start(operation)).result
-        : operation => new Stack(handlers, ctx, validators).start(operation).result,
+      start: `${CORE_NAMESPACE}/start` in handlers
+        ? effect => new Stack(handlers, ctx, validators).start(start(effect)).result
+        : effect => new Stack(handlers, ctx, validators).start(effect).result,
       call: (func, ...args) => cllr.start(call(func, ...args)),
       execute: gen => cllr.start(gen),
     }

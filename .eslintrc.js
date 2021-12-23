@@ -58,6 +58,7 @@ module.exports = {
     }],
     'arrow-parens': [2, 'as-needed', { requireForBlockBody: true }],
     'consistent-return': 'off',
+    eqeqeq: 'off',
     'func-names': 'off',
     'implicit-arrow-linebreak': 'off',
     'import/extensions': ['error', {

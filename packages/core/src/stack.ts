@@ -1,10 +1,13 @@
-import { HandleFunction, Validator } from './plugins'
-import {
-  Operation, OperationObject, Wrapper, Execute, CallOperation, NextOperation,
-  execute, isOperationObject, isOperation, isWrapper, isFork, isDefer, isRecover, isTerminal, coreNamespace,
-} from './operations'
-import { error, unrecognizedOperation, CancellationError, captured } from './errors'
+import { CORE_NAMESPACE } from './core-namespace'
+import { type Effect, isEffect } from './effect'
+import { error, unrecognizedEffect, CancellationError, captured } from './errors'
 import { isGenerator, Generator } from './generator'
+import {
+  Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
+  execute, isOperation, isWrapperOperation,
+} from './operation'
+import { HandleFunction, ValidatorFunction } from './plugin'
+import { Task } from './task'
 
 export class Stack {
   result: Promise<any>
@@ -13,7 +16,7 @@ export class Stack {
 
   private ctx: any
 
-  private validators?: Record<string, Validator>
+  private validators?: Record<string, ValidatorFunction>
 
   private rootFrame = new StackFrame(null, null)
 
@@ -23,7 +26,7 @@ export class Stack {
 
   private canceled = false
 
-  constructor(handlers: Record<string, HandleFunction[]>, ctx: any, validators?: Record<string, Validator>) {
+  constructor(handlers: Record<string, HandleFunction[]>, ctx: any, validators?: Record<string, ValidatorFunction>) {
     this.handlers = handlers
     this.ctx = ctx
     this.validators = validators
@@ -49,22 +52,24 @@ export class Stack {
 
   handle(value: any) {
     try {
-      this.currentFrame = this.stackFrameFor(this.validateOperation(value), this.currentFrame)
+      this.currentFrame = this.stackFrameFor(this.validateEffect(value), this.currentFrame)
     } catch (e) {
       this.captureCoreStackTrace(e)
       this.currentFrame.result = { hasError: true, error: e }
     }
   }
 
-  stackFrameFor(pOperation: Operation, curFrame: StackFrame, handlerIndex = 0): StackFrame {
-    let operation = pOperation
+  stackFrameFor(effect: Effect, curFrame: StackFrame, handlerIndex = 0): StackFrame {
+    let operation: Operation
 
-    // Equivalent to isGenerator(operation) but gives priority to the OperationObject
-    if (!isOperationObject(operation)) {
+    // Give priority to Operation over other kinds of effects
+    if (isOperation(effect)) {
+      operation = effect
+    } else {
       // No handler for generator execution, directly put it on the stack
-      if (!(`${coreNamespace}/execute` in this.handlers)) return new StackFrame(operation, curFrame)
+      if (!(`${CORE_NAMESPACE}/execute` in this.handlers)) return new StackFrame(effect, curFrame)
 
-      operation = execute(operation)
+      operation = execute(effect)
     }
 
     const handlers = this.handlers[operation.kind]
@@ -77,14 +82,14 @@ export class Stack {
     return new HandlerStackFrame(gen, curFrame, operation.kind, handlerIndex)
   }
 
-  handleCore(operation: OperationObject, curFrame: StackFrame): StackFrame {
-    if (!(operation.kind in this.coreHandlers)) throw unrecognizedOperation(operation)
+  handleCore(operation: Operation, curFrame: StackFrame): StackFrame {
+    if (!(operation.kind in this.coreHandlers)) throw unrecognizedEffect(operation)
 
     return this.coreHandlers[operation.kind](operation, curFrame)
   }
 
-  coreHandlers: Record<string, (operation: Operation, curFrame: StackFrame) => StackFrame> = {
-    [`${coreNamespace}/call`]: ({ func, args }: CallOperation, curFrame) => {
+  coreHandlers: Record<string, (operation: Effect, curFrame: StackFrame) => StackFrame> = {
+    [`${CORE_NAMESPACE}/call`]: ({ func, args }: CallOperation, curFrame) => {
       if (!func) throw new TypeError(`call: cannot call ${func}`) // FIXME improve and move to validator
 
       const gen = func(...args)
@@ -96,27 +101,27 @@ export class Stack {
       return new StackFrame(gen, curFrame)
     },
 
-    [`${coreNamespace}/execute`]: ({ gen }: Execute, curFrame) => {
+    [`${CORE_NAMESPACE}/execute`]: ({ gen }: ExecuteOperation, curFrame) => {
       if (!isGenerator(gen)) throw new TypeError(`execute: ${gen} is not a Generator`)
 
       return new StackFrame(gen, curFrame)
     },
 
-    [`${coreNamespace}/fork`]: ({ operation }: Wrapper, curFrame) => {
-      curFrame.result.value = new Task(new Stack(this.handlers, this.ctx, this.validators).start(operation))
+    [`${CORE_NAMESPACE}/fork`]: ({ effect }: WrapperOperation, curFrame) => {
+      curFrame.result.value = new TaskImpl(new Stack(this.handlers, this.ctx, this.validators).start(effect))
 
       return curFrame
     },
 
-    [`${coreNamespace}/start`]: ({ operation }: Wrapper, curFrame) => this.stackFrameFor(operation, curFrame),
+    [`${CORE_NAMESPACE}/start`]: ({ effect }: WrapperOperation, curFrame) => this.stackFrameFor(effect, curFrame),
 
-    [`${coreNamespace}/defer`]: ({ operation }: Wrapper, curFrame) => {
-      curFrame.defers.unshift(operation)
+    [`${CORE_NAMESPACE}/defer`]: ({ effect }: WrapperOperation, curFrame) => {
+      curFrame.defers.unshift(effect)
 
       return curFrame
     },
 
-    [`${coreNamespace}/recover`]: (_operation, curFrame) => {
+    [`${CORE_NAMESPACE}/recover`]: (_, curFrame) => {
       if (curFrame.previous.done && curFrame.previous.result.hasError) {
         curFrame.result = { hasError: false, value: curFrame.previous.result.error }
         curFrame.previous.result.hasError = false
@@ -126,28 +131,28 @@ export class Stack {
       return curFrame
     },
 
-    [`${coreNamespace}/terminal`]: ({ operation }: Wrapper, curFrame) => {
+    [`${CORE_NAMESPACE}/terminal`]: ({ effect }: WrapperOperation, curFrame) => {
       curFrame.terminate()
 
-      return this.stackFrameFor(operation, curFrame.previous)
+      return this.stackFrameFor(effect, curFrame.previous)
     },
 
-    [`${coreNamespace}/generator`]: (_operation, curFrame) => {
+    [`${CORE_NAMESPACE}/generator`]: (_, curFrame) => {
       curFrame.result.value = curFrame.gen
 
       return curFrame
     },
 
-    [`${coreNamespace}/next`]: ({ operation, terminal }: NextOperation, curFrame) => {
+    [`${CORE_NAMESPACE}/next`]: ({ effect, terminal }: NextOperation, curFrame) => {
       if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
 
-      const kind = isOperationObject(operation) ? operation.kind : `${coreNamespace}/execute`
+      const kind = isOperation(effect) ? effect.kind : `${CORE_NAMESPACE}/execute`
 
       if (curFrame.kind !== kind) throw TypeError(`next: operation kind mismatch, expected "${curFrame.kind}", received "${kind}"`)
 
       if (terminal) curFrame.terminate()
 
-      return this.stackFrameFor(operation, terminal ? curFrame.previous : curFrame, curFrame.index + 1)
+      return this.stackFrameFor(effect, terminal ? curFrame.previous : curFrame, curFrame.index + 1)
     },
   }
 
@@ -242,29 +247,31 @@ export class Stack {
     }
   }
 
-  validateOperation(value: any): Operation {
-    if (value === undefined || value === null) throw new TypeError(`${value} operation is forbidden`)
+  validateEffect(effect: any): Effect {
+    if (effect == undefined) throw new TypeError(`${effect} effect is forbidden`)
 
-    if (!isOperation(value)) throw new TypeError(`${value} is neither an operation nor a generator`)
+    // FIXME change to a more general message
+    if (!isEffect(effect)) throw new TypeError(`${effect} is neither an operation nor a generator`)
 
-    if (isWrapper(value)) this.validateOperation(value.operation)
+    if (isOperation(effect)) {
+      this.coreValidators[effect.kind]?.(effect)
+      this.validators?.[effect.kind]?.(effect)
 
-    if (isOperationObject(value)) {
-      this.coreValidators[value.kind]?.(value) // eslint-disable-line no-unused-expressions
-      this.validators?.[value.kind]?.(value) // eslint-disable-line no-unused-expressions
+      if (isWrapperOperation(effect)) this.validateEffect(effect.effect)
     }
 
     // FIXME additional validations when stack is starting (on rootFrame)
 
-    return value
+    return effect
   }
 
-  coreValidators: Record<string, (operation: OperationObject) => void> = {
-    [`${coreNamespace}/terminal`]({ operation }: Wrapper) {
-      if (isFork(operation)) throw new TypeError('terminal forks are forbidden')
-      if (isDefer(operation)) throw new TypeError('terminal defers are forbidden')
-      if (isRecover(operation)) throw new TypeError('terminal recovers are forbidden')
-      if (isTerminal(operation)) throw new TypeError('terminals cannot be nested')
+  coreValidators: Record<string, (operation: Operation) => void> = {
+    [`${CORE_NAMESPACE}/terminal`]({ effect }: WrapperOperation) {
+      if (!isOperation(effect)) return
+      if (effect.kind === `${CORE_NAMESPACE}/fork`) throw new TypeError('terminal fork is forbidden')
+      if (effect.kind === `${CORE_NAMESPACE}/defer`) throw new TypeError('terminal defer is forbidden')
+      if (effect.kind === `${CORE_NAMESPACE}/recover`) throw new TypeError('terminal recover is forbidden')
+      if (effect.kind === `${CORE_NAMESPACE}/terminal`) throw new TypeError('terminals cannot be nested')
     },
   }
 
@@ -321,7 +328,7 @@ export class Stack {
   }
 }
 
-export class Task {
+class TaskImpl implements Task {
   private stack: Stack
 
   constructor(stack: Stack) {
@@ -340,26 +347,26 @@ interface StackFrameResult {
 }
 
 class StackFrame {
-  gen: Generator<any, Operation>
+  gen: Generator<any, Effect>
 
   previous: StackFrame
 
   canceled?: Canceled
 
-  defers: Operation[] = []
+  defers: Effect[] = []
 
   result: StackFrameResult = { hasError: false }
 
   done = false
 
-  constructor(gen: Generator<any, Operation>, previous: StackFrame) {
+  constructor(gen: Generator<any, Effect>, previous: StackFrame) {
     this.gen = gen
     this.previous = previous
   }
 
   async terminate() {
     try {
-      if (this.defers.length !== 0) console.warn('cuillere: terminate: deferred operations are not executed')
+      if (this.defers.length !== 0) console.warn('cuillere: terminate: deferred effects are not executed')
 
       const { done } = await this.gen.return(undefined)
 
@@ -375,7 +382,7 @@ class HandlerStackFrame extends StackFrame {
 
   index: number
 
-  constructor(gen: Generator<any, Operation>, previous: StackFrame, kind: string, index: number) {
+  constructor(gen: Generator<any, Effect>, previous: StackFrame, kind: string, index: number) {
     super(gen, previous)
     this.kind = kind
     this.index = index

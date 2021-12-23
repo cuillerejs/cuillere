@@ -1,4 +1,4 @@
-import { Operation, Plugin, next } from '@cuillere/core'
+import { Effect, Plugin, next } from '@cuillere/core'
 
 class BaseTaskManager {
   private listeners: TaskListener[]
@@ -56,7 +56,7 @@ export class AsyncTaskManager extends BaseTaskManager {
 }
 
 export class GeneratorTaskManager extends BaseTaskManager {
-  public async* execute(task: Operation, ctx: any) {
+  public async* execute(task: Effect, ctx: any) {
     let error: any
 
     try {
@@ -107,8 +107,8 @@ export function taskManagerPlugin(...listeners: TaskListener[]): Plugin {
 
   return {
     handlers: {
-      async* '@cuillere/core/start'(operation : Operation, ctx) {
-        return yield* taskManager.execute(next(operation), ctx)
+      async* '@cuillere/core/start'(effect : Effect, ctx) {
+        return yield* taskManager.execute(next(effect), ctx)
       },
     },
   }

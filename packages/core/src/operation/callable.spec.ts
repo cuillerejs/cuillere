@@ -1,7 +1,7 @@
-import cuillere, { Cuillere, OperationObject, call, callable } from '..'
+import { Cuillere, Operation, call, callable, cuillere } from '..'
 
 describe('callable', () => {
-  interface TestOperation extends OperationObject {
+  interface TestOperation extends Operation {
     message: string
   }
 

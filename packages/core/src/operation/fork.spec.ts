@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, fork, call, defer } from '..'
+import { Cuillere, call, cuillere, defer, fork } from '..'
 
 async function* identity(arg: any) {
   return arg
@@ -13,7 +13,7 @@ describe('fork', () => {
     cllr = cuillere()
   })
 
-  it('should fork an operation', async () => {
+  it('should fork an effect', async () => {
     async function* test() {
       const { result } = yield fork(call(identity, 'foo'))
       return result

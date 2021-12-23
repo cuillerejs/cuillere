@@ -1,6 +1,6 @@
 /* eslint-disable no-throw-literal */
 
-import cuillere, { Cuillere, all, allSettled, call } from '..'
+import { Cuillere, all, allSettled, call, cuillere } from '.'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
 
@@ -32,7 +32,7 @@ describe('concurrent', () => {
   })
 
   describe('all', () => {
-    it('should run all operations in parallel', async () => {
+    it('should run all effects in parallel', async () => {
       function* test() {
         return yield all([call(f1), call(f2), call(f3)])
       }
@@ -43,7 +43,7 @@ describe('concurrent', () => {
       expect(executionOrder).toEqual([3, 2, 1])
     })
 
-    it('should cancel all operations on first fail', async () => {
+    it('should cancel all effects on first fail', async () => {
       let called = false
 
       function* f1() {
@@ -65,7 +65,7 @@ describe('concurrent', () => {
   })
 
   describe('allSettled', () => {
-    it('should run all operations in parallele and settle', async () => {
+    it('should run all effects in parallel and settle', async () => {
       function* test() {
         return yield allSettled([call(f1), call(f2), call(f3)])
       }

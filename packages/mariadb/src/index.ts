@@ -1,4 +1,4 @@
 export * from './connection-manager'
-export * from './plugins'
+export * from './plugin'
 export * from './pool-manager'
 export * from './query-options'

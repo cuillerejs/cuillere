@@ -1,4 +1,4 @@
-import cuillere, { Cuillere, Plugin, next } from '..'
+import { Cuillere, Plugin, cuillere, next } from '.'
 
 const nodeMajorVersion = Number(process.versions.node.split('.')[0])
 
