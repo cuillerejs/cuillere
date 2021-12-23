@@ -1,0 +1,50 @@
+name: Generate TypeDoc
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ci:
+    name: Generate TypeDoc
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Node.JS
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          path: cuillere
+
+      - name: Checkout site
+        uses: actions/checkout@v2
+        with:
+          repository: cuillerejs/site
+          path: site
+          token: ${{ secrets.CUILLERE_BOT_PAT }}
+
+      - name: Install dependencies
+        run: yarn --immutable
+        working-directory: cuillere
+
+      - name: Build
+        run: yarn build
+        working-directory: cuillere
+
+      - name: Generate TypeDoc
+        run: yarn typedoc --out ../site/api/tip
+        working-directory: cuillere
+
+      - name: Commit and push TypeDoc
+        run: |
+          git add .
+          git diff --staged --quiet --exit-code && echo "No changes" && exit
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -m "📝 Generate API"
+          git push
+        working-directory: site
