@@ -27,6 +27,18 @@ jobs:
           path: site
           token: ${{ secrets.CUILLERE_BOT_PAT }}
 
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+
+      - uses: actions/cache@v2
+        id: yarn-cache
+        with:
+          path: ${{steps.yarn-cache-dir-path.outputs.dir}}
+          key: node-${{matrix.node-version}}-yarn-${{ hashFiles('cuillere/yarn.lock') }}
+          restore-keys: |
+            node-${{matrix.node-version}}-yarn-
+
       - name: Install dependencies
         run: yarn --immutable
         working-directory: cuillere

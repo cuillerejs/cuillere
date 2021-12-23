@@ -26,7 +26,7 @@ jobs:
         id: yarn-cache
         with:
           path: ${{steps.yarn-cache-dir-path.outputs.dir}}
-          key: node-${{matrix.node-version}}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: node-${{matrix.node-version}}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             node-${{matrix.node-version}}-yarn-
 
