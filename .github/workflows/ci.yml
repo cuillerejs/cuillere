@@ -33,30 +33,5 @@ jobs:
       - name: Install dependencies
         run: yarn --immutable
 
-      - name: CI core
+      - name: Run CI
         run: yarn ci
-        working-directory: ./packages/core
-
-      - name: CI server-plugin
-        run: yarn ci
-        working-directory: ./packages/server-plugin
-
-      - name: CI server
-        run: yarn ci
-        working-directory: ./packages/server
-
-      - name: CI postgres
-        run: yarn ci
-        working-directory: ./packages/postgres
-
-      - name: CI server-postgres
-        run: yarn ci
-        working-directory: ./packages/server-postgres
-
-      - name: CI mariadb
-        run: yarn ci
-        working-directory: ./packages/mariadb
-
-      - name: CI channels
-        run: yarn ci
-        working-directory: ./packages/channels

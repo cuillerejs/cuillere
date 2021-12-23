@@ -23,8 +23,8 @@
     "test": "jest",
     "clean": "rm -rf dist",
     "build": "yarn clean && tsc",
-    "prepack": "yarn build & yarn lint & yarn test",
-    "ci": "yarn build & yarn lint & yarn test"
+    "prepack": "yarn build && yarn lint && yarn test",
+    "ci": "yarn build && yarn lint && yarn test"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.2",

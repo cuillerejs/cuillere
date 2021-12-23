@@ -28,8 +28,8 @@
     "test": "jest --passWithNoTests",
     "clean": "rm -rf dist",
     "build": "yarn clean && tsc",
-    "prepack": "yarn build & yarn lint & yarn test",
-    "ci": "yarn build & yarn lint & yarn test"
+    "prepack": "yarn build && yarn lint && yarn test",
+    "ci": "yarn build && yarn lint && yarn test"
   },
   "peerDependencies": {
     "@cuillere/core": "^0.13.0",

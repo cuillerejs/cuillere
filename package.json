@@ -2,6 +2,7 @@
   "private": true,
   "scripts": {
     "build": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel run build",
+    "ci": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel run ci",
     "publish": "yarn workspaces foreach --no-private --all --topological-dev --verbose --parallel publish --no-git-tag-version --non-interactive",
     "test": "yarn workspaces foreach --all --verbose --parallel run test"
   },
