@@ -3,20 +3,21 @@ import { fork, Operation } from './operation'
 import { Plugin } from './plugin'
 import { type Task } from './task'
 
+const NAMESPACE = '@cuillere/concurrent'
+
 /**
  * @category for operations
  */
-export interface ConcurrentOperation extends Operation {
+export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Operation {
+  kind: `${typeof NAMESPACE}/${K}`
   effects: Iterable<Effect>
 }
-
-const NAMESPACE = '@cuillere/concurrent'
 
 export const concurrentPlugin = (): Plugin => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* all({ effects }: ConcurrentOperation) {
+    async* all({ effects }: ConcurrentOperation<'all'>) {
       const tasks: Task[] = []
       for (const effect of effects) tasks.push(yield fork(effect))
 
@@ -32,7 +33,7 @@ export const concurrentPlugin = (): Plugin => ({
       }
     },
 
-    async* allSettled({ effects }: ConcurrentOperation) {
+    async* allSettled({ effects }: ConcurrentOperation<'allSettled'>) {
       const tasks = []
       for (const effect of effects) tasks.push(yield fork(effect))
       return Promise.allSettled(tasks.map(({ result }) => result))
@@ -40,13 +41,11 @@ export const concurrentPlugin = (): Plugin => ({
   },
 })
 
-function concurrent(kind: string) {
-  const nsKind = `${NAMESPACE}/${kind}`
-
+function concurrent<K extends 'all' | 'allSettled'>(kind: K) {
   const fn = {
     // Set the function name
-    [kind](effects: Iterable<Effect>): ConcurrentOperation {
-      return { kind: nsKind, effects }
+    [kind](effects: Iterable<Effect>): ConcurrentOperation<K> {
+      return { kind: `${NAMESPACE}/${kind}`, effects }
     },
   }
   return fn[kind]
