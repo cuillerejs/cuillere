@@ -10,8 +10,6 @@ export interface CallOperation extends Operation {
   args?: any[]
 }
 
-const kind = `${CORE_NAMESPACE}/call`
-
 export function call<Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args): CallOperation {
-  return { kind, func, args }
+  return { kind: `${CORE_NAMESPACE}/call`, func, args }
 }

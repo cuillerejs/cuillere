@@ -2,7 +2,7 @@ import { CORE_NAMESPACE } from '../core-namespace'
 import { type Effect } from '../effect'
 import { type WrapperOperation } from './wrapper'
 
-const kind = `${CORE_NAMESPACE}/next`
+const kind = `${CORE_NAMESPACE}/next` as const
 
 /**
  * @category for operations

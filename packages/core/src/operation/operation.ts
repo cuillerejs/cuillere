@@ -1,5 +1,5 @@
 export interface Operation {
-  readonly kind: string
+  readonly kind: `@${string}`
 }
 
 export function isOperation(value: any): value is Operation {

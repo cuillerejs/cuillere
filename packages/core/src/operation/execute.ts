@@ -3,8 +3,6 @@ import { Effect } from '../effect'
 import { Operation } from './operation'
 import { Generator } from '../generator'
 
-const kind = `${CORE_NAMESPACE}/execute`
-
 /**
  * @category for operations
  */
@@ -13,5 +11,5 @@ export interface ExecuteOperation<R = any> extends Operation {
 }
 
 export function execute<R = any>(gen: Generator<R, Effect>): ExecuteOperation {
-  return { kind, gen }
+  return { kind: `${CORE_NAMESPACE}/execute`, gen }
 }

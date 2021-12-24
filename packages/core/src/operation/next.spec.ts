@@ -6,7 +6,7 @@ describe('next', () => {
 
     function* test() {
       try {
-        yield next({ kind: 'test' })
+        yield next({ kind: '@cuillere/test/test' })
       } catch (e) {
         catched = e
       }
