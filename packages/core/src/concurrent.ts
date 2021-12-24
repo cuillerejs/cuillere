@@ -3,7 +3,10 @@ import { fork, Operation } from './operation'
 import { Plugin } from './plugin'
 import { type Task } from './task'
 
-export interface Concurrent extends Operation {
+/**
+ * @category for operations
+ */
+export interface ConcurrentOperation extends Operation {
   effects: Iterable<Effect>
 }
 
@@ -13,7 +16,7 @@ export const concurrentPlugin = (): Plugin => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* all({ effects }: Concurrent) {
+    async* all({ effects }: ConcurrentOperation) {
       const tasks: Task[] = []
       for (const effect of effects) tasks.push(yield fork(effect))
 
@@ -29,7 +32,7 @@ export const concurrentPlugin = (): Plugin => ({
       }
     },
 
-    async* allSettled({ effects }: Concurrent) {
+    async* allSettled({ effects }: ConcurrentOperation) {
       const tasks = []
       for (const effect of effects) tasks.push(yield fork(effect))
       return Promise.allSettled(tasks.map(({ result }) => result))
@@ -42,7 +45,7 @@ function concurrent(kind: string) {
 
   const fn = {
     // Set the function name
-    [kind](effects: Iterable<Effect>): Concurrent {
+    [kind](effects: Iterable<Effect>): ConcurrentOperation {
       return { kind: nsKind, effects }
     },
   }
