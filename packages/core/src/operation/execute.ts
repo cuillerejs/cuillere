@@ -5,6 +5,9 @@ import { Generator } from '../generator'
 
 const kind = `${CORE_NAMESPACE}/execute`
 
+/**
+ * @category for operations
+ */
 export interface ExecuteOperation<R = any> extends Operation {
   gen: Generator<R, Effect>
 }

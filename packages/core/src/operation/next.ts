@@ -4,6 +4,9 @@ import { type WrapperOperation } from './wrapper'
 
 const kind = `${CORE_NAMESPACE}/next`
 
+/**
+ * @category for operations
+ */
 export interface NextOperation<T extends Effect = Effect> extends WrapperOperation<T> {
   terminal?: true
 }

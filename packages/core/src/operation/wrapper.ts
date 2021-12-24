@@ -1,6 +1,9 @@
 import { type Effect } from '../effect'
 import { type Operation } from './operation'
 
+/**
+ * @category for operations
+ */
 export interface WrapperOperation<T extends Effect = Effect> extends Operation {
   readonly effect: T
 }
