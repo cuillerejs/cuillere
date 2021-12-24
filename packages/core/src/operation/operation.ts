@@ -1,3 +1,6 @@
+/**
+ * @category for operations
+ */
 export interface Operation {
   readonly kind: `@${string}`
 }

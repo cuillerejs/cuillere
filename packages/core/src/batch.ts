@@ -17,11 +17,11 @@ export function batched<Args extends any[] = any[], R = any>(
 
 const NAMESPACE = '@cuillere/batch'
 
-export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => ({
+export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX]?: Map<any, BatchEntry> }> => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* batch({ key, func, args }: Batch, ctx: any) {
+    async* batch({ key, func, args }: Batch, ctx) {
       if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
       let entry: BatchEntry
@@ -55,17 +55,13 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<Context> => 
   },
 })
 
-interface BatchOptions {
+export interface BatchOptions {
   timeout?: number
-}
-
-interface Context {
-  [BATCH_CTX]?: Map<any, BatchEntry>
 }
 
 const BATCH_CTX = Symbol('BATCH_CTX')
 
-interface BatchEntry {
+export interface BatchEntry {
   result: Promise<any[]>
   resolves: ((res: any) => void)[]
   rejects: ((err: any) => void)[]
