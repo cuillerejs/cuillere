@@ -1,3 +1,4 @@
+import { fork, terminal } from './operation'
 import { Effect } from './effect'
 
 export async function* sleep(delay?: number) {
@@ -5,6 +6,8 @@ export async function* sleep(delay?: number) {
 }
 
 export async function* after(effect: Effect, delay?: number) {
-  yield* sleep(delay)
-  return yield effect
+  return yield fork(async function* () {
+    yield* sleep(delay)
+    return yield terminal(effect)
+  })
 }

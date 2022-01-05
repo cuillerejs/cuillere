@@ -1,6 +1,6 @@
-import { GeneratorFunction } from './generator'
-import { Operation, fork } from './operation'
-import { Plugin } from './plugin'
+import { type GeneratorFunction } from './generator'
+import { type Operation } from './operation'
+import { type Plugin } from './plugin'
 import { type Task } from './task'
 import { after } from './time'
 
@@ -17,6 +17,9 @@ export function batched<Args extends any[] = any[], R = any>(
 
 const NAMESPACE = '@cuillere/batch'
 
+/**
+ * @internal
+ */
 export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX]?: Map<any, BatchEntry> }> => ({
   namespace: NAMESPACE,
 
@@ -34,7 +37,7 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX
         entry = { resolves: [], rejects: [], args: [], func, result }
         ctx[BATCH_CTX].set(key, entry)
 
-        const task: Task = yield fork(after, executeBatch(key), timeout)
+        const task: Task = yield after(executeBatch(key), timeout)
         resolveResult(task.result)
       }
 
@@ -55,13 +58,16 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX
   },
 })
 
+/**
+ * @internal
+ */
 export interface BatchOptions {
   timeout?: number
 }
 
 const BATCH_CTX = Symbol('BATCH_CTX')
 
-export interface BatchEntry {
+interface BatchEntry {
   result: Promise<any[]>
   resolves: ((res: any) => void)[]
   rejects: ((err: any) => void)[]
