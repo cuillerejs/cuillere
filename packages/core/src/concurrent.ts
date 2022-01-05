@@ -13,6 +13,9 @@ export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Ope
   effects: Iterable<Effect>
 }
 
+/**
+ * @internal
+ */
 export const concurrentPlugin = (): Plugin => ({
   namespace: NAMESPACE,
 
