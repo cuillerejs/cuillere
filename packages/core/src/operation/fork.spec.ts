@@ -19,7 +19,7 @@ describe('fork', () => {
       return result
     }
 
-    await expect(cllr.start(call(test))).resolves.toBe('foo')
+    await expect(cllr.execute(call(test))).resolves.toBe('foo')
   })
 
   it('should fork a call', async () => {
@@ -28,7 +28,7 @@ describe('fork', () => {
       return result
     }
 
-    await expect(cllr.start(call(test))).resolves.toBe('bar')
+    await expect(cllr.execute(call(test))).resolves.toBe('bar')
   })
 
   describe('cancel', () => {

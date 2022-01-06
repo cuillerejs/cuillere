@@ -8,6 +8,6 @@ describe('generator', () => {
 
     const gen = test()
 
-    await expect(cuillere().start(gen)).resolves.toBe(gen)
+    await expect(cuillere().execute(gen)).resolves.toBe(gen)
   })
 })

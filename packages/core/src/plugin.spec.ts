@@ -46,7 +46,7 @@ describe('plugin', () => {
 
     async function* test() {
       try {
-        yield { kind: '@cuillere/test/throw' }
+        yield { kind: '@cuillere/test/throw' as const }
       } catch (e) {
         catched = e
       }

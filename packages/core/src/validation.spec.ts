@@ -12,7 +12,7 @@ describe('validation', () => {
   }
 
   it('should throw error for undefined start effect', async () => {
-    await expect(cllr.start(undefined))
+    await expect(cllr.execute(undefined))
       .rejects.toStrictEqual(new TypeError('undefined effect is forbidden'))
   })
 
@@ -27,7 +27,7 @@ describe('validation', () => {
 
   it('should throw error for undefined wrapped effect', async () => {
     function* test() {
-      yield { kind: 'test', effect: undefined }
+      yield { kind: '@test' as const, effect: undefined }
     }
 
     await expect(cllr.call(test))
@@ -78,10 +78,15 @@ describe('validation', () => {
   })
 
   it('should allow custom validators', async () => {
+    const kind = '@cuillere/test/test'
     let catched: any
 
     interface TestOperation extends Operation {
-      answer: 42
+      answer: number
+    }
+
+    function testOperation(answer: number): TestOperation {
+      return { kind, answer }
     }
 
     await cuillere({
@@ -97,9 +102,9 @@ describe('validation', () => {
         },
       },
     }).call(function* test() {
-      yield { kind: '@cuillere/test/test', answer: 42 }
+      yield testOperation(42)
       try {
-        yield { kind: '@cuillere/test/test', answer: 666 }
+        yield testOperation(666)
       } catch (e) {
         catched = e
       }

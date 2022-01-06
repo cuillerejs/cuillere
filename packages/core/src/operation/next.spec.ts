@@ -29,7 +29,7 @@ describe('next', () => {
           }
         },
       } },
-    ).start({ kind: '@cuillere/test/test' })
+    ).execute({ kind: '@cuillere/test/test' })
 
     expect(catched).toStrictEqual(new TypeError('next: operation kind mismatch, expected "@cuillere/test/test", received "@cuillere/test/test2"'))
   })
@@ -57,7 +57,7 @@ describe('next', () => {
       },
     }
 
-    await expect(cuillere(plugin1, plugin2, plugin3).start({ kind: '@cuillere/test/test' })).resolves.toBe('1 2 3')
+    await expect(cuillere(plugin1, plugin2, plugin3).execute({ kind: '@cuillere/test/test' })).resolves.toBe('1 2 3')
   })
 
   it('should delegate to next handler', async () => {
@@ -77,6 +77,6 @@ describe('next', () => {
       },
     }
 
-    await expect(cuillere(plugin1, plugin2).start({ kind: '@cuillere/test/test' })).resolves.toBe(2)
+    await expect(cuillere(plugin1, plugin2).execute({ kind: '@cuillere/test/test' })).resolves.toBe(2)
   })
 })

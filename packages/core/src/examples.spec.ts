@@ -2,7 +2,7 @@ import { Plugin, cuillere } from '.'
 
 describe('examples', () => {
   it('promise plugin with custom operations', async () => {
-    const awaitFunc = (func, ...args: any[]) => ({ kind: '@cuillere/promise/await', func, args })
+    const awaitFunc = (func, ...args: any[]) => ({ kind: '@cuillere/promise/await' as const, func, args })
 
     // The promise plugin
     const promisePlugin: Plugin = {
