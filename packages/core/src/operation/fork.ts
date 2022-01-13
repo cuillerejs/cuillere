@@ -7,6 +7,13 @@ import { type WrapperOperation } from './wrapper'
 export function fork<Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args): WrapperOperation<CallOperation>
 export function fork<T extends Effect>(effect: T): WrapperOperation<T>
 
+/**
+ *
+ * @param arg0
+ * @param args
+ * @returns
+ * @category for creating effects
+ */
 export function fork<Args extends any[], R>(arg0: Effect | GeneratorFunction<Args, R>, ...args: Args): WrapperOperation {
   return {
     kind: `${CORE_NAMESPACE}/fork`,

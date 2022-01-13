@@ -11,10 +11,22 @@ export interface NextOperation<T extends Effect = Effect> extends WrapperOperati
   terminal?: true
 }
 
+/**
+ *
+ * @param effect
+ * @returns
+ * @category for creating effects
+ */
 export function next<T extends Effect = Effect>(effect: T): NextOperation<T> {
   return { kind, effect }
 }
 
+/**
+ *
+ * @param effect
+ * @returns
+ * @category for creating effects
+ */
 export function delegate<T extends Effect = Effect>(effect: T): NextOperation<T> {
   return { kind, effect, terminal: true }
 }

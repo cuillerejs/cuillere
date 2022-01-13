@@ -17,6 +17,7 @@ export interface CallOperation extends Operation {
  * @param args Arguments for the generator function.
  * @typeParam Args Arguments type.
  * @returns A new call operation.
+ * @category for creating effects
  */
 export function call<Args extends any[]>(func: GeneratorFunction<Args>, ...args: Args): CallOperation {
   return { kind: `${CORE_NAMESPACE}/call`, func, args }

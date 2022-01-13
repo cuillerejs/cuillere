@@ -54,5 +54,12 @@ function concurrent<K extends 'all' | 'allSettled'>(kind: K) {
   return fn[kind]
 }
 
+/**
+ * @category for creating effects
+ */
 export const all = concurrent('all')
+
+/**
+ * @category for creating effects
+ */
 export const allSettled = concurrent('allSettled')
