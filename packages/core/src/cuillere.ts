@@ -17,7 +17,7 @@ export interface Cuillere {
   /**
    * Replaces the context object used by this {@link Cuillere} instance.
    *
-   * @param ctx The new context object to be used
+   * @param ctx The new context object to be used.
    * @returns A new {@link Cuillere} instance.
    */
   ctx: (ctx: any) => Cuillere
@@ -25,9 +25,9 @@ export interface Cuillere {
   /**
    * Executes the given {@link Effect}.
    *
-   * @param effect The effected to be executed
-   * @typeParam R Return type of the effect
-   * @returns Promise to be resolved with the result of the effect
+   * @param effect The effected to be executed.
+   * @typeParam R Return type of the effect.
+   * @returns Promise to be resolved with the result of the effect.
    */
   execute: <R>(effect: Effect<R>) => Promise<Awaited<R>>
 
@@ -39,11 +39,11 @@ export interface Cuillere {
    * cllr.execute(call(func, ...args))
    * ```
    *
-   * @param func Generator function to be called
-   * @param args Arguments for the generator function
-   * @typeParam Args Generator function's arguments type
-   * @typeParam R Generator function's return type
-   * @returns Promise to be resolved with the result of the value returned by the generator function
+   * @param func Generator function to be called.
+   * @param args Arguments for the generator function.
+   * @typeParam Args Generator function's arguments type.
+   * @typeParam R Generator function's return type.
+   * @returns Promise to be resolved with the result of the value returned by the generator function.
    */
   call: <Args extends any[], R>(func: GeneratorFunction<Args, R, Effect>, ...args: Args) => Promise<Awaited<R>>
 }
@@ -53,8 +53,8 @@ const namespacePrefix = '@'
 /**
  * Creates a new {@link Cuillere} instance with the given plugins.
  *
- * @param plugins Plugins to be used by the new {@link Cuillere} instance
- * @returns A new {@link Cuillere} instance with an empty context
+ * @param plugins Plugins to be used by the new {@link Cuillere} instance.
+ * @returns A new {@link Cuillere} instance with an empty context.
  */
 export function cuillere(...plugins: Plugin[]): Cuillere {
   const allPlugins = plugins.concat([

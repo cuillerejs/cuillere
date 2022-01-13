@@ -49,6 +49,22 @@ export interface Plugin<Context = any> {
   validators?: Record<string, ValidatorFunction>
 }
 
+/**
+ * A generator function responsible for handling a particular kind of operation.
+ *
+ * Receives two parameters:
+ *  - the operation object
+ *  - the context object
+ *
+ * @typeParam Context Type of the context object.
+ */
 export type HandleFunction<Context = any> = GeneratorFunction<[Operation, Context], any, Effect>
 
+/**
+ * A function responsible for validating a particular kind of operation.
+ *
+ * Must throw an error if the operation is invalid.
+ *
+ * @param operation The operation object to be validated.
+ */
 export type ValidatorFunction = (operation: Operation) => void
