@@ -18,7 +18,13 @@ export function batched<Args extends any[] = any[], R = any>(
 const NAMESPACE = '@cuillere/batch'
 
 /**
- * @internal
+ * Creates a new batch plugin instance.
+ *
+ * This is an internal plugin which is automatically added to cuillere.
+ *
+ * @param options Batch plugin options.
+ * @returns A new Batch plugin instance.
+ * @hidden
  */
 export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX]?: Map<any, BatchEntry> }> => ({
   namespace: NAMESPACE,
@@ -59,9 +65,17 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX
 })
 
 /**
- * @internal
+ * Batch plugin options.
+ *
+ * @hidden
  */
 export interface BatchOptions {
+
+  /**
+   * Timeout in milliseconds before batched effects are executed.
+   *
+   * If empty or `0`, [`setImmediate()`](https://mdn.io/setImmediate) is used.
+   */
   timeout?: number
 }
 

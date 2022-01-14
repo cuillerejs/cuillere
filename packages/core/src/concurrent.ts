@@ -14,7 +14,12 @@ export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Ope
 }
 
 /**
- * @internal
+ * Creates a new concurrent plugin instance.
+ *
+ * This is an internal plugin which is automatically added to cuillere.
+ *
+ * @returns A new concurrent plugin instance.
+ * @hidden
  */
 export const concurrentPlugin = (): Plugin => ({
   namespace: NAMESPACE,
