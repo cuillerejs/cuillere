@@ -1,5 +1,6 @@
 import { batchPlugin } from './batch'
 import { concurrentPlugin } from './concurrent'
+import { timePlugin } from './time'
 import { CORE_NAMESPACE } from './core-namespace'
 import type { Effect } from './effect'
 import type { Generator, GeneratorFunction } from './generator'
@@ -60,6 +61,7 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
   const allPlugins = plugins.concat([
     batchPlugin(),
     concurrentPlugin(),
+    timePlugin(),
   ])
 
   const handlers: Record<string, ((operation: Operation, context: any) => Generator)[]> = {}
