@@ -3,15 +3,36 @@ import { GeneratorFunction } from '../generator'
 import { Operation } from './operation'
 
 /**
+ * An operation to call a given generator function when yielded.
+ *
+ * Use [[call]] to create a `CallOperation`.
+ *
  * @category for operations
  */
 export interface CallOperation extends Operation {
+
+  /**
+   * Generator function to be called.
+   */
   func: GeneratorFunction
+
+  /**
+   * Arguments for the generator function.
+   */
   args?: any[]
 }
 
 /**
- * Creates a call operation for the given generator function and arguments.
+ * Calls a given generator function with the given arguments and returns its result.
+ *
+ * Example:
+ *
+ * ```javascript
+ * const result = yield call(exampleGeneratorFunction, arg1, arg2)
+ * ```
+ *
+ * This has the same effect as yielding a generator returned by actually calling the generator function,
+ * however it allows cuillere, or any registered plugin, wider possibilities by exposing the generator function and its arguments.
  *
  * @param func Generator function to be called.
  * @param args Arguments for the generator function.
