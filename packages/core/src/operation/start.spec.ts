@@ -10,9 +10,9 @@ describe('start', () => {
     // when
     await cuillere({
       handlers: {
-        * '@cuillere/core/start'(operation, ctx) {
+        * '@cuillere/core/start'(_, ctx) {
           ctx.started++
-          yield delegate(operation)
+          yield delegate()
         },
       },
     }).ctx(ctx).call(function* () {
