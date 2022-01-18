@@ -4,7 +4,7 @@ import { CORE_NAMESPACE } from './core-namespace'
 import type { Effect } from './effect'
 import type { GeneratorFunction } from './generator'
 import { call, start } from './operation'
-import type { HandleFunction, Plugin, ValidatorFunction } from './plugin'
+import type { HandlerFunction, Plugin, ValidatorFunction } from './plugin'
 import { Stack } from './stack'
 
 /**
@@ -62,7 +62,7 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
     concurrentPlugin(),
   ])
 
-  const handlers: Record<string, HandleFunction[]> = {}
+  const handlers: Record<string, HandlerFunction[]> = {}
   const validators: Record<string, ValidatorFunction> = {}
 
   for (const plugin of allPlugins) {

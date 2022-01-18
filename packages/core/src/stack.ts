@@ -6,13 +6,13 @@ import {
   Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
   execute, isOperation, isWrapperOperation,
 } from './operation'
-import { HandleFunction, ValidatorFunction } from './plugin'
+import { HandlerFunction, ValidatorFunction } from './plugin'
 import { Task } from './task'
 
 export class Stack {
   result: Promise<any>
 
-  private handlers: Record<string, HandleFunction[]>
+  private handlers: Record<string, HandlerFunction[]>
 
   private ctx: any
 
@@ -26,7 +26,7 @@ export class Stack {
 
   private canceled = false
 
-  constructor(handlers: Record<string, HandleFunction[]>, ctx: any, validators?: Record<string, ValidatorFunction>) {
+  constructor(handlers: Record<string, HandlerFunction[]>, ctx: any, validators?: Record<string, ValidatorFunction>) {
     this.handlers = handlers
     this.ctx = ctx
     this.validators = validators

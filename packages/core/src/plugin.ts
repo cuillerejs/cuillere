@@ -1,6 +1,5 @@
-import { Effect } from './effect'
-import { Operation } from './operation'
-import { GeneratorFunction } from './generator'
+import type { Generator } from './generator'
+import type { Operation } from './operation'
 
 /**
  * Interface for a Cuillere plugin.
@@ -41,7 +40,7 @@ export interface Plugin<Context = any> {
    * }
    * ```
    */
-  handlers: Record<string, HandleFunction<Context>>
+  handlers: Record<string, HandlerFunction<Context>>
 
   /**
    * A map of operation kinds to validator functions.
@@ -52,13 +51,11 @@ export interface Plugin<Context = any> {
 /**
  * A generator function responsible for handling a particular kind of operation.
  *
- * Receives two parameters:
- *  - the operation object
- *  - the context object
- *
- * @typeParam Context Type of the context object.
+ * @param operation Operation to be handled.
+ * @param context Context object.
+ * @typeParam Context object type.
  */
-export type HandleFunction<Context = any> = GeneratorFunction<[Operation, Context], any, Effect>
+export type HandlerFunction<Context = any> = (operation: Operation, context: Context) => Generator
 
 /**
  * A function responsible for validating a particular kind of operation.

@@ -6,7 +6,8 @@ const generatorOperation: Operation = Object.freeze({ kind: `${CORE_NAMESPACE}/g
 /**
  * Returns the current generator.
  *
- * @returns An operation that returns the current generator when yielded.
+ * @returns The generator operation.
+ * @yields The current generator.
  * @hidden
  */
 export function generator() {
