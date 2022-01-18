@@ -15,11 +15,10 @@ import { type WrapperOperation } from './wrapper'
  *
  * Multiple defers are executed in reverse order (last yielded first executed).
  *
- * Yielding a defer operation returns undefined.
- *
  * @param func Generator function to be called.
  * @param args Generator function's arguments.
  * @typeParam Args Generator function's arguments type.
+ * @yields `void`
  */
 export function defer<Args extends any[]>(func: GeneratorFunction<Args>, ...args: Args): WrapperOperation<CallOperation>
 
@@ -28,10 +27,9 @@ export function defer<Args extends any[]>(func: GeneratorFunction<Args>, ...args
  *
  * Multiple defers are executed in reverse order (last yielded first executed).
  *
- * Yielding a defer operation returns undefined.
- *
  * @param effect Effect to be deferred.
  * @typeParam T Effect's type.
+ * @yields `void`
  */
 export function defer<T extends Effect>(effect: T): WrapperOperation<T>
 

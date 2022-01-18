@@ -23,7 +23,7 @@ export interface CallOperation extends Operation {
 }
 
 /**
- * Calls a given generator function with the given arguments and returns its result.
+ * Calls a generator function with the given arguments and yields its result.
  *
  * Example:
  *
@@ -38,6 +38,7 @@ export interface CallOperation extends Operation {
  * @param args Arguments for the generator function.
  * @typeParam Args Arguments type.
  * @returns A new call operation.
+ * @yields The value returned by `func`.
  * @category for creating effects
  */
 export function call<Args extends any[]>(func: GeneratorFunction<Args>, ...args: Args): CallOperation {

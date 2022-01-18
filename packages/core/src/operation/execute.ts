@@ -6,8 +6,8 @@ import { Generator } from '../generator'
 /**
  * An operation to execute a given generator when yielded.
  *
- * @category for operations
  * @typeParam R Return type of the generator.
+ * @category for operations
  * @hidden
  */
 export interface ExecuteOperation<R = any> extends Operation {
@@ -26,8 +26,9 @@ export interface ExecuteOperation<R = any> extends Operation {
  * This internal operation is used to wrap yielded generators when at least one plugin registrered a handler for `"@cuillere/core/execute"`.
  *
  * @param gen The generator to be executed.
- * @returns A new operation to execute the given generator when yielded.
- * @typeParam R Return type of the given generator.
+ * @typeParam R Return type of `gen`.
+ * @returns A new execute operation.
+ * @yields The value returned by `gen`.
  * @category for creating effects
  * @hidden
  */
