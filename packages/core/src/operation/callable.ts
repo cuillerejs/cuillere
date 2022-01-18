@@ -1,7 +1,7 @@
-import { Generator } from '../generator'
-import { Operation } from './operation'
-import { terminal } from './terminal'
+import type { Generator } from '../generator'
 import { generator } from './generator'
+import type { Operation } from './operation'
+import { terminal } from './terminal'
 
 function* callableGenerator() {
   yield terminal(yield generator())
