@@ -6,10 +6,21 @@ import { type Task } from './task'
 const NAMESPACE = '@cuillere/concurrent'
 
 /**
+ * Concurrent operations execute several effects concurrenlty.
+ *
+ * @typeParam K Kind of concurrent operation.
  * @category for operations
  */
 export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Operation {
+
+  /**
+   * Kind of concurrent operation.
+   */
   kind: `${typeof NAMESPACE}/${K}`
+
+  /**
+   * Effects to be executed.
+   */
   effects: Iterable<Effect>
 }
 
@@ -60,11 +71,27 @@ function concurrent<K extends 'all' | 'allSettled'>(kind: K) {
 }
 
 /**
+ * Executes all `effects` concurrently, each one in a separate [[Task]].
+ *
+ * Returns when all tasks have ended, or throws immediately when one of the tasks throws an error,
+ * see [Promise.all()](https://mdn.io/Promise.all) for more information.
+ *
+ * @param effects Effects to be executed.
+ * @returns A new concurrent operation.
+ * @yields An array containing the return values of `effects`.
  * @category for creating effects
  */
 export const all = concurrent('all')
 
 /**
+ * Executes all `effects` concurrently, each one in a separate [[Task]].
+ *
+ * Returns when all tasks have ended or thrown an error,
+ * see [Promise.allSettled()](https://mdn.io/Promise.allSettled) for more information.
+ *
+ * @param effects Effects to be executed.
+ * @returns A new concurrent operation.
+ * @yields An array containing the outcome of each effect, see [Promise.allSettled()](https://mdn.io/Promise.allSettled) return value.
  * @category for creating effects
  */
 export const allSettled = concurrent('allSettled')
