@@ -20,7 +20,7 @@ export interface NextOperation<T extends Effect = Effect> extends Operation {
   readonly effect?: T
 
   /**
-   * If true, the current handler is terminated and replaced by the next handler in the stack, see [[delegate]] for more information.
+   * If true, the current handler is stopped and replaced by the next handler in the call stack, see [[delegate]] for more information.
    */
   readonly terminal?: true
 }
@@ -47,8 +47,8 @@ const emptyDelegate = { kind, terminal: true as const }
 /**
  * Delegates the current operation to the next [[HandlerFunction | handler]].
  *
- * The current handler is terminated and replaced by the next handler in the stack,
- * this means the current handler should not use [[defer]] or [`try...finaly`](https://mdn.io/try...catch).
+ * The current handler is stopped and replaced by the next handler in the call stack,
+ * this means the current handler must not use [[defer]] or [`try...finaly`](https://mdn.io/try...catch).
  *
  * A modified effect may be given parameter, the modified effect must have the same kind as the current operation.
  *

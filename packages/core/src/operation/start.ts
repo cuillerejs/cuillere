@@ -10,8 +10,9 @@ import { type WrapperOperation } from './wrapper'
  * This internal operation is used to wrap the first effect when at least one plugin registrered a handler for `"@cuillere/core/start"`.
  *
  * @param effect The first effect.
- * @typeParam T Type of the effect.
- * @returns A start operation wrapping the first effect.
+ * @typeParam T Type of the first effect.
+ * @returns A new start operation.
+ * @yields The return value of the first effect.
  * @hidden
  */
 export function start<T extends Effect>(effect: T): WrapperOperation<T> {
