@@ -21,7 +21,7 @@ export interface ExecuteOperation<R = any> extends Operation {
 /**
  * Executes a generator.
  *
- * ⚠ DO NOT USE THIS OPERATION.
+ * ⚠️ DO NOT USE THIS OPERATION.
  *
  * This internal operation is used to wrap yielded generators when at least one plugin registrered a handler for `"@cuillere/core/execute"`.
  *

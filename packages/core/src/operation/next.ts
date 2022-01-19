@@ -7,7 +7,7 @@ const kind = `${CORE_NAMESPACE}/next` as const
 /**
  * An operation allowing a [[HandlerFunction | handler]] to forward the current operation to the next handler.
  *
- * ⚠ This operation cannot be yielded outside of a handler.
+ * ⚠️ This operation cannot be yielded outside of a handler.
  *
  * @typeParam T Forwarded effect's type.
  * @category for operations

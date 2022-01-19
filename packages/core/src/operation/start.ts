@@ -5,7 +5,7 @@ import { type WrapperOperation } from './wrapper'
 /**
  * An operation executed once before the first effect is executed.
  *
- * ⚠ DO NOT USE THIS OPERATION.
+ * ⚠️ DO NOT USE THIS OPERATION.
  *
  * This internal operation is used to wrap the first effect when at least one plugin registrered a handler for `"@cuillere/core/start"`.
  *
