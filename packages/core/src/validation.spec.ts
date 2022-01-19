@@ -1,4 +1,4 @@
-import { Cuillere, Operation, cuillere, defer, fork, recover, terminal } from '.'
+import { Cuillere, Operation, Plugin, cuillere, defer, fork, recover, terminal } from '.'
 
 describe('validation', () => {
   let cllr: Cuillere
@@ -89,19 +89,21 @@ describe('validation', () => {
       return { kind, answer }
     }
 
-    await cuillere({
+    const testPlugin: Plugin<{ test: TestOperation }> = {
       namespace: '@cuillere/test',
       handlers: {
-        * test({ answer }: TestOperation) {
+        * test({ answer }) {
           return answer
         },
       },
       validators: {
-        test({ answer }: TestOperation) {
+        test({ answer }) {
           if (answer !== 42) throw TypeError('answer should be 42')
         },
       },
-    }).call(function* test() {
+    }
+
+    await cuillere(testPlugin).call(function* test() {
       yield testOperation(42)
       try {
         yield testOperation(666)

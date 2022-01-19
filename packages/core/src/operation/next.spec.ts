@@ -53,9 +53,9 @@ describe('next', () => {
         },
       },
     }
-    const plugin3: Plugin = {
+    const plugin3: Plugin<{ '@cuillere/test/test': TestOperation }> = {
       handlers: {
-        * '@cuillere/test/test'(operation: TestOperation) {
+        * '@cuillere/test/test'(operation) {
           return `3 ${operation.value}`
         },
       },

@@ -6,9 +6,10 @@ import type { Operation } from './operation'
  *
  * Plugins are responsible for handling operations.
  *
+ * @typeParam KindTypeMap Map of operation kind to operation type.
  * @typeParam Context Type of the context for this plugin.
  */
-export interface Plugin<Context = any> {
+export interface Plugin<KindTypeMap extends Record<string, Operation> = Record<string, Operation>, Context = any> {
 
   /**
    * This plugin's namespace, must start with `@`, for example `@myPlugin`.
@@ -40,12 +41,16 @@ export interface Plugin<Context = any> {
    * }
    * ```
    */
-  handlers: Record<string, HandlerFunction<Context>>
+  handlers: {
+    [Kind in keyof KindTypeMap]: <T extends KindTypeMap[Kind]>(operation: T, context: Context) => Generator
+  }
 
   /**
    * A map of operation kinds to validator functions.
    */
-  validators?: Record<string, ValidatorFunction>
+  validators?: {
+    [Kind in keyof KindTypeMap]?: <T extends KindTypeMap[Kind]>(operation: T) => void
+  }
 }
 
 /**
@@ -53,9 +58,10 @@ export interface Plugin<Context = any> {
  *
  * @param operation Operation to be handled.
  * @param context Context object.
- * @typeParam Context object type.
+ * @typeParam T Operation type.
+ * @typeParam Context Context object type.
  */
-export type HandlerFunction<Context = any> = (operation: Operation, context: Context) => Generator
+export type HandlerFunction<T extends Operation = Operation, Context = any> = (operation: T, context: Context) => Generator
 
 /**
  * A function responsible for validating a particular kind of operation.
@@ -63,5 +69,6 @@ export type HandlerFunction<Context = any> = (operation: Operation, context: Con
  * Must throw an error if the operation is invalid.
  *
  * @param operation The operation object to be validated.
+ * @typeParam T Operation type.
  */
-export type ValidatorFunction = (operation: Operation) => void
+export type ValidatorFunction<T extends Operation = Operation> = (operation: T) => void

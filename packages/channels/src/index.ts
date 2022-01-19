@@ -4,17 +4,25 @@ const namespace = '@cuillere/channels'
 
 const chans = new WeakMap<ChanKey, ChanState>()
 
-export function channelsPlugin(): Plugin {
+export type ChannelOperations = {
+  recv: Recv
+  select: Select
+  send: Send
+  after: After
+  tick: Tick
+}
+
+export function channelsPlugin(): Plugin<ChannelOperations> {
   return {
     namespace,
 
     handlers: {
-      async* recv({ chanKey, detail }: Recv) {
+      async* recv({ chanKey, detail }) {
         const res = await doRecv(chanKey)
         return detail ? res : res[0]
       },
 
-      async* select({ cases }: Select) {
+      async* select({ cases }) {
         const simpleCases = cases.map(caze => (isCallbackCase(caze) ? caze[0] : caze))
         const indexes = new Map(simpleCases.map((caze, i) => [caze, i]))
         const callbacks = new Map(cases.filter(isCallbackCase))
@@ -110,7 +118,7 @@ export function channelsPlugin(): Plugin {
         throw new TypeError('unknown case type')
       },
 
-      async* send({ chanKey, value }: Send) {
+      async* send({ chanKey, value }) {
         if (syncSend(chanKey, value)) return
 
         await new Promise<void>(resolve => chans.get(chanKey).sendQ.push(() => {
@@ -119,7 +127,7 @@ export function channelsPlugin(): Plugin {
         }))
       },
 
-      * after({ duration }: After) {
+      * after({ duration }) {
         const ch = chan()
         yield fork(async function* () {
           await new Promise(resolve => setTimeout(resolve, duration))
@@ -128,7 +136,7 @@ export function channelsPlugin(): Plugin {
         return ch
       },
 
-      * tick({ interval }: Tick) {
+      * tick({ interval }) {
         const ch = chan()
         yield fork(async function* () {
           while (true) {

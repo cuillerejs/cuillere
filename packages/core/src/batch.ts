@@ -18,6 +18,22 @@ export function batched<Args extends any[] = any[], R = any>(
 const NAMESPACE = '@cuillere/batch'
 
 /**
+ * @hidden
+ */
+export type BatchOperations = {
+  batch: Batch
+  execute: Execute
+  executeBatch: ExecuteBatch
+}
+
+/**
+ * @hidden
+ */
+export type BatchContext = {
+  [BATCH_CTX]?: Map<any, BatchEntry>
+}
+
+/**
  * Creates a new batch plugin instance.
  *
  * This is an internal plugin which is automatically added to cuillere.
@@ -26,11 +42,11 @@ const NAMESPACE = '@cuillere/batch'
  * @returns A new Batch plugin instance.
  * @hidden
  */
-export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX]?: Map<any, BatchEntry> }> => ({
+export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperations, BatchContext> => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* batch({ key, func, args }: Batch, ctx) {
+    async* batch({ key, func, args }, ctx) {
       if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
       let entry: BatchEntry
@@ -51,12 +67,12 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<{ [BATCH_CTX
       return (await entry.result)[index]
     },
 
-    async* execute({ func, args }: Execute) {
+    async* execute({ func, args }) {
       const res = yield func(args)
       return res[0]
     },
 
-    async* executeBatch({ key }: ExecuteBatch, ctx) {
+    async* executeBatch({ key }, ctx) {
       const entry = ctx[BATCH_CTX].get(key)
       ctx[BATCH_CTX].delete(key)
       return yield entry.func(...entry.args)

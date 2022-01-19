@@ -25,6 +25,14 @@ export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Ope
 }
 
 /**
+ * @hidden
+ */
+export type ConcurrentOperations = {
+  all: ConcurrentOperation<'all'>
+  allSettled: ConcurrentOperation<'allSettled'>
+}
+
+/**
  * Creates a new concurrent plugin instance.
  *
  * This is an internal plugin which is automatically added to cuillere.
@@ -32,11 +40,11 @@ export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Ope
  * @returns A new concurrent plugin instance.
  * @hidden
  */
-export const concurrentPlugin = (): Plugin => ({
+export const concurrentPlugin = (): Plugin<ConcurrentOperations> => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* all({ effects }: ConcurrentOperation<'all'>) {
+    async* all({ effects }) {
       const tasks: Task[] = []
       for (const effect of effects) tasks.push(yield fork(effect))
 
@@ -52,7 +60,7 @@ export const concurrentPlugin = (): Plugin => ({
       }
     },
 
-    async* allSettled({ effects }: ConcurrentOperation<'allSettled'>) {
+    async* allSettled({ effects }) {
       const tasks = []
       for (const effect of effects) tasks.push(yield fork(effect))
       return Promise.allSettled(tasks.map(({ result }) => result))
