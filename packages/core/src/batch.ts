@@ -4,14 +4,26 @@ import { type Plugin } from './plugin'
 import { type Task } from './task'
 import { after } from './time'
 
+/**
+ * Creates a batched generator function.
+ *
+ * @param func Generator function responsible for handling a batch of calls.
+ *             Receives an array of arguments arrays.
+ *             Must return an array of return values corresponsing to the array of calls received.
+ * @param getBatchKey Function responsible for computing the batch key for one call.
+ *                    Receives the arguments of one call.
+ * @typeParam Args Batched generator function's arguments type.
+ * @typeParam R Batched generator function's return type.
+ * @returns A new batched generator function.
+ */
 export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R[]>,
   getBatchKey: (...args: Args) => any = () => func,
 ): (...args: Args) => Operation {
   return (...args) => {
-    const batchKey = getBatchKey(...args)
-    if (!batchKey) return { kind: `${NAMESPACE}/execute`, func, args }
-    return { kind: `${NAMESPACE}/batch`, func, args, key: batchKey }
+    const key = getBatchKey(...args)
+    if (key == null) return { kind: `${NAMESPACE}/execute`, func, args }
+    return { kind: `${NAMESPACE}/batch`, func, args, key }
   }
 }
 

@@ -11,9 +11,7 @@ export type Effect<R = any> = Operation | Generator<R>
 /**
  * Checks if `value` is an [[Effect]].
  *
- * `value` must not be `null` or `undefined`.
- *
- * @param value Value to be checked.
+ * @param value Value to be checked, must not be `null` or `undefined`.
  * @returns `true` if value is an [[Effect]], `false` otherwise.
  */
 export function isEffect(value: any): value is Effect {

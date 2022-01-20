@@ -90,16 +90,16 @@ describe('batch', () => {
     ])
   })
 
-  it('should not batch if batch key is falsy', async () => {
-    const notBatched = batched(function* notBatched(...args: any[]) {
+  it('should not batch if batch key is null or undefined', async () => {
+    const fn = batched(function* fn(...args: [any][]) {
       mock(...args)
       return [].concat(...args)
-    }, () => false)
+    }, arg => arg)
 
     await Promise.all([
-      cllr.execute(notBatched()),
-      cllr.execute(notBatched()),
-      cllr.execute(notBatched()),
+      cllr.execute(fn(null)),
+      cllr.execute(fn(undefined)),
+      cllr.execute(fn('batched alone')),
     ])
 
     expect(mock).toBeCalledTimes(3)
