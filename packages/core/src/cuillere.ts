@@ -2,9 +2,9 @@ import { batchPlugin } from './batch'
 import { concurrentPlugin } from './concurrent'
 import { CORE_NAMESPACE } from './core-namespace'
 import type { Effect } from './effect'
-import type { GeneratorFunction } from './generator'
-import { call, start } from './operation'
-import type { HandlerFunction, Plugin, ValidatorFunction } from './plugin'
+import type { Generator, GeneratorFunction } from './generator'
+import { type Operation, call, start } from './operation'
+import type { Plugin } from './plugin'
 import { Stack } from './stack'
 
 /**
@@ -62,8 +62,8 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
     concurrentPlugin(),
   ])
 
-  const handlers: Record<string, HandlerFunction[]> = {}
-  const validators: Record<string, ValidatorFunction> = {}
+  const handlers: Record<string, ((operation: Operation, context: any) => Generator)[]> = {}
+  const validators: Record<string, (operation: Operation) => void> = {}
 
   for (const plugin of allPlugins) {
     const pluginHasNamespace = 'namespace' in plugin

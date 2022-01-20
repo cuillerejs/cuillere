@@ -1,22 +1,21 @@
 import { CORE_NAMESPACE } from './core-namespace'
 import { type Effect, isEffect } from './effect'
 import { error, unrecognizedEffect, CancellationError, captured } from './errors'
-import { isGenerator, Generator } from './generator'
+import { type Generator, isGenerator } from './generator'
 import {
-  Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
+  type Operation, type WrapperOperation, type ExecuteOperation, type CallOperation, type NextOperation,
   execute, isOperation, isWrapperOperation,
 } from './operation'
-import { HandlerFunction, ValidatorFunction } from './plugin'
 import { Task } from './task'
 
 export class Stack {
   result: Promise<any>
 
-  private handlers: Record<string, HandlerFunction[]>
+  private handlers: Record<string, ((operation: Operation, context: any) => Generator)[]>
 
   private ctx: any
 
-  private validators?: Record<string, ValidatorFunction>
+  private validators?: Record<string, (operation: Operation) => void>
 
   private rootFrame = new StackFrame(null, null)
 
@@ -26,7 +25,11 @@ export class Stack {
 
   private canceled = false
 
-  constructor(handlers: Record<string, HandlerFunction[]>, ctx: any, validators?: Record<string, ValidatorFunction>) {
+  constructor(
+    handlers: Record<string, ((operation: Operation, context: any) => Generator)[]>,
+    ctx: any,
+    validators?: Record<string, (operation: Operation) => void>,
+  ) {
     this.handlers = handlers
     this.ctx = ctx
     this.validators = validators

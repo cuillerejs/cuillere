@@ -52,23 +52,3 @@ export interface Plugin<KindTypeMap extends Record<string, Operation> = Record<s
     [Kind in keyof KindTypeMap]?: <T extends KindTypeMap[Kind]>(operation: T) => void
   }
 }
-
-/**
- * A generator function responsible for handling a particular kind of operation.
- *
- * @param operation Operation to be handled.
- * @param context Context object.
- * @typeParam T Operation type.
- * @typeParam Context Context object type.
- */
-export type HandlerFunction<T extends Operation = Operation, Context = any> = (operation: T, context: Context) => Generator
-
-/**
- * A function responsible for validating a particular kind of operation.
- *
- * Must throw an error if the operation is invalid.
- *
- * @param operation The operation object to be validated.
- * @typeParam T Operation type.
- */
-export type ValidatorFunction<T extends Operation = Operation> = (operation: T) => void

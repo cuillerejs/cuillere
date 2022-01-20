@@ -5,7 +5,7 @@ import type { Effect } from '../effect'
 const kind = `${CORE_NAMESPACE}/next` as const
 
 /**
- * An operation allowing a [[HandlerFunction | handler]] to forward the current operation to the next handler.
+ * An operation allowing a handler to forward the current operation to the next handler.
  *
  * ⚠️ This operation cannot be yielded outside of a handler.
  *
@@ -28,7 +28,7 @@ export interface NextOperation<T extends Effect = Effect> extends Operation {
 const emptyNext = { kind }
 
 /**
- * Forwards the current operation to the next [[HandlerFunction | handler]].
+ * Forwards the current operation to the next handler.
  *
  * A modified effect may be given parameter, the modified effect must have the same kind as the current operation.
  *
@@ -45,7 +45,7 @@ export function next<T extends Effect = Effect>(effect?: T): NextOperation<T> {
 const emptyDelegate = { kind, terminal: true as const }
 
 /**
- * Delegates the current operation to the next [[HandlerFunction | handler]].
+ * Delegates the current operation to the next handler.
  *
  * The current handler is stopped and replaced by the next handler in the call stack,
  * this means the current handler must not use [[defer]] or [`try...finaly`](https://mdn.io/try...catch).
