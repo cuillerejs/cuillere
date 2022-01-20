@@ -1,0 +1,10 @@
+{
+  "name": "@cuillere/batching-example",
+  "packageManager": "yarn@3.1.1",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@cuillere/core": "workspace:^",
+    "node-fetch": "^3.1.1"
+  }
+}
