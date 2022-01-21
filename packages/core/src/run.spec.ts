@@ -20,7 +20,7 @@ describe('run', () => {
         return 'test'
       }
 
-      expect(await cllr.start(test())).toBe('test')
+      expect(await cllr.execute(test())).toBe('test')
     })
 
     it('should pass arguments to the generator function', async () => {

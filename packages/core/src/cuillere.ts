@@ -1,33 +1,71 @@
 import { batchPlugin } from './batch'
 import { concurrentPlugin } from './concurrent'
 import { CORE_NAMESPACE } from './core-namespace'
-import { Effect } from './effect'
-import { Generator, GeneratorFunction } from './generator'
-import { call, start } from './operation'
-import { HandleFunction, Plugin, ValidatorFunction } from './plugin'
+import type { Effect } from './effect'
+import type { Generator, GeneratorFunction } from './generator'
+import { type Operation, call, start } from './operation'
+import type { Plugin } from './plugin'
 import { Stack } from './stack'
 
+/**
+ * A configured Cuillere instance.
+ *
+ * Uses the list of plugins given to [[cuillere]] and the context given to [[Cuillere.ctx]] or an empty context by default.
+ */
 export interface Cuillere {
+
+  /**
+   * Replaces the context object used by this {@link Cuillere} instance.
+   *
+   * @param ctx The new context object to be used.
+   * @returns A new {@link Cuillere} instance.
+   */
   ctx: (ctx: any) => Cuillere
-  start: (effect: Effect) => Promise<any>
-  call: <Args extends any[], R>(func: GeneratorFunction<Args, R>, ...args: Args) => Promise<R>
-  execute: <R>(gen: Generator<R, Effect>) => Promise<R>
+
+  /**
+   * Executes the given {@link Effect}.
+   *
+   * @param effect The effected to be executed.
+   * @typeParam R Return type of the effect.
+   * @returns Promise to be resolved with the result of the effect.
+   */
+  execute: <R>(effect: Effect<R>) => Promise<Awaited<R>>
+
+  /**
+   * Calls the given generator function with the given arguments.
+   *
+   * Shorthand for:
+   * ```typescript
+   * cllr.execute(call(func, ...args))
+   * ```
+   *
+   * @param func Generator function to be called.
+   * @param args Arguments for the generator function.
+   * @typeParam Args Generator function's arguments type.
+   * @typeParam R Generator function's return type.
+   * @returns Promise to be resolved with the result of the value returned by the generator function.
+   */
+  call: <Args extends any[], R>(func: GeneratorFunction<Args, R, Effect>, ...args: Args) => Promise<Awaited<R>>
 }
 
 const namespacePrefix = '@'
 
-export function cuillere(...pPlugins: Plugin[]): Cuillere {
-  const instances = new WeakMap<any, Cuillere>()
-
-  const plugins = pPlugins.concat([
+/**
+ * Creates a new {@link Cuillere} instance with the given plugins.
+ *
+ * @param plugins Plugins to be used by the new {@link Cuillere} instance.
+ * @returns A new {@link Cuillere} instance with an empty context.
+ */
+export function cuillere(...plugins: Plugin[]): Cuillere {
+  const allPlugins = plugins.concat([
     batchPlugin(),
     concurrentPlugin(),
   ])
 
-  const handlers: Record<string, HandleFunction[]> = {}
-  const validators: Record<string, ValidatorFunction> = {}
+  const handlers: Record<string, ((operation: Operation, context: any) => Generator)[]> = {}
+  const validators: Record<string, (operation: Operation) => void> = {}
 
-  for (const plugin of plugins) {
+  for (const plugin of allPlugins) {
     const pluginHasNamespace = 'namespace' in plugin
 
     if (pluginHasNamespace && !plugin.namespace.startsWith(namespacePrefix)) {
@@ -60,6 +98,8 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
     }
   }
 
+  const instances = new WeakMap<any, Cuillere>()
+
   const make = (pCtx?: any) => {
     const ctx = pCtx || {}
 
@@ -67,11 +107,10 @@ export function cuillere(...pPlugins: Plugin[]): Cuillere {
 
     const cllr: Cuillere = {
       ctx: make,
-      start: `${CORE_NAMESPACE}/start` in handlers
+      execute: `${CORE_NAMESPACE}/start` in handlers
         ? effect => new Stack(handlers, ctx, validators).start(start(effect)).result
         : effect => new Stack(handlers, ctx, validators).start(effect).result,
-      call: (func, ...args) => cllr.start(call(func, ...args)),
-      execute: gen => cllr.start(gen),
+      call: (func, ...args) => cllr.execute(call(func, ...args)),
     }
 
     instances.set(ctx, cllr)

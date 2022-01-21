@@ -1,4 +1,4 @@
-import { Plugin, Effect, delegate, next } from '@cuillere/core'
+import { Plugin, delegate, next } from '@cuillere/core'
 
 import { AsyncTaskManager, GeneratorTaskManager, GetTaskManager } from './task-manager'
 
@@ -14,12 +14,12 @@ export type GeneratorTaskExecutorOptions<Args extends any[]> = TaskExecutorOptio
 export function taskExecutorPlugin(options: GeneratorTaskExecutorOptions<[any]>): Plugin {
   return {
     handlers: {
-      async* '@cuillere/core/start'(effect: Effect, ctx) {
+      async* '@cuillere/core/start'(_, ctx) {
         const taskManager = options.taskManager(ctx)
 
-        if (!taskManager) yield delegate(effect)
+        if (!taskManager) yield delegate()
 
-        return yield* taskManager.execute(next(effect), options.context?.(ctx) ?? ctx)
+        return yield* taskManager.execute(next(), options.context?.(ctx) ?? ctx)
       },
     },
   }

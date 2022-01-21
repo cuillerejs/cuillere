@@ -1,22 +1,21 @@
 import { CORE_NAMESPACE } from './core-namespace'
 import { type Effect, isEffect } from './effect'
 import { error, unrecognizedEffect, CancellationError, captured } from './errors'
-import { isGenerator, Generator } from './generator'
+import { type Generator, isGenerator } from './generator'
 import {
-  Operation, WrapperOperation, ExecuteOperation, CallOperation, NextOperation,
+  type Operation, type WrapperOperation, type ExecuteOperation, type CallOperation, type NextOperation,
   execute, isOperation, isWrapperOperation,
 } from './operation'
-import { HandleFunction, ValidatorFunction } from './plugin'
 import { Task } from './task'
 
 export class Stack {
   result: Promise<any>
 
-  private handlers: Record<string, HandleFunction[]>
+  private handlers: Record<string, ((operation: Operation, context: any) => Generator)[]>
 
   private ctx: any
 
-  private validators?: Record<string, ValidatorFunction>
+  private validators?: Record<string, (operation: Operation) => void>
 
   private rootFrame = new StackFrame(null, null)
 
@@ -26,7 +25,11 @@ export class Stack {
 
   private canceled = false
 
-  constructor(handlers: Record<string, HandleFunction[]>, ctx: any, validators?: Record<string, ValidatorFunction>) {
+  constructor(
+    handlers: Record<string, ((operation: Operation, context: any) => Generator)[]>,
+    ctx: any,
+    validators?: Record<string, (operation: Operation) => void>,
+  ) {
     this.handlers = handlers
     this.ctx = ctx
     this.validators = validators
@@ -79,7 +82,7 @@ export class Stack {
 
     const gen = handlers[handlerIndex](operation, this.ctx)
 
-    return new HandlerStackFrame(gen, curFrame, operation.kind, handlerIndex)
+    return new HandlerStackFrame(gen, curFrame, operation, handlerIndex)
   }
 
   handleCore(operation: Operation, curFrame: StackFrame): StackFrame {
@@ -146,13 +149,14 @@ export class Stack {
     [`${CORE_NAMESPACE}/next`]: ({ effect, terminal }: NextOperation, curFrame) => {
       if (!(curFrame instanceof HandlerStackFrame)) throw new TypeError('next: should be used only in handlers')
 
-      const kind = isOperation(effect) ? effect.kind : `${CORE_NAMESPACE}/execute`
-
-      if (curFrame.kind !== kind) throw TypeError(`next: operation kind mismatch, expected "${curFrame.kind}", received "${kind}"`)
+      if (effect) {
+        const kind = isOperation(effect) ? effect.kind : `${CORE_NAMESPACE}/execute`
+        if (curFrame.operation.kind !== kind) throw TypeError(`next: effect kind mismatch, expected "${curFrame.operation.kind}", received "${kind}"`)
+      }
 
       if (terminal) curFrame.terminate()
 
-      return this.stackFrameFor(effect, terminal ? curFrame.previous : curFrame, curFrame.index + 1)
+      return this.stackFrameFor(effect ?? curFrame.operation, terminal ? curFrame.previous : curFrame, curFrame.index + 1)
     },
   }
 
@@ -295,7 +299,7 @@ export class Stack {
     const nextsEnd = i
 
     if (this.currentFrame instanceof HandlerStackFrame && nextsStart > 0) {
-      stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.currentFrame.kind}>$2`)
+      stack[nextsStart - 1] = stack[nextsStart - 1].replace(/^( + at ).+( \(.+\))$/, `$1<yield ${this.currentFrame.operation.kind}>$2`)
     }
 
     stack.splice(nextsStart, nextsEnd - nextsStart, ...this.getFrames(this.currentFrame.previous))
@@ -321,7 +325,7 @@ export class Stack {
   getFrames(firstFrame: StackFrame) {
     const newFrames = []
     for (let frame = firstFrame; frame !== this.rootFrame; frame = frame.previous) {
-      if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.kind}> (<unknown>)`)
+      if (frame instanceof HandlerStackFrame) newFrames.push(`    at <yield ${frame.operation.kind}> (<unknown>)`)
       else newFrames.push(`    at ${frame.gen.name ?? '<anonymous generator>'} (<unknown>)`)
     }
     return newFrames
@@ -378,13 +382,13 @@ class StackFrame {
 }
 
 class HandlerStackFrame extends StackFrame {
-  kind: string
+  operation: Operation
 
   index: number
 
-  constructor(gen: Generator<any, Effect>, previous: StackFrame, kind: string, index: number) {
+  constructor(gen: Generator<any, Effect>, previous: StackFrame, operation: Operation, index: number) {
     super(gen, previous)
-    this.kind = kind
+    this.operation = operation
     this.index = index
   }
 }

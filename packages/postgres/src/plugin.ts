@@ -7,24 +7,30 @@ import { getPoolsGetter } from './pools-getter'
 
 const namespace = '@cuillere/postgres'
 
-export function postgresPlugin(): Plugin {
+export type PostgresOperations = {
+  getClient: GetClient
+  query: Query
+  getPools: Operation
+}
+
+export function postgresPlugin(): Plugin<PostgresOperations> {
   return {
     namespace,
 
     handlers: {
-      async* getClient({ name }: GetClient, ctx) {
+      async* getClient({ name }, ctx) {
         const getClient = getClientGetter(ctx)
         if (!getClient) throw new Error('No client getter in context, you probably forgot to setup a client manager')
         return getClient(name)
       },
 
-      async* query({ config }: Query, ctx) {
+      async* query({ config }, ctx) {
         const queryHandler = getQueryHandler(ctx)
         if (!queryHandler) throw new Error('No query handler in context, you probably forgot to setup a client manager')
         return queryHandler(config)
       },
 
-      async* getPools(_: Operation, ctx) {
+      async* getPools(_, ctx) {
         const getPools = getPoolsGetter(ctx)
         if (!getPools) throw new Error('No pools getter in context, you probably forgot to setup a client manager')
         return getPools()

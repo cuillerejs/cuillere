@@ -1,4 +1,4 @@
-import { Plugin, cuillere, delegate, next } from '..'
+import { Operation, Plugin, cuillere, delegate, next } from '..'
 
 describe('next', () => {
   it('should not be allowed outside handlers', async () => {
@@ -6,7 +6,7 @@ describe('next', () => {
 
     function* test() {
       try {
-        yield next({ kind: 'test' })
+        yield next({ kind: '@cuillere/test/test' })
       } catch (e) {
         catched = e
       }
@@ -29,35 +29,42 @@ describe('next', () => {
           }
         },
       } },
-    ).start({ kind: '@cuillere/test/test' })
+    ).execute({ kind: '@cuillere/test/test' })
 
-    expect(catched).toStrictEqual(new TypeError('next: operation kind mismatch, expected "@cuillere/test/test", received "@cuillere/test/test2"'))
+    expect(catched).toStrictEqual(new TypeError('next: effect kind mismatch, expected "@cuillere/test/test", received "@cuillere/test/test2"'))
   })
 
   it('should call handlers in right ordrer', async () => {
+    interface TestOperation extends Operation {
+      value: any
+    }
+
     const plugin1: Plugin = {
       handlers: {
-        * '@cuillere/test/test'(operation) {
-          return `1 ${yield next(operation)}`
+        * '@cuillere/test/test'() {
+          return `1 ${yield next({ kind: '@cuillere/test/test', value: 'modified' })}`
         },
       },
     }
     const plugin2: Plugin = {
       handlers: {
-        * '@cuillere/test/test'(operation) {
-          return `2 ${yield next(operation)}`
+        * '@cuillere/test/test'() {
+          return `2 ${yield next()}`
         },
       },
     }
-    const plugin3: Plugin = {
+    const plugin3: Plugin<{ '@cuillere/test/test': TestOperation }> = {
       handlers: {
-        * '@cuillere/test/test'() {
-          return '3'
+        * '@cuillere/test/test'(operation) {
+          return `3 ${operation.value}`
         },
       },
     }
 
-    await expect(cuillere(plugin1, plugin2, plugin3).start({ kind: '@cuillere/test/test' })).resolves.toBe('1 2 3')
+    await expect(
+      cuillere(plugin1, plugin2, plugin3)
+        .execute({ kind: '@cuillere/test/test', value: 'original' } as TestOperation),
+    ).resolves.toBe('1 2 3 modified')
   })
 
   it('should delegate to next handler', async () => {
@@ -77,6 +84,6 @@ describe('next', () => {
       },
     }
 
-    await expect(cuillere(plugin1, plugin2).start({ kind: '@cuillere/test/test' })).resolves.toBe(2)
+    await expect(cuillere(plugin1, plugin2).execute({ kind: '@cuillere/test/test' })).resolves.toBe(2)
   })
 })

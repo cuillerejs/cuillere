@@ -3,17 +3,48 @@ import { fork, Operation } from './operation'
 import { Plugin } from './plugin'
 import { type Task } from './task'
 
-export interface Concurrent extends Operation {
+const NAMESPACE = '@cuillere/concurrent'
+
+/**
+ * Concurrent operations execute several effects concurrenlty.
+ *
+ * @typeParam K Kind of concurrent operation.
+ * @category for operations
+ */
+export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Operation {
+
+  /**
+   * Kind of concurrent operation.
+   */
+  kind: `${typeof NAMESPACE}/${K}`
+
+  /**
+   * Effects to be executed.
+   */
   effects: Iterable<Effect>
 }
 
-const NAMESPACE = '@cuillere/concurrent'
+/**
+ * @hidden
+ */
+export type ConcurrentOperations = {
+  all: ConcurrentOperation<'all'>
+  allSettled: ConcurrentOperation<'allSettled'>
+}
 
-export const concurrentPlugin = (): Plugin => ({
+/**
+ * Creates a new concurrent plugin instance.
+ *
+ * This is an internal plugin which is automatically added to cuillere.
+ *
+ * @returns A new concurrent plugin instance.
+ * @hidden
+ */
+export const concurrentPlugin = (): Plugin<ConcurrentOperations> => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* all({ effects }: Concurrent) {
+    async* all({ effects }) {
       const tasks: Task[] = []
       for (const effect of effects) tasks.push(yield fork(effect))
 
@@ -29,7 +60,7 @@ export const concurrentPlugin = (): Plugin => ({
       }
     },
 
-    async* allSettled({ effects }: Concurrent) {
+    async* allSettled({ effects }) {
       const tasks = []
       for (const effect of effects) tasks.push(yield fork(effect))
       return Promise.allSettled(tasks.map(({ result }) => result))
@@ -37,17 +68,38 @@ export const concurrentPlugin = (): Plugin => ({
   },
 })
 
-function concurrent(kind: string) {
-  const nsKind = `${NAMESPACE}/${kind}`
-
+function concurrent<K extends 'all' | 'allSettled'>(kind: K) {
   const fn = {
     // Set the function name
-    [kind](effects: Iterable<Effect>): Concurrent {
-      return { kind: nsKind, effects }
+    [kind](effects: Iterable<Effect>): ConcurrentOperation<K> {
+      return { kind: `${NAMESPACE}/${kind}`, effects }
     },
   }
   return fn[kind]
 }
 
+/**
+ * Executes all `effects` concurrently, each one in a separate [[Task]].
+ *
+ * Returns when all tasks have ended, or throws immediately when one of the tasks throws an error,
+ * see [Promise.all()](https://mdn.io/Promise.all) for more information.
+ *
+ * @param effects Effects to be executed.
+ * @returns A new concurrent operation.
+ * @yields An array containing the return values of `effects`.
+ * @category for creating effects
+ */
 export const all = concurrent('all')
+
+/**
+ * Executes all `effects` concurrently, each one in a separate [[Task]].
+ *
+ * Returns when all tasks have ended or thrown an error,
+ * see [Promise.allSettled()](https://mdn.io/Promise.allSettled) for more information.
+ *
+ * @param effects Effects to be executed.
+ * @returns A new concurrent operation.
+ * @yields An array containing the outcome of each effect, see [Promise.allSettled()](https://mdn.io/Promise.allSettled) return value.
+ * @category for creating effects
+ */
 export const allSettled = concurrent('allSettled')

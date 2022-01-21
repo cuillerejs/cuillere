@@ -3,4 +3,13 @@ import { Operation } from './operation'
 
 const generatorOperation: Operation = Object.freeze({ kind: `${CORE_NAMESPACE}/generator` })
 
-export function generator() { return generatorOperation }
+/**
+ * Returns the current generator.
+ *
+ * @returns The generator operation.
+ * @yields The current generator.
+ * @hidden
+ */
+export function generator() {
+  return generatorOperation
+}

@@ -57,7 +57,7 @@ describe('stacktrace', () => {
 
     let stack: string[]
     try {
-      await cllr.start(test())
+      await cllr.execute(test())
     } catch (e) {
       stack = e.stack.split('\n')
     }
@@ -79,7 +79,7 @@ describe('stacktrace', () => {
     })
 
     function* test() {
-      yield { kind: '@cuillere/test/test' }
+      yield { kind: '@cuillere/test/test' as const }
     }
 
     function* throwTypeError() {
@@ -111,7 +111,7 @@ describe('stacktrace', () => {
     })
 
     function* test() {
-      yield { kind: '@cuillere/test/test' }
+      yield { kind: '@cuillere/test/test' as const }
     }
 
     let stack: string[]
@@ -154,7 +154,7 @@ describe('stacktrace', () => {
   it('should not capture stack for start errors', async () => {
     let stack: string[]
     try {
-      await cllr.start(null)
+      await cllr.execute(null)
     } catch (e) {
       stack = e.stack.split('\n')
     }

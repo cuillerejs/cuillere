@@ -18,9 +18,9 @@ describe('plugin', () => {
     const plugin1Fn = jest.fn()
     const plugin1: Plugin = {
       handlers: {
-        * '@cuillere/core/call'(operation) {
+        * '@cuillere/core/call'() {
           plugin1Fn()
-          return yield next(operation)
+          return yield next()
         },
       },
     }
@@ -28,9 +28,9 @@ describe('plugin', () => {
     const plugin2Fn = jest.fn()
     const plugin2: Plugin = {
       handlers: {
-        * '@cuillere/core/call'(operation) {
+        * '@cuillere/core/call'() {
           plugin2Fn()
-          return yield next(operation)
+          return yield next()
         },
       },
     }
@@ -46,7 +46,7 @@ describe('plugin', () => {
 
     async function* test() {
       try {
-        yield { kind: '@cuillere/test/throw' }
+        yield { kind: '@cuillere/test/throw' as const }
       } catch (e) {
         catched = e
       }

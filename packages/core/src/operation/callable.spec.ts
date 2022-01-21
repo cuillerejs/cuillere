@@ -1,4 +1,4 @@
-import { Cuillere, Operation, call, callable, cuillere } from '..'
+import { Cuillere, Operation, Plugin, call, callable, cuillere } from '..'
 
 describe('callable', () => {
   interface TestOperation extends Operation {
@@ -13,14 +13,16 @@ describe('callable', () => {
   let cllr: Cuillere
 
   beforeEach(() => {
-    cllr = cuillere({
+    const testPlugin: Plugin<{ test: TestOperation }> = {
       namespace: '@cuillere/test',
       handlers: {
-        * test({ message }: TestOperation) {
+        * test({ message }) {
           return `this is a test: "${message}"`
         },
       },
-    })
+    }
+
+    cllr = cuillere(testPlugin)
   })
 
   it('should be handled when yielded', async () => {

@@ -59,7 +59,7 @@ describe('concurrent', () => {
         called = true
       }
 
-      await expect(cllr.start(all([call(f1), call(f2)]))).rejects.toEqual({ error: 'test', errors: [] })
+      await expect(cllr.execute(all([call(f1), call(f2)]))).rejects.toEqual({ error: 'test', errors: [] })
       expect(called).toBe(false)
     })
   })
