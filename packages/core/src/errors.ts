@@ -10,7 +10,7 @@ class UnrecognizedEffectError extends TypeError {
   effect: any
 
   constructor(effect: any) {
-    super(`no handler defined for this knind of effect: ${effect?.kind ?? typeof effect}`)
+    super(`no handler defined for this kind of effect: ${effect?.kind ?? typeof effect}`)
     this.effect = effect
   }
 }

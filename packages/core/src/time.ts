@@ -1,5 +1,49 @@
-import { fork, terminal } from './operation'
-import { Effect } from './effect'
+import { type Operation, type WrapperOperation, fork, terminal } from './operation'
+import type { Effect } from './effect'
+import type { Plugin } from './plugin'
+
+const namespace = '@cuillere/time'
+
+/**
+ * @hidden
+ */
+export type SleepOperations = {
+  sleep: SleepOperation
+  after: AfterOperation
+}
+
+/**
+ * @hidden
+ */
+export function timePlugin(): Plugin<SleepOperations> {
+  return {
+    namespace,
+
+    handlers: {
+      async* sleep({ delay }: SleepOperation) {
+        return new Promise(resolve => setTimeout(resolve, delay))
+      },
+
+      * after({ effect, delay }: AfterOperation) {
+        yield sleep(delay)
+        return yield terminal(effect)
+      },
+    },
+  }
+}
+
+/**
+ * An operation to sleep during a given delay.
+ *
+ * @category for operations
+ */
+export interface SleepOperation extends Operation {
+
+  /**
+   * Sleeping delay in milliseconds.
+   */
+  delay?: number
+}
 
 /**
  * Returns after a given delay.
@@ -9,8 +53,21 @@ import { Effect } from './effect'
  * @yields `void`
  * @category for creating effects
  */
-export async function* sleep(delay?: number) {
-  await new Promise(resolve => (delay ? setTimeout(resolve, delay) : setImmediate(resolve)))
+export function sleep(delay?: number): SleepOperation {
+  return { kind: `${namespace}/sleep`, delay }
+}
+
+/**
+ * An operation to execute an effect after a given delay.
+ *
+ * @category for operations
+ */
+export interface AfterOperation<T extends Effect = Effect> extends WrapperOperation<T> {
+
+  /**
+   * Delay before execution in milliseconds.
+   */
+  delay?: number
 }
 
 /**
@@ -22,9 +79,6 @@ export async function* sleep(delay?: number) {
  * @yields A new asynchronous [[Task]].
  * @category for creating effects
  */
-export async function* after(effect: Effect, delay?: number) {
-  return yield fork(async function* () {
-    yield* sleep(delay)
-    return yield terminal(effect)
-  })
+export function after<T extends Effect = Effect>(effect: T, delay?: number) {
+  return fork({ kind: `${namespace}/after`, effect, delay } as AfterOperation<T>)
 }
