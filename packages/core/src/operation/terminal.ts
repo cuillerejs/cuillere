@@ -1,6 +1,5 @@
 import { CORE_NAMESPACE } from '../core-namespace'
 import { Effect } from '../effect'
-import { WrapperOperation } from './wrapper'
 
 /**
  * Stops the current generator and replaces it by the handler for `effect` in the call stack.
@@ -12,6 +11,6 @@ import { WrapperOperation } from './wrapper'
  * @returns A new terminal effect.
  * @category for creating effects
  */
-export function terminal<T extends Effect>(effect: T): WrapperOperation<T> {
+export function terminal<T extends Effect>(effect: T): YieldType<never> {
   return { kind: `${CORE_NAMESPACE}/terminal`, effect }
 }

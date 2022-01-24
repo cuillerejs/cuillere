@@ -17,6 +17,6 @@ function* callableGenerator() {
  */
 export function callable<Args extends any[] = any[], T extends Operation = Operation>(
   factory: (...args: Args) => T,
-): (...args: Args) => T & Generator<void, Operation> {
+): (...args: Args) => T & Generator<void> {
   return (...args: Args) => Object.assign(callableGenerator(), factory(...args))
 }

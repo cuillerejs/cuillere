@@ -10,6 +10,6 @@ const generatorOperation: Operation = Object.freeze({ kind: `${CORE_NAMESPACE}/g
  * @yields The current generator.
  * @hidden
  */
-export function generator() {
+export function generator(): YieldType<Generator> {
   return generatorOperation
 }

@@ -41,6 +41,6 @@ export interface CallOperation extends Operation {
  * @yields The value returned by `func`.
  * @category for creating effects
  */
-export function call<Args extends any[]>(func: GeneratorFunction<Args>, ...args: Args): CallOperation {
+export function call<Args extends any[], R = any>(func: GeneratorFunction<Args, R>, ...args: Args): CallOperation & YieldType<R> {
   return { kind: `${CORE_NAMESPACE}/call`, func, args }
 }

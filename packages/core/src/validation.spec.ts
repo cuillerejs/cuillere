@@ -70,7 +70,7 @@ describe('validation', () => {
 
     it('should not accept terminal operation', async () => {
       function* test() {
-        yield terminal(terminal(dummy()))
+        yield terminal(terminal(dummy()) as any)
       }
 
       await expect(cllr.call(test)).rejects.toStrictEqual(new TypeError('terminals cannot be nested'))

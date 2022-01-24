@@ -13,7 +13,9 @@ const AsyncGeneratorPrototype = AsyncGeneratorFunctionPrototype.prototype
  * @typeParam R Function's return type.
  * @typeParam Yield Function's yield type.
  */
-export type GeneratorFunction<Args extends any[] = any[], R = any, Yield = any> = (...args: Args) => GenericGenerator<R, Yield>
+export type GeneratorFunction<Args extends any[] = any[], R = any, Yield = any> = (
+  ((...args: Args) => GenericGenerator<R, Yield>) | ((...args: Args) => YieldType<R>)
+)
 
 /**
  * Checks if `value` is a [GeneratorFunction](https://mdn.io/GeneratorFunction) or an [AsyncGeneratorFunction](https://mdn.io/AsyncGeneratorFunction).
