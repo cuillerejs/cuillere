@@ -1,11 +1,6 @@
-import { Cuillere, batched, batchPlugin, callable, cuillere } from '.'
+import { Cuillere, batched, cuillere, all, sleep } from '.'
 
 const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
-
-const afterDelay = async (fn: () => void, d: number) => {
-  await delay(d)
-  return fn()
-}
 
 describe('batch', () => {
   let cllr: Cuillere
@@ -13,7 +8,7 @@ describe('batch', () => {
   let fn: (...args: any[]) => any
 
   beforeEach(() => {
-    cllr = cuillere(batchPlugin({ timeout: 0 }))
+    cllr = cuillere()
     mock.mockClear()
     fn = batched(function* fn(args: any[]) {
       mock(...args)
@@ -57,7 +52,7 @@ describe('batch', () => {
     expect(mock.mock.calls[0]).toContainEqual([2])
   })
 
-  it('should return the right result for each btached call', async () => {
+  it('should return the right result for each batched call', async () => {
     const result = await Promise.all([
       cllr.execute(fn(1)),
       cllr.execute(fn(2)),
@@ -67,7 +62,8 @@ describe('batch', () => {
     expect(result).toEqual([1, 2, 3])
   })
 
-  it("shouldn't batch calls after timeout", async () => {
+  it("shouldn't batch calls after wait time", async () => {
+    // FIXME makes no sense since we wait for first call
     await cllr.execute(fn())
     await delay(1)
     await cllr.execute(fn())
@@ -75,13 +71,22 @@ describe('batch', () => {
   })
 
   it('should not debounce batch calls', async () => {
-    cllr = cuillere(batchPlugin({ timeout: 30 }))
+    fn = batched(function* fn(args: any[]) {
+      mock(...args)
+      return [].concat(...args)
+    }, { wait: 30 })
 
-    await Promise.all([
-      cllr.execute(fn(1)),
-      afterDelay(() => cllr.execute(fn(2)), 30),
-      afterDelay(() => cllr.execute(fn(3)), 45),
-    ])
+    await cllr.execute(all([
+      fn(1),
+      (function* () {
+        yield sleep(30)
+        yield fn(2)
+      }()),
+      (function* () {
+        yield sleep(45)
+        yield fn(3)
+      }()),
+    ]))
 
     expect(mock).toBeCalledTimes(2)
     expect(mock.mock.calls).toEqual([
@@ -94,7 +99,7 @@ describe('batch', () => {
     const fn = batched(function* fn(args: [any][]) {
       mock(...args)
       return [].concat(...args)
-    }, arg => arg)
+    }, { getBatchKey: arg => arg })
 
     await Promise.all([
       cllr.execute(fn(null)),
@@ -109,7 +114,7 @@ describe('batch', () => {
     const fn = batched(function* fn(args: [number][]) {
       mock(...args)
       return [].concat(...args)
-    }, arg => arg)
+    }, { getBatchKey: arg => arg })
 
     await Promise.all([
       cllr.execute(fn(1)),
@@ -129,7 +134,7 @@ describe('batch', () => {
     const fn = batched(function* fn(args: [number][]) {
       mock(...args)
       return [].concat(...args)
-    }, arg => arg)
+    }, { getBatchKey: arg => arg })
 
     await Promise.all([
       cllr.call(fn, 1),
@@ -149,7 +154,7 @@ describe('batch', () => {
     const notBatched = batched<[number]>(function* notBatched(calls: [number][]) {
       mock(...calls)
       return [].concat(...calls)
-    }, () => false)
+    }, { getBatchKey: () => false })
 
     const result = await cllr.execute(notBatched(1))
 
