@@ -734,7 +734,7 @@ __metadata:
     jest: ^27.4.5
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   peerDependencies:
     "@cuillere/core": ^0.13.0
   languageName: unknown
@@ -757,7 +757,7 @@ __metadata:
     jest: ^27.4.5
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   languageName: unknown
   linkType: soft
 
@@ -785,7 +785,7 @@ __metadata:
     nodemon: ^2.0.15
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -811,7 +811,7 @@ __metadata:
     jest: ^27.4.5
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   peerDependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/server-plugin": ^0.13.0
@@ -840,7 +840,7 @@ __metadata:
     jest: ^27.4.5
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   peerDependencies:
     "@cuillere/core": ^0.13.0
     "@cuillere/server-plugin": ^0.13.0
@@ -885,7 +885,7 @@ __metadata:
     koa: ~2.13.4
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -928,7 +928,7 @@ __metadata:
     jest: ^27.4.5
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   peerDependencies:
     "@cuillere/core": ^0.13.0
     graphql: ^15.6.1
@@ -962,7 +962,7 @@ __metadata:
     koa: ~2.13.4
     npm-run-all: ^4.1.5
     ts-jest: ^27.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   peerDependencies:
     graphql: ^15.6.1
   languageName: unknown
@@ -8469,7 +8469,7 @@ resolve@^1.3.2:
     ts-jest: ^27.1.1
     typedoc: ^0.22.10
     typedoc-plugin-resolve-crossmodule-references: ^0.1.1
-    typescript: ^4.5.4
+    typescript: "npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5"
   languageName: unknown
   linkType: soft
 
@@ -9561,23 +9561,23 @@ resolve@^1.3.2:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.5.4":
-  version: 4.5.4
-  resolution: "typescript@npm:4.5.4"
+"typescript@npm:@typescript-deploys/pr-build@4.6.0-pr-47548-5":
+  version: 4.6.0-pr-47548-5
+  resolution: "@typescript-deploys/pr-build@npm:4.6.0-pr-47548-5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 59f3243f9cd6fe3161e6150ff6bf795fc843b4234a655dbd938a310515e0d61afd1ac942799e7415e4334255e41c2c49b7dd5d9fd38a17acd25a6779ca7e0961
+  checksum: 7190b2bc49ba240e6c3b3290686398f2bf418d44f9e636f93113f8fc6dc479b30de1bc85c51ffdf62da96e1a4f5b2705bc57a0c0a6cb65e953f56cedab5b6738
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.5.4#~builtin<compat/typescript>":
-  version: 4.5.4
-  resolution: "typescript@patch:typescript@npm%3A4.5.4#~builtin<compat/typescript>::version=4.5.4&hash=493e53"
+"typescript@patch:typescript@npm%3A@typescript-deploys/pr-build@4.6.0-pr-47548-5#~builtin<compat/typescript>":
+  version: 4.6.0-pr-47548-5
+  resolution: "typescript@patch:@typescript-deploys/pr-build@npm%3A4.6.0-pr-47548-5#~builtin<compat/typescript>::version=4.6.0-pr-47548-5&hash=493e53"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 2e488dde7d2c4a2fa2e79cf2470600f8ce81bc0563c276b72df8ff412d74456ae532ba824650ae936ce207440c79720ddcfaa25e3cb4477572b8534fa4e34d49
+  checksum: 21723648874a09fa3ba48255ac011298d23f40093e9c74a9936925c4ad112762ec77871436bc55a08a8d1288608bcdc3c5156586c3e64ffd393c2bc643d343dd
   languageName: node
   linkType: hard
 
