@@ -187,4 +187,12 @@ describe('batch', () => {
 
     expect(nestedResult).toEqual([])
   })
+
+  it('should keep function name', () => {
+    const named = batched(function* named(calls) {
+      return calls
+    })
+
+    expect(named.name).toBe('named')
+  })
 })

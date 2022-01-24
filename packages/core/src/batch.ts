@@ -1,5 +1,5 @@
 import { type GeneratorFunction } from './generator'
-import { type Operation } from './operation'
+import { type Operation, call } from './operation'
 import { type Plugin } from './plugin'
 import { type Task } from './task'
 import { after } from './time'
@@ -20,11 +20,13 @@ export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<Args[], R[]>,
   getBatchKey: (...args: Args) => any = () => func,
 ): (...args: Args) => Operation {
-  return (...args) => {
-    const key = getBatchKey(...args)
-    if (key == null) return { kind: `${NAMESPACE}/execute`, func, args }
-    return { kind: `${NAMESPACE}/batch`, func, args, key }
-  }
+  return {
+    [func.name]: (...args: Args) => {
+      const key = getBatchKey(...args)
+      if (key == null) return { kind: `${NAMESPACE}/execute` as const, func, args }
+      return { kind: `${NAMESPACE}/batch` as const, func, args, key }
+    },
+  }[func.name]
 }
 
 const NAMESPACE = '@cuillere/batch'
@@ -80,14 +82,14 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperati
     },
 
     async* execute({ func, args }) {
-      const res = yield func(args)
+      const res = yield call(func, args)
       return res[0]
     },
 
     async* executeBatch({ key }, ctx) {
       const entry = ctx[BATCH_CTX].get(key)
       ctx[BATCH_CTX].delete(key)
-      return yield entry.func(...entry.args)
+      return yield call(entry.func, ...entry.args)
     },
   },
 })
