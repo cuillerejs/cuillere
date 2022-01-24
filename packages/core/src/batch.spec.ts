@@ -125,11 +125,11 @@ describe('batch', () => {
     ])
   })
 
-  it('should batch as a callable', async () => {
-    const fn = callable(batched(function* fn(args: [number][]) {
+  it('should be callable', async () => {
+    const fn = batched(function* fn(args: [number][]) {
       mock(...args)
       return [].concat(...args)
-    }, arg => arg))
+    }, arg => arg)
 
     await Promise.all([
       cllr.call(fn, 1),

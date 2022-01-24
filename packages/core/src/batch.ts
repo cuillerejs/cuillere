@@ -1,5 +1,5 @@
 import { type GeneratorFunction } from './generator'
-import { type Operation, call } from './operation'
+import { type Operation, call, terminal } from './operation'
 import { type Plugin } from './plugin'
 import { type Task } from './task'
 import { after } from './time'
@@ -19,12 +19,12 @@ import { after } from './time'
 export function batched<Args extends any[] = any[], R = any>(
   func: GeneratorFunction<[Args[]], R[]>,
   getBatchKey: (...args: Args) => any = () => func,
-): (...args: Args) => Operation {
+): GeneratorFunction<Args, R> {
   return {
-    [func.name]: (...args: Args) => {
+    * [func.name](...args: Args) {
       const key = getBatchKey(...args)
-      if (key == null) return { kind: `${NAMESPACE}/execute`, func, args } as Execute<Args, R>
-      return { kind: `${NAMESPACE}/batch`, func, args, key } as Batch<Args, R>
+      yield terminal(key == null ? execute(func, args) : batch(func, args, key))
+      return null as R // never actually reached, only for typing
     },
   }[func.name]
 }
@@ -88,7 +88,7 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperati
     async* executeBatch({ key }, ctx) {
       const entry = ctx[BATCH_CTX].get(key)
       ctx[BATCH_CTX].delete(key)
-      return yield call(entry.func, entry.args)
+      yield terminal(call(entry.func, entry.args))
     },
   },
 })
@@ -124,9 +124,17 @@ interface Batch<Args extends any[] = any[], R = any> extends Operation {
   key: any
 }
 
+function batch<Args extends any[] = any[], R = any>(func: GeneratorFunction<[Args[]], R[]>, args: Args, key: any): Batch<Args, R> {
+  return { kind: `${NAMESPACE}/batch`, func, args, key }
+}
+
 interface Execute<Args extends any[] = any[], R = any> extends Operation {
   func: GeneratorFunction<[Args[]], R[]>
   args: Args
+}
+
+function execute<Args extends any[] = any[], R = any>(func: GeneratorFunction<[Args[]], R[]>, args: Args): Execute<Args, R> {
+  return { kind: `${NAMESPACE}/execute`, func, args }
 }
 
 interface ExecuteBatch extends Operation {
