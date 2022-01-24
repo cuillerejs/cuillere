@@ -15,7 +15,7 @@ describe('batch', () => {
   beforeEach(() => {
     cllr = cuillere(batchPlugin({ timeout: 0 }))
     mock.mockClear()
-    fn = batched(function* fn(...args: any[]) {
+    fn = batched(function* fn(args: any[]) {
       mock(...args)
       return [].concat(...args)
     })
@@ -91,7 +91,7 @@ describe('batch', () => {
   })
 
   it('should not batch if batch key is null or undefined', async () => {
-    const fn = batched(function* fn(...args: [any][]) {
+    const fn = batched(function* fn(args: [any][]) {
       mock(...args)
       return [].concat(...args)
     }, arg => arg)
@@ -106,7 +106,7 @@ describe('batch', () => {
   })
 
   it('should batch together calls with the same batch key', async () => {
-    const fn = batched(function* fn(...args: [number][]) {
+    const fn = batched(function* fn(args: [number][]) {
       mock(...args)
       return [].concat(...args)
     }, arg => arg)
@@ -126,7 +126,7 @@ describe('batch', () => {
   })
 
   it('should batch as a callable', async () => {
-    const fn = callable(batched(function* fn(...args: [number][]) {
+    const fn = callable(batched(function* fn(args: [number][]) {
       mock(...args)
       return [].concat(...args)
     }, arg => arg))
@@ -146,7 +146,7 @@ describe('batch', () => {
   })
 
   it('should return the right result for not batched calls', async () => {
-    const notBatched = batched<[number]>(function* notBatched(...calls: [number][]) {
+    const notBatched = batched<[number]>(function* notBatched(calls: [number][]) {
       mock(...calls)
       return [].concat(...calls)
     }, () => false)
@@ -174,7 +174,7 @@ describe('batch', () => {
 
   it('should work in nested call', async () => {
     let nestedResult: any
-    const batchedFn = batched(function* batchedFn(...calls) {
+    const batchedFn = batched(function* batchedFn(calls) {
       mock.call(calls)
       return [].concat(calls)
     })

@@ -17,14 +17,14 @@ import { after } from './time'
  * @returns A new batched generator function.
  */
 export function batched<Args extends any[] = any[], R = any>(
-  func: GeneratorFunction<Args[], R[]>,
+  func: GeneratorFunction<[Args[]], R[]>,
   getBatchKey: (...args: Args) => any = () => func,
 ): (...args: Args) => Operation {
   return {
     [func.name]: (...args: Args) => {
       const key = getBatchKey(...args)
-      if (key == null) return { kind: `${NAMESPACE}/execute` as const, func, args }
-      return { kind: `${NAMESPACE}/batch` as const, func, args, key }
+      if (key == null) return { kind: `${NAMESPACE}/execute`, func, args } as Execute<Args, R>
+      return { kind: `${NAMESPACE}/batch`, func, args, key } as Batch<Args, R>
     },
   }[func.name]
 }
@@ -82,14 +82,13 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperati
     },
 
     async* execute({ func, args }) {
-      const res = yield call(func, args)
-      return res[0]
+      return (yield call(func, [args]))[0]
     },
 
     async* executeBatch({ key }, ctx) {
       const entry = ctx[BATCH_CTX].get(key)
       ctx[BATCH_CTX].delete(key)
-      return yield call(entry.func, ...entry.args)
+      return yield call(entry.func, entry.args)
     },
   },
 })
@@ -120,13 +119,13 @@ interface BatchEntry {
 }
 
 interface Batch<Args extends any[] = any[], R = any> extends Operation {
-  func: GeneratorFunction<Args[], R[]>
+  func: GeneratorFunction<[Args[]], R[]>
   args: Args
   key: any
 }
 
 interface Execute<Args extends any[] = any[], R = any> extends Operation {
-  func: GeneratorFunction<Args[], R[]>
+  func: GeneratorFunction<[Args[]], R[]>
   args: Args
 }
 
