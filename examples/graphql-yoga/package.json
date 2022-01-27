@@ -5,10 +5,10 @@
   "dependencies": {
     "@cuillere/core": "workspace:^",
     "@cuillere/envelop": "workspace:^",
-    "esbuild": "^0.14.11",
+    "esbuild": "^0.14.14",
     "esbuild-runner": "^2.2.1",
-    "graphql": "^16.2.0",
-    "graphql-yoga": "alpha",
+    "graphql": "^16.3.0",
+    "graphql-yoga": "^2.0.0-alpha.11",
     "remove": "^0.1.5"
   },
   "scripts": {
