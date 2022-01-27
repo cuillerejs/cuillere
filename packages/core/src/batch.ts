@@ -1,5 +1,5 @@
 import { type GeneratorFunction } from './generator'
-import { type Operation } from './operation'
+import { type Operation, call, terminal } from './operation'
 import { type Plugin } from './plugin'
 import { type Task } from './task'
 import { after } from './time'
@@ -10,21 +10,35 @@ import { after } from './time'
  * @param func Generator function responsible for handling a batch of calls.
  *             Receives an array of arguments arrays.
  *             Must return an array of return values corresponsing to the array of calls received.
- * @param getBatchKey Function responsible for computing the batch key for one call.
- *                    Receives the arguments of one call.
+ * @param options Batching options.
  * @typeParam Args Batched generator function's arguments type.
  * @typeParam R Batched generator function's return type.
  * @returns A new batched generator function.
  */
 export function batched<Args extends any[] = any[], R = any>(
-  func: GeneratorFunction<Args[], R[]>,
-  getBatchKey: (...args: Args) => any = () => func,
-): (...args: Args) => Operation {
-  return (...args) => {
-    const key = getBatchKey(...args)
-    if (key == null) return { kind: `${NAMESPACE}/execute`, func, args }
-    return { kind: `${NAMESPACE}/batch`, func, args, key }
-  }
+  func: GeneratorFunction<[Args[]], R[]>,
+  options: {
+    /**
+     * Function responsible for computing the batch key for one call.
+     * @param args Arguments of one call.
+     * @returns Batch key for the call, `null` or `undefined` if the call should not be batched.
+     */
+    getBatchKey?: (...args: Args) => any
+
+    /**
+     * Wait time in milliseconds before first call and batch execution.
+     */
+    wait?: number
+  } = {},
+): GeneratorFunction<Args, R> {
+  const { getBatchKey = () => func, wait } = options
+  return {
+    * [func.name](...args: Args) {
+      const key = getBatchKey(...args)
+      yield terminal(key == null ? execute(func, args) : batch(func, args, key, wait))
+      return null as R // never actually reached, only for typing
+    },
+  }[func.name]
 }
 
 const NAMESPACE = '@cuillere/batch'
@@ -54,11 +68,11 @@ export type BatchContext = {
  * @returns A new Batch plugin instance.
  * @hidden
  */
-export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperations, BatchContext> => ({
+export const batchPlugin = ({ wait: defaultWait }: BatchOptions = {}): Plugin<BatchOperations, BatchContext> => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* batch({ key, func, args }, ctx) {
+    async* batch({ func, args, key, wait }, ctx) {
       if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
       let entry: BatchEntry
@@ -71,7 +85,7 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperati
         entry = { resolves: [], rejects: [], args: [], func, result }
         ctx[BATCH_CTX].set(key, entry)
 
-        const task: Task = yield after(executeBatch(key), timeout)
+        const task: Task = yield after(executeBatch(key), wait ?? defaultWait)
         resolveResult(task.result)
       }
 
@@ -80,14 +94,13 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperati
     },
 
     async* execute({ func, args }) {
-      const res = yield func(args)
-      return res[0]
+      return (yield call(func, [args]))[0]
     },
 
     async* executeBatch({ key }, ctx) {
       const entry = ctx[BATCH_CTX].get(key)
       ctx[BATCH_CTX].delete(key)
-      return yield entry.func(...entry.args)
+      yield terminal(call(entry.func, entry.args))
     },
   },
 })
@@ -100,11 +113,11 @@ export const batchPlugin = ({ timeout }: BatchOptions = {}): Plugin<BatchOperati
 export interface BatchOptions {
 
   /**
-   * Timeout in milliseconds before batched effects are executed.
+   * Wait time in milliseconds before batched function calls are executed.
    *
    * If empty or `0`, [`setImmediate()`](https://mdn.io/setImmediate) is used.
    */
-  timeout?: number
+  wait?: number
 }
 
 const BATCH_CTX = Symbol('BATCH_CTX')
@@ -118,14 +131,23 @@ interface BatchEntry {
 }
 
 interface Batch<Args extends any[] = any[], R = any> extends Operation {
-  func: GeneratorFunction<Args[], R[]>
+  func: GeneratorFunction<[Args[]], R[]>
   args: Args
   key: any
+  wait?: number
+}
+
+function batch<Args extends any[] = any[], R = any>(func: GeneratorFunction<[Args[]], R[]>, args: Args, key: any, wait?: number): Batch<Args, R> {
+  return { kind: `${NAMESPACE}/batch`, func, args, key, wait }
 }
 
 interface Execute<Args extends any[] = any[], R = any> extends Operation {
-  func: GeneratorFunction<Args[], R[]>
+  func: GeneratorFunction<[Args[]], R[]>
   args: Args
+}
+
+function execute<Args extends any[] = any[], R = any>(func: GeneratorFunction<[Args[]], R[]>, args: Args): Execute<Args, R> {
+  return { kind: `${NAMESPACE}/execute`, func, args }
 }
 
 interface ExecuteBatch extends Operation {
