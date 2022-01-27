@@ -32,9 +32,9 @@ describe('batch', () => {
     it('should execute delayed calls in a second batch', async () => {
       await expect(cllr.execute(all([
         fn(1),
-        delayedFn(2, 2),
+        delayedFn(2, 10),
         fn(3),
-        delayedFn(4, 2),
+        delayedFn(4, 10),
       ]))).resolves.toEqual([1, 2, 3, 4])
       expect(batchedFn).toHaveBeenNthCalledWith(1, [[1], [3]])
       expect(batchedFn).toHaveBeenNthCalledWith(2, [[2], [4]])
