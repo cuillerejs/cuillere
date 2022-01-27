@@ -1032,7 +1032,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/mariadb@^0.13.0, @cuillere/mariadb@workspace:packages/mariadb":
+"@cuillere/mariadb@workspace:packages/mariadb":
   version: 0.0.0-use.local
   resolution: "@cuillere/mariadb@workspace:packages/mariadb"
   dependencies:
@@ -1060,7 +1060,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/postgres@^0.13.0, @cuillere/postgres@workspace:packages/postgres":
+"@cuillere/postgres@workspace:packages/postgres":
   version: 0.0.0-use.local
   resolution: "@cuillere/postgres@workspace:packages/postgres"
   dependencies:
@@ -1088,22 +1088,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-example@workspace:examples/server":
-  version: 0.0.0-use.local
-  resolution: "@cuillere/server-example@workspace:examples/server"
-  dependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/mariadb": ^0.13.0
-    "@cuillere/postgres": ^0.13.0
-    "@cuillere/server": ^0.13.0
-    esm: ^3.2.25
-    graphql: ^15.8.0
-    graphql-scalars: ^1.14.1
-    mariadb: ~2.5.5
-    pg: ~8.7.1
-  languageName: unknown
-  linkType: soft
-
 "@cuillere/server-plugin@^0.13.0, @cuillere/server-plugin@workspace:packages/server-plugin":
   version: 0.0.0-use.local
   resolution: "@cuillere/server-plugin@workspace:packages/server-plugin"
@@ -1128,82 +1112,6 @@ __metadata:
     typescript: ^4.5.5
   peerDependencies:
     "@cuillere/core": ^0.13.0
-    graphql: ^15.6.1
-  languageName: unknown
-  linkType: soft
-
-"@cuillere/server-postgres-example@workspace:examples/server-postgres":
-  version: 0.0.0-use.local
-  resolution: "@cuillere/server-postgres-example@workspace:examples/server-postgres"
-  dependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/server-postgres": ^0.13.0
-    esm: ^3.2.25
-    graphql: ^15.8.0
-    graphql-scalars: ^1.14.1
-    pg: ~8.7.1
-  languageName: unknown
-  linkType: soft
-
-"@cuillere/server-postgres@^0.13.0, @cuillere/server-postgres@workspace:packages/server-postgres":
-  version: 0.0.0-use.local
-  resolution: "@cuillere/server-postgres@workspace:packages/server-postgres"
-  dependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/postgres": ^0.13.0
-    "@cuillere/server": ^0.13.0
-    "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.4.0
-    "@types/pg": ^8.6.4
-    "@typescript-eslint/eslint-plugin": ^4.33.0
-    "@typescript-eslint/parser": ^4.33.0
-    apollo-server-core: ~2.25.3
-    eslint: ^7.32.0
-    eslint-config-airbnb-base: ^14.2.1
-    eslint-plugin-import: ^2.25.4
-    eslint-plugin-jest: ^24.7.0
-    esm: ^3.2.25
-    graphql-subscriptions: ~1.2.1
-    graphql-tools: ~4.0.8
-    jest: ^27.4.7
-    npm-run-all: ^4.1.5
-    ts-jest: ^27.1.3
-    typescript: ^4.5.5
-  peerDependencies:
-    "@cuillere/core": ^0.13.0
-    graphql: ^15.6.1
-    pg: ~8
-  languageName: unknown
-  linkType: soft
-
-"@cuillere/server@^0.13.0, @cuillere/server@workspace:packages/server":
-  version: 0.0.0-use.local
-  resolution: "@cuillere/server@workspace:packages/server"
-  dependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/server-plugin": ^0.13.0
-    "@tsconfig/node16": ^1.0.2
-    "@types/jest": ^27.4.0
-    "@types/pg": ^8.6.4
-    "@typescript-eslint/eslint-plugin": ^4.33.0
-    "@typescript-eslint/parser": ^4.33.0
-    apollo-server-core: ~2.25.3
-    apollo-server-koa: ~2.25.3
-    apollo-server-plugin-base: ^0.13.0
-    eslint: ^7.32.0
-    eslint-config-airbnb-base: ^14.2.1
-    eslint-plugin-import: ^2.25.4
-    eslint-plugin-jest: ^24.7.0
-    esm: ^3.2.25
-    graphql-subscriptions: ~1.2.1
-    graphql-tag: ^2.12.6
-    graphql-tools: ~4.0.8
-    jest: ^27.4.7
-    koa: ~2.13.4
-    npm-run-all: ^4.1.5
-    ts-jest: ^27.1.3
-    typescript: ^4.5.5
-  peerDependencies:
     graphql: ^15.6.1
   languageName: unknown
   linkType: soft
@@ -1655,15 +1563,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@koa/cors@npm:^2.2.1":
-  version: 2.2.3
-  resolution: "@koa/cors@npm:2.2.3"
-  dependencies:
-    vary: ^1.1.2
-  checksum: 884905e9dde1271604dec91fe16232d3ac7f02d4459c330f860307d53e8144788435550fae3129a2cf4967d80af59e776a083b45c405acb4727fe33ce3e654f1
-  languageName: node
-  linkType: hard
-
 "@nodelib/fs.scandir@npm:2.1.3":
   version: 2.1.3
   resolution: "@nodelib/fs.scandir@npm:2.1.3"
@@ -1832,7 +1731,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/accepts@npm:*, @types/accepts@npm:^1.3.5":
+"@types/accepts@npm:*":
   version: 1.3.5
   resolution: "@types/accepts@npm:1.3.5"
   dependencies:
@@ -2067,16 +1966,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/koa-bodyparser@npm:^4.2.1":
-  version: 4.3.0
-  resolution: "@types/koa-bodyparser@npm:4.3.0"
-  dependencies:
-    "@types/koa": "*"
-  checksum: b124fc80f738462e5303737b00889be10bdddbfc47e15121b48a09653b1b512aed0ea99a38cd427c9b62decfc6bec0c4ffd8786568ca6cec6fba5a98c678801e
-  languageName: node
-  linkType: hard
-
-"@types/koa-compose@npm:*, @types/koa-compose@npm:^3.2.2":
+"@types/koa-compose@npm:*":
   version: 3.2.5
   resolution: "@types/koa-compose@npm:3.2.5"
   dependencies:
@@ -2085,7 +1975,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/koa@npm:*, @types/koa@npm:^2.0.46":
+"@types/koa@npm:*":
   version: 2.11.6
   resolution: "@types/koa@npm:2.11.6"
   dependencies:
@@ -2098,15 +1988,6 @@ __metadata:
     "@types/koa-compose": "*"
     "@types/node": "*"
   checksum: cbe84433eab6ff381c109d9c08c6c7069563e9ebb9860fe791891721ccc7e1ae49edae41235ee4a28f0d9aa535d4838884a491cf8aeb92d566238061ccd2596e
-  languageName: node
-  linkType: hard
-
-"@types/koa__cors@npm:^2.2.1":
-  version: 2.2.3
-  resolution: "@types/koa__cors@npm:2.2.3"
-  dependencies:
-    "@types/koa": "*"
-  checksum: eab4da98fceec9af1ef35cf36deb39468a96325df9cfb69a85c7b134d01c26bde4b40439a198ce27eab78a4c70c443f8c3aa39ff279911300d62877a240d777f
   languageName: node
   linkType: hard
 
@@ -2648,13 +2529,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"any-promise@npm:^1.1.0":
-  version: 1.3.0
-  resolution: "any-promise@npm:1.3.0"
-  checksum: 0ee8a9bdbe882c90464d75d1f55cf027f5458650c4bd1f0467e65aec38ccccda07ca5844969ee77ed46d04e7dded3eaceb027e8d32f385688523fe305fa7e1de
-  languageName: node
-  linkType: hard
-
 "anymatch@npm:^3.0.3":
   version: 3.1.1
   resolution: "anymatch@npm:3.1.1"
@@ -2742,7 +2616,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"apollo-server-core@npm:^2.25.3, apollo-server-core@npm:~2.25.3":
+"apollo-server-core@npm:~2.25.3":
   version: 2.25.3
   resolution: "apollo-server-core@npm:2.25.3"
   dependencies:
@@ -2793,32 +2667,6 @@ __metadata:
   peerDependencies:
     graphql: ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
   checksum: c93129f0b0a9a4aeb35dfdb958ee70c7a55b70eaa44cba9f177eaa95cdba44095db574e85bd9dc6ae96ed6dbb713fa16ad22dbc274f60e8f5272d4f446099244
-  languageName: node
-  linkType: hard
-
-"apollo-server-koa@npm:~2.25.3":
-  version: 2.25.3
-  resolution: "apollo-server-koa@npm:2.25.3"
-  dependencies:
-    "@apollographql/graphql-playground-html": 1.6.27
-    "@koa/cors": ^2.2.1
-    "@types/accepts": ^1.3.5
-    "@types/koa": ^2.0.46
-    "@types/koa-bodyparser": ^4.2.1
-    "@types/koa-compose": ^3.2.2
-    "@types/koa__cors": ^2.2.1
-    accepts: ^1.3.5
-    apollo-server-core: ^2.25.3
-    apollo-server-types: ^0.9.0
-    graphql-subscriptions: ^1.0.0
-    graphql-tools: ^4.0.8
-    koa: 2.13.1
-    koa-bodyparser: ^4.2.1
-    koa-compose: ^4.1.0
-    type-is: ^1.6.16
-  peerDependencies:
-    graphql: ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-  checksum: 5875785723a236a21a09430dc6775d204a67e2ffa1cde13bd9516ce6980262161a9e4c15e3ba9fde42634c43632e47669d8fa54cb04a4560265494c737a79ade
   languageName: node
   linkType: hard
 
@@ -3201,13 +3049,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bytes@npm:3.1.0":
-  version: 3.1.0
-  resolution: "bytes@npm:3.1.0"
-  checksum: 7c3b21c5d9d44ed455460d5d36a31abc6fa2ce3807964ba60a4b03fd44454c8cf07bb0585af83bfde1c5cc2ea4bbe5897bc3d18cd15e0acf25a3615a35aba2df
-  languageName: node
-  linkType: hard
-
 "cacache@npm:^15.0.5":
   version: 15.3.0
   resolution: "cacache@npm:15.3.0"
@@ -3449,18 +3290,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"co-body@npm:^6.0.0":
-  version: 6.1.0
-  resolution: "co-body@npm:6.1.0"
-  dependencies:
-    inflation: ^2.0.0
-    qs: ^6.5.2
-    raw-body: ^2.3.3
-    type-is: ^1.6.16
-  checksum: d0a78831a6651f2085fce16b0ecdc49f45fb5baf4f94148c2f499e7ec89d188205362548b9c500eae15a819360cfda208079e68a72c204cf66ca3ffa2fc0f57e
-  languageName: node
-  linkType: hard
-
 "co@npm:^4.6.0":
   version: 4.6.0
   resolution: "co@npm:4.6.0"
@@ -3627,13 +3456,6 @@ __metadata:
     depd: ~2.0.0
     keygrip: ~1.1.0
   checksum: 806055a44f128705265b1bc6a853058da18bf80dea3654ad99be20985b1fa1b14f86c1eef73644aab8071241f8a78acd57202b54c4c5c70769fc694fbb9c4edc
-  languageName: node
-  linkType: hard
-
-"copy-to@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "copy-to@npm:2.0.1"
-  checksum: 05ea12875bdc96ae053a3b30148e9d992026035ff2bfcc0b615e8d49d1cf8fc3d1f40843f9a4b7b1b6d9118eeebcba31e621076d7de525828aa9c07d22a81dab
   languageName: node
   linkType: hard
 
@@ -3810,15 +3632,6 @@ __metadata:
     supports-color:
       optional: true
   checksum: f901c2a64e5db14068145ebc82ff263aa484d2285fe11ff7c561827df2024d05dcaf3f320c85b519b7b77369e513eb0a46e206c6364ae6819a87d29b0284403b
-  languageName: node
-  linkType: hard
-
-"debug@npm:~3.1.0":
-  version: 3.1.0
-  resolution: "debug@npm:3.1.0"
-  dependencies:
-    ms: 2.0.0
-  checksum: 0b52718ab957254a5b3ca07fc34543bc778f358620c206a08452251eb7fc193c3ea3505072acbf4350219c14e2d71ceb7bdaa0d3370aa630b50da790458d08b3
   languageName: node
   linkType: hard
 
@@ -5339,28 +5152,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-scalars@npm:^1.14.1":
-  version: 1.14.1
-  resolution: "graphql-scalars@npm:1.14.1"
-  dependencies:
-    tslib: ~2.3.0
-  peerDependencies:
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: b7bdddc49fbd305d18da47b00f2a6e910d5b4e017cb62b61045e138f308348f5c53a7bba3912d2ae6e7e292971b5195c3a8d197f4eee60da60e7cc32756c8848
-  languageName: node
-  linkType: hard
-
-"graphql-subscriptions@npm:^1.0.0, graphql-subscriptions@npm:~1.2.1":
-  version: 1.2.1
-  resolution: "graphql-subscriptions@npm:1.2.1"
-  dependencies:
-    iterall: ^1.3.0
-  peerDependencies:
-    graphql: ^0.10.5 || ^0.11.3 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-  checksum: 2b9533c6774e7be46acd6fbee528aab06429f15dc222eabd991e82c02bf74e390b638dffa1a3fd86c1e26212c40a42a0418d7f4a7c3a1edf0534978ef128e528
-  languageName: node
-  linkType: hard
-
 "graphql-tag@npm:^2.11.0":
   version: 2.12.4
   resolution: "graphql-tag@npm:2.12.4"
@@ -5372,18 +5163,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-tag@npm:^2.12.6":
-  version: 2.12.6
-  resolution: "graphql-tag@npm:2.12.6"
-  dependencies:
-    tslib: ^2.1.0
-  peerDependencies:
-    graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: b15162a3d62f17b9b79302445b9ee330e041582f1c7faca74b9dec5daa74272c906ec1c34e1c50592bb6215e5c3eba80a309103f6ba9e4c1cddc350c46f010df
-  languageName: node
-  linkType: hard
-
-"graphql-tools@npm:^4.0.8, graphql-tools@npm:~4.0.8":
+"graphql-tools@npm:^4.0.8":
   version: 4.0.8
   resolution: "graphql-tools@npm:4.0.8"
   dependencies:
@@ -5546,19 +5326,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"http-errors@npm:1.7.3, http-errors@npm:~1.7.2":
-  version: 1.7.3
-  resolution: "http-errors@npm:1.7.3"
-  dependencies:
-    depd: ~1.1.2
-    inherits: 2.0.4
-    setprototypeof: 1.1.1
-    statuses: ">= 1.5.0 < 2"
-    toidentifier: 1.0.0
-  checksum: a59f359473f4b3ea78305beee90d186268d6075432622a46fb7483059068a2dd4c854a20ac8cd438883127e06afb78c1309168bde6cdfeed1e3700eb42487d99
-  languageName: node
-  linkType: hard
-
 "http-errors@npm:^1.6.3, http-errors@npm:^1.7.3":
   version: 1.8.0
   resolution: "http-errors@npm:1.8.0"
@@ -5569,6 +5336,19 @@ __metadata:
     statuses: ">= 1.5.0 < 2"
     toidentifier: 1.0.0
   checksum: 873d997bada0340b31cc69cbe8376e47ee142f60375b81447fa3ad7be512dd4026afb3b46ed2257ee59472d43782a34151994b34264b204bcaad02e67ad836cb
+  languageName: node
+  linkType: hard
+
+"http-errors@npm:~1.7.2":
+  version: 1.7.3
+  resolution: "http-errors@npm:1.7.3"
+  dependencies:
+    depd: ~1.1.2
+    inherits: 2.0.4
+    setprototypeof: 1.1.1
+    statuses: ">= 1.5.0 < 2"
+    toidentifier: 1.0.0
+  checksum: a59f359473f4b3ea78305beee90d186268d6075432622a46fb7483059068a2dd4c854a20ac8cd438883127e06afb78c1309168bde6cdfeed1e3700eb42487d99
   languageName: node
   linkType: hard
 
@@ -5702,13 +5482,6 @@ __metadata:
   version: 1.0.4
   resolution: "infer-owner@npm:1.0.4"
   checksum: 181e732764e4a0611576466b4b87dac338972b839920b2a8cde43642e4ed6bd54dc1fb0b40874728f2a2df9a1b097b8ff83b56d5f8f8e3927f837fdcb47d8a89
-  languageName: node
-  linkType: hard
-
-"inflation@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "inflation@npm:2.0.0"
-  checksum: a0494871b12275afdef9e2710ee1af1e0fc642b04613a9be69c05ef8b5e9627f3bd7d358a937fa47aa20235ee7313a4f30255048533add0ad4918beb918a586e
   languageName: node
   linkType: hard
 
@@ -6168,7 +5941,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iterall@npm:^1.1.3, iterall@npm:^1.2.1, iterall@npm:^1.3.0":
+"iterall@npm:^1.1.3, iterall@npm:^1.2.1":
   version: 1.3.0
   resolution: "iterall@npm:1.3.0"
   checksum: c78b99678f8c99be488cca7f33e4acca9b72c1326e050afbaf023f086e55619ee466af0464af94a0cb3f292e60cb5bac53a8fd86bd4249ecad26e09f17bb158b
@@ -6860,39 +6633,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"koa-bodyparser@npm:^4.2.1":
-  version: 4.3.0
-  resolution: "koa-bodyparser@npm:4.3.0"
-  dependencies:
-    co-body: ^6.0.0
-    copy-to: ^2.0.1
-  checksum: c227fe0fb5a55b98fc91d865e80229b60178d216d53b732b07833eb38f48a7ed6aa768a083bc06e359db33298547e9a65842fbe9d3f0fdaf5149fe0becafc88f
-  languageName: node
-  linkType: hard
-
-"koa-compose@npm:^3.0.0":
-  version: 3.2.1
-  resolution: "koa-compose@npm:3.2.1"
-  dependencies:
-    any-promise: ^1.1.0
-  checksum: ff8e5fc0348455acf751179c6c613eb030a5fac6406d3b49ae9e00460b7ee8770db3ef62633fd3db0306cd4a6d2a0b5152399ebd5bb5e684418f9eeeb251c2de
-  languageName: node
-  linkType: hard
-
 "koa-compose@npm:^4.1.0":
   version: 4.1.0
   resolution: "koa-compose@npm:4.1.0"
   checksum: 46cb16792d96425e977c2ae4e5cb04930280740e907242ec9c25e3fb8b4a1d7b54451d7432bc24f40ec62255edea71894d2ceeb8238501842b4e48014f2e83db
-  languageName: node
-  linkType: hard
-
-"koa-convert@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "koa-convert@npm:1.2.0"
-  dependencies:
-    co: ^4.6.0
-    koa-compose: ^3.0.0
-  checksum: a33944dbda4ed87565985f5b37ba1122a012db872724b216b6fd8f9176d4bba42c4a9bf3c129330e45f6474d28f50ca0ed28d41b9bccd2ab5d36d6436cf0d676
   languageName: node
   linkType: hard
 
@@ -6903,37 +6647,6 @@ __metadata:
     co: ^4.6.0
     koa-compose: ^4.1.0
   checksum: 7385b3391995f59c1312142e110d5dff677f9850dbfbcf387cd36a7b0af03b5d26e82b811eb9bb008b4f3e661cdab1f8817596e46b1929da2cf6e97a2f7456ed
-  languageName: node
-  linkType: hard
-
-"koa@npm:2.13.1":
-  version: 2.13.1
-  resolution: "koa@npm:2.13.1"
-  dependencies:
-    accepts: ^1.3.5
-    cache-content-type: ^1.0.0
-    content-disposition: ~0.5.2
-    content-type: ^1.0.4
-    cookies: ~0.8.0
-    debug: ~3.1.0
-    delegates: ^1.0.0
-    depd: ^2.0.0
-    destroy: ^1.0.4
-    encodeurl: ^1.0.2
-    escape-html: ^1.0.3
-    fresh: ~0.5.2
-    http-assert: ^1.3.0
-    http-errors: ^1.6.3
-    is-generator-function: ^1.0.7
-    koa-compose: ^4.1.0
-    koa-convert: ^1.2.0
-    on-finished: ^2.3.0
-    only: ~0.0.2
-    parseurl: ^1.3.2
-    statuses: ^1.5.0
-    type-is: ^1.6.16
-    vary: ^1.1.2
-  checksum: c09c64eb32c6ab887527d3677a1b945bb7432f50d88de8b03d1d091baf51c827dafe3055763dd605b57c193b696414b1d597f58c829fb7bc47b2c6c5509670b4
   languageName: node
   linkType: hard
 
@@ -7200,7 +6913,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:^2.5.5, mariadb@npm:~2.5.5":
+"mariadb@npm:^2.5.5":
   version: 2.5.5
   resolution: "mariadb@npm:2.5.5"
   dependencies:
@@ -8040,7 +7753,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:^8.7.1, pg@npm:~8.7.1":
+"pg@npm:^8.7.1":
   version: 8.7.1
   resolution: "pg@npm:8.7.1"
   dependencies:
@@ -8386,13 +8099,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.5.2":
-  version: 6.9.4
-  resolution: "qs@npm:6.9.4"
-  checksum: 5ac0bd145f32d346d20c2fdcf19c8e548c5916458851e32527efb25be0c2cff8a3a81140c145c98a1184779b5b625c91bc7c50e147073bffb978fb7f4a9c8c8a
-  languageName: node
-  linkType: hard
-
 "queue-microtask@npm:^1.1.2":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
@@ -8404,18 +8110,6 @@ __metadata:
   version: 4.0.4
   resolution: "quick-format-unescaped@npm:4.0.4"
   checksum: 7bc32b99354a1aa46c089d2a82b63489961002bb1d654cee3e6d2d8778197b68c2d854fd23d8422436ee1fdfd0abaddc4d4da120afe700ade68bd357815b26fd
-  languageName: node
-  linkType: hard
-
-"raw-body@npm:^2.3.3":
-  version: 2.4.1
-  resolution: "raw-body@npm:2.4.1"
-  dependencies:
-    bytes: 3.1.0
-    http-errors: 1.7.3
-    iconv-lite: 0.4.24
-    unpipe: 1.0.0
-  checksum: d5e9179d2f1f0a652cd107c080f25d165c724f546124d620c8df7fb80322df42bff547a8b310e55e1f7952556d013716a21b30162192eb0b3332d7efcba75883
   languageName: node
   linkType: hard
 
@@ -9858,13 +9552,6 @@ resolve@^1.3.2:
   version: 0.1.2
   resolution: "universalify@npm:0.1.2"
   checksum: 40cdc60f6e61070fe658ca36016a8f4ec216b29bf04a55dce14e3710cc84c7448538ef4dad3728d0bfe29975ccd7bfb5f414c45e7b78883567fb31b246f02dff
-  languageName: node
-  linkType: hard
-
-"unpipe@npm:1.0.0":
-  version: 1.0.0
-  resolution: "unpipe@npm:1.0.0"
-  checksum: 4fa18d8d8d977c55cb09715385c203197105e10a6d220087ec819f50cb68870f02942244f1017565484237f1f8c5d3cd413631b1ae104d3096f24fdfde1b4aa2
   languageName: node
   linkType: hard
 
