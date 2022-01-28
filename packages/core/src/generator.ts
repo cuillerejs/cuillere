@@ -44,3 +44,13 @@ export { GenericGenerator as Generator }
 export function isGenerator(value: any): value is GenericGenerator {
   return GeneratorPrototype.isPrototypeOf(value) || AsyncGeneratorPrototype.isPrototypeOf(value) // eslint-disable-line no-prototype-builtins
 }
+
+/**
+ * Checks if `value` is a [`Generator`](https://mdn.io/Generator)-like object i.e. has `next()`, `return()` and `throw()` methods.
+ *
+ * @param value Value to be checked.
+ * @returns `true` if `value` is a [`Generator`](https://mdn.io/Generator)-like object, `false` otherwise.
+ */
+export function isGeneratorLike(value: any): value is Generator {
+  return typeof value?.next === 'function' && typeof value?.return === 'function' && typeof value?.throw === 'function'
+}
