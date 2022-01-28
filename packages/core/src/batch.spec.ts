@@ -119,7 +119,7 @@ describe('batch', () => {
         fn(1),
         delayedFn(2, 10),
         delayedFn(3, 20),
-        delayedFn(4, 29),
+        delayedFn(4, 25),
       ]))).resolves.toEqual([1, 2, 3, 4])
       expect(batchedFn).toHaveBeenCalledWith([[1], [2], [3], [4]])
     })
@@ -127,9 +127,9 @@ describe('batch', () => {
     it('should execute calls after wait time in a second batch', async () => {
       await expect(cllr.execute(all([
         fn(1),
-        delayedFn(2, 60),
-        delayedFn(3, 29),
-        delayedFn(4, 89),
+        delayedFn(2, 65),
+        delayedFn(3, 25),
+        delayedFn(4, 85),
       ]))).resolves.toEqual([1, 2, 3, 4])
       expect(batchedFn).toHaveBeenNthCalledWith(1, [[1], [3]])
       expect(batchedFn).toHaveBeenNthCalledWith(2, [[2], [4]])
