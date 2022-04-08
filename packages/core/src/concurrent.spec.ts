@@ -2,7 +2,7 @@
 
 import { Cuillere, all, allSettled, call, cuillere } from '.'
 
-const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
+const delay = (timeout: number) => new Promise((resolve) => { setTimeout(resolve, timeout) })
 
 describe('concurrent', () => {
   let cllr: Cuillere

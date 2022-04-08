@@ -284,7 +284,8 @@ export class Stack {
     if (handleIndex === -1) return
 
     stack.splice(
-      handleIndex + 1, 0,
+      handleIndex + 1,
+      0,
       ...this.getFrames(this.currentFrame),
     )
   })

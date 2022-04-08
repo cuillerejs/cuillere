@@ -21,7 +21,7 @@ export function timePlugin(): Plugin<SleepOperations> {
 
     handlers: {
       async* sleep({ delay }: SleepOperation) {
-        return new Promise(resolve => setTimeout(resolve, delay))
+        return new Promise((resolve) => { setTimeout(resolve, delay) })
       },
 
       * after({ effect, delay }: AfterOperation) {

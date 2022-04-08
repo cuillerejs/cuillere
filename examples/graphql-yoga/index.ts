@@ -2,23 +2,26 @@ import { createServer } from 'graphql-yoga'
 import { useCuillere } from '@cuillere/envelop'
 
 const server = createServer({
-  typeDefs: `
-    type Query {
-      ping: String
-    }
-  `,
-  resolvers: {
-    Query: {
-      * ping() {
-        return 'pong'
+  schema: {
+    typeDefs: /* GraphQL */ `
+      type Query {
+        ping: String
+      }
+    `,
+    resolvers: {
+      Query: {
+        * ping() {
+          return 'pong'
+        },
       },
     },
   },
+
   plugins: [
     useCuillere(),
   ],
 })
 
-server.start(() => {
+server.start().then(() => {
   console.log('Listening at http://localhost:4000/')
 })

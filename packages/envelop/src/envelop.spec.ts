@@ -22,15 +22,13 @@ describe('envelop', () => {
   })
 
   it('should allow to use cuillere in root fields', async () => {
-    setSchema(
-      /* GraphQL */ `
+    setSchema(/* GraphQL */`
         type Query { hello: String }
       `, {
-        Query: { * hello() {
-          return 'Hello !'
-        } },
-      },
-    )
+      Query: { * hello() {
+        return 'Hello !'
+      } },
+    })
 
     expect(await query(/* GraphQL */`
       query { hello }
@@ -40,15 +38,13 @@ describe('envelop', () => {
   })
 
   it('should allow to use cuillere with parameter', async () => {
-    setSchema(
-      /* GraphQL */ `
+    setSchema(/* GraphQL */`
         type Query { hello(name: String!): String }
       `, {
-        Query: { * hello(_, { name }) {
-          return `Hello ${name}!`
-        } },
-      },
-    )
+      Query: { * hello(_, { name }) {
+        return `Hello ${name}!`
+      } },
+    })
 
     expect(await query(/* GraphQL */`
       query { hello(name: "Valentin") }
@@ -58,17 +54,15 @@ describe('envelop', () => {
   })
 
   it('should allow to use cuillere in types', async () => {
-    setSchema(
-      /* GraphQL */ `
+    setSchema(/* GraphQL */`
         type Query { hello: Greeting }
         type Greeting { message: String }
       `, {
-        Query: { hello: () => ({}) },
-        Greeting: { * message() {
-          return 'Hello !'
-        } },
-      },
-    )
+      Query: { hello: () => ({}) },
+      Greeting: { * message() {
+        return 'Hello !'
+      } },
+    })
 
     expect(await query(/* GraphQL */`
       query { hello { message } }

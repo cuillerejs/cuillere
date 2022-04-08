@@ -22,13 +22,9 @@ export function useCuillere({ plugins: cllrPlugins = [], contextKey = 'cuillereC
       const ctx = context[contextKey] ?? {}
       extendContext({ [instanceKey]: cllr.ctx(ctx), [contextKey]: ctx })
     },
-    onExecute({ args: { contextValue } }) {
-      return {
-        onResolverCalled({ resolverFn, replaceResolverFn }) {
-          if (!isGeneratorFunction(resolverFn)) return
-          replaceResolverFn((obj, args, ctx, info) => contextValue[instanceKey].call(resolverFn, obj, args, ctx, info))
-        },
-      }
+    onResolverCalled({ context, resolverFn, replaceResolverFn }) {
+      if (!isGeneratorFunction(resolverFn)) return
+      replaceResolverFn((obj, args, ctx, info) => context[instanceKey].call(resolverFn, obj, args, ctx, info))
     },
   }
 

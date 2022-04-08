@@ -9,7 +9,7 @@ describe('channels', () => {
   })
 
   async function* delayedCall(delay, func, ...args) {
-    await new Promise(resolve => setTimeout(resolve, delay))
+    await new Promise((resolve) => { setTimeout(resolve, delay) })
     yield call(func, ...args)
   }
 

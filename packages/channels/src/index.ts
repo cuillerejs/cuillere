@@ -121,16 +121,18 @@ export function channelsPlugin(): Plugin<ChannelOperations> {
       async* send({ chanKey, value }) {
         if (syncSend(chanKey, value)) return
 
-        await new Promise<void>(resolve => chans.get(chanKey).sendQ.push(() => {
-          resolve()
-          return value
-        }))
+        await new Promise<void>((resolve) => {
+          chans.get(chanKey).sendQ.push(() => {
+            resolve()
+            return value
+          })
+        })
       },
 
       * after({ duration }) {
         const ch = chan()
         yield fork(async function* () {
-          await new Promise(resolve => setTimeout(resolve, duration))
+          await new Promise((resolve) => { setTimeout(resolve, duration) })
           yield send(ch, new Date())
         })
         return ch
@@ -140,7 +142,7 @@ export function channelsPlugin(): Plugin<ChannelOperations> {
         const ch = chan()
         yield fork(async function* () {
           while (true) {
-            await new Promise(resolve => setTimeout(resolve, interval))
+            await new Promise((resolve) => { setTimeout(resolve, interval) })
             yield send(ch, new Date())
           }
         })
@@ -290,7 +292,7 @@ async function doRecv(chanKey: ChanKey) {
   const res = syncRecv(chanKey)
   if (res) return res
 
-  return new Promise<[any, boolean]>(resolve => chans.get(chanKey).recvQ.push(resolve))
+  return new Promise<[any, boolean]>((resolve) => { chans.get(chanKey).recvQ.push(resolve) })
 }
 
 const DEFAULT = Symbol('DEFAULT')

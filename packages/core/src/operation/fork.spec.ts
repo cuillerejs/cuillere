@@ -4,7 +4,7 @@ async function* identity(arg: any) {
   return arg
 }
 
-const delay = (timeout: number) => new Promise(resolve => setTimeout(resolve, timeout))
+const delay = (timeout: number) => new Promise((resolve) => { setTimeout(resolve, timeout) })
 
 describe('fork', () => {
   let cllr: Cuillere
