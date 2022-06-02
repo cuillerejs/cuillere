@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/server-plugin",
-  "version": "0.13.0",
+  "version": "0.14.0-alpha.0",
   "main": "dist/index.js",
   "engines": {
     "node": ">=16"
@@ -32,7 +32,7 @@
     "ci": "yarn run-p build lint test"
   },
   "devDependencies": {
-    "@cuillere/core": "^0.13.0",
+    "@cuillere/core": "^0.14.0-alpha.0",
     "@tsconfig/node16": "^1.0.2",
     "@types/jest": "^27.4.1",
     "@types/pg": "^8.6.5",
@@ -51,7 +51,7 @@
     "typescript": "^4.6.3"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.13.0",
+    "@cuillere/core": "^0.14.0-alpha.0",
     "graphql": "^15.6.1"
   },
   "jest": {

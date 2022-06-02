@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/envelop",
-  "version": "0.13.0",
+  "version": "0.14.0-alpha.0",
   "main": "dist/index.js",
   "engines": {
     "node": ">=16"
@@ -36,7 +36,7 @@
     "npm-run-all": "^4.1.5"
   },
   "devDependencies": {
-    "@cuillere/core": "^0.13.0",
+    "@cuillere/core": "^0.14.0-alpha.0",
     "@graphql-tools/schema": "^8.3.7",
     "@tsconfig/node16": "^1.0.2",
     "@types/jest": "^27.4.1",
@@ -57,7 +57,7 @@
     "typescript": "^4.6.3"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.13.0",
+    "@cuillere/core": "^0.14.0-alpha.0",
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
   },
   "jest": {

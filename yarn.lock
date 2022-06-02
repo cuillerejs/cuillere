@@ -1014,7 +1014,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@cuillere/channels@workspace:packages/channels"
   dependencies:
-    "@cuillere/core": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
     "@tsconfig/node16": ^1.0.2
     "@types/jest": ^27.4.1
     "@types/pg": ^8.6.5
@@ -1030,11 +1030,11 @@ __metadata:
     ts-jest: ^27.1.4
     typescript: ^4.6.3
   peerDependencies:
-    "@cuillere/core": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
   languageName: unknown
   linkType: soft
 
-"@cuillere/core@^0.13.0, @cuillere/core@workspace:^, @cuillere/core@workspace:packages/core":
+"@cuillere/core@^0.14.0-alpha.0, @cuillere/core@workspace:^, @cuillere/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@cuillere/core@workspace:packages/core"
   dependencies:
@@ -1059,7 +1059,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@cuillere/envelop@workspace:packages/envelop"
   dependencies:
-    "@cuillere/core": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
     "@envelop/core": ^2.3.0
     "@graphql-tools/schema": ^8.3.7
     "@tsconfig/node16": ^1.0.2
@@ -1081,7 +1081,7 @@ __metadata:
     ts-jest: ^27.1.4
     typescript: ^4.6.3
   peerDependencies:
-    "@cuillere/core": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
   languageName: unknown
   linkType: soft
@@ -1090,8 +1090,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@cuillere/mariadb@workspace:packages/mariadb"
   dependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/server-plugin": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
+    "@cuillere/server-plugin": ^0.14.0-alpha.0
     "@tsconfig/node16": ^1.0.2
     "@types/jest": ^27.4.1
     "@types/pg": ^8.6.5
@@ -1107,8 +1107,8 @@ __metadata:
     ts-jest: ^27.1.4
     typescript: ^4.6.3
   peerDependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/server-plugin": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
+    "@cuillere/server-plugin": ^0.14.0-alpha.0
     graphql: ^15.6.1
     mariadb: ~2
   languageName: unknown
@@ -1118,8 +1118,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@cuillere/postgres@workspace:packages/postgres"
   dependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/server-plugin": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
+    "@cuillere/server-plugin": ^0.14.0-alpha.0
     "@tsconfig/node16": ^1.0.2
     "@types/jest": ^27.4.1
     "@types/pg": ^8.6.5
@@ -1136,17 +1136,17 @@ __metadata:
     ts-jest: ^27.1.4
     typescript: ^4.6.3
   peerDependencies:
-    "@cuillere/core": ^0.13.0
-    "@cuillere/server-plugin": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
+    "@cuillere/server-plugin": ^0.14.0-alpha.0
     pg: ~7||~8
   languageName: unknown
   linkType: soft
 
-"@cuillere/server-plugin@^0.13.0, @cuillere/server-plugin@workspace:packages/server-plugin":
+"@cuillere/server-plugin@^0.14.0-alpha.0, @cuillere/server-plugin@workspace:packages/server-plugin":
   version: 0.0.0-use.local
   resolution: "@cuillere/server-plugin@workspace:packages/server-plugin"
   dependencies:
-    "@cuillere/core": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
     "@tsconfig/node16": ^1.0.2
     "@types/jest": ^27.4.1
     "@types/pg": ^8.6.5
@@ -1165,7 +1165,7 @@ __metadata:
     ts-jest: ^27.1.4
     typescript: ^4.6.3
   peerDependencies:
-    "@cuillere/core": ^0.13.0
+    "@cuillere/core": ^0.14.0-alpha.0
     graphql: ^15.6.1
   languageName: unknown
   linkType: soft

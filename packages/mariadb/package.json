@@ -25,14 +25,14 @@
     "ci": "yarn run-p build lint test"
   },
   "peerDependencies": {
-    "@cuillere/core": "^0.13.0",
-    "@cuillere/server-plugin": "^0.13.0",
+    "@cuillere/core": "^0.14.0-alpha.0",
+    "@cuillere/server-plugin": "^0.14.0-alpha.0",
     "graphql": "^15.6.1",
     "mariadb": "~2"
   },
   "devDependencies": {
-    "@cuillere/core": "^0.13.0",
-    "@cuillere/server-plugin": "^0.13.0",
+    "@cuillere/core": "^0.14.0-alpha.0",
+    "@cuillere/server-plugin": "^0.14.0-alpha.0",
     "@tsconfig/node16": "^1.0.2",
     "@types/jest": "^27.4.1",
     "@types/pg": "^8.6.5",
