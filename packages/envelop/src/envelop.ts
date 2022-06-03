@@ -1,67 +1,81 @@
-import { Cuillere, cuillere, isGeneratorFunction, Plugin } from '@cuillere/core'
+import { Cuillere, cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
 import { Plugin as EnvelopPlugin } from '@envelop/core'
 
-export function useCuillere({ plugins: cllrPlugins = [], contextKey = 'cuillereContext', instanceKey = 'cuillere' }: { plugins?: Plugin[]; contextKey?: string; instanceKey?: string } = {}): CuillereCoreEnvelopPlugin {
+const addPluginsField = Symbol('addPlugins')
+
+type PluginsAdder = EnvelopPlugin & {
+  [addPluginsField](plugins: Plugin[]): void
+}
+
+export type CuillereEnvelopPluginOptions = {
+  plugins?: Plugin[]
+  instanceContextField?: string
+  contextContextField?: string
+}
+
+export function useCuillere({ plugins: basePlugins = [], instanceContextField = 'cuillere', contextContextField = 'cuillereContext' }: CuillereEnvelopPluginOptions = {}): EnvelopPlugin {
+  let plugins: Plugin[] = [contextPlugin]
   let cllr: Cuillere
 
-  const plugin: CuillereCoreEnvelopPlugin = {
-    get cuillere() {
-      return cllr
+  function addPlugins(newPlugins: Plugin[]) {
+    plugins = [...plugins, ...newPlugins]
+    cllr = cuillere(...plugins)
+  }
+
+  addPlugins(basePlugins)
+
+  const plugin: EnvelopPlugin = {
+    onEnveloped({ context, extendContext }) {
+      const ctx = context[contextContextField] ?? {}
+      extendContext({ [instanceContextField]: cllr.ctx(ctx), [contextContextField]: ctx })
     },
-    get contextKey() {
-      return contextKey
+    onExecute({ args }) {
+      args.contextValue[contextContextField].graphQLContext = args.contextValue
     },
-    get instanceKey() {
-      return instanceKey
-    },
-    onPluginInit({ plugins }) {
-      const pluginsToRegister = plugins.flatMap(plugin => (isCuillerePlugin(plugin) && plugin.cuillere?.plugins) || [])
-      cllr = cuillere(...cllrPlugins, ...pluginsToRegister)
-    },
-    onEnveloped({ extendContext, context }) {
-      const ctx = context[contextKey] ?? {}
-      extendContext({ [instanceKey]: cllr.ctx(ctx), [contextKey]: ctx })
+    onSubscribe({ args }) {
+      args.contextValue[contextContextField].graphQLContext = args.contextValue
     },
     onResolverCalled({ context, resolverFn, replaceResolverFn }) {
       if (!isGeneratorFunction(resolverFn)) return
-      replaceResolverFn((obj, args, ctx, info) => context[instanceKey].call(resolverFn, obj, args, ctx, info))
+      replaceResolverFn((obj, args, ctx, info) => context[instanceContextField].call(resolverFn, obj, args, ctx, info))
     },
   }
 
-  Object.defineProperty(plugin, CUILLERE_CORE_ENVELOP_PLUGIN, { enumerable: true, writable: false, value: true })
+  plugin[addPluginsField] = addPlugins
 
   return plugin
 }
 
-export interface CuillereCoreEnvelopPlugin extends EnvelopPlugin {
-  cuillere: Cuillere
-  contextKey: string
-  instanceKey: string
-}
-
-export function isCuillereCoreEnvelopPlugin(plugin: EnvelopPlugin): plugin is CuillereCoreEnvelopPlugin {
-  return CUILLERE_CORE_ENVELOP_PLUGIN in plugin
-}
-
-const CUILLERE_CORE_ENVELOP_PLUGIN = Symbol('CUILLERE_CORE_ENVELOP_PLUGIN')
-
-export const IS_CUILLERE_PLUGIN = Symbol('IS_CUILLERE_PLUGIN')
-
-export interface CuillereEnvelopPlugin extends EnvelopPlugin {
-  [IS_CUILLERE_PLUGIN]: true
-  cuillere?: { plugins: Plugin[] }
-}
-
-export function isCuillerePlugin(plugin: any): plugin is CuillereEnvelopPlugin {
-  return plugin[IS_CUILLERE_PLUGIN]
-}
-
-export function ensurePlugin(plugins, addPlugin, predicate, factory) {
-  let plugin = plugins.find(predicate)
-  if (!plugin) {
-    plugin = factory()
-    addPlugin(plugin)
+export function useCuillerePlugins(...plugins: Plugin[]): EnvelopPlugin {
+  return {
+    onPluginInit({ plugins: envelopPlugins }) {
+      const { [addPluginsField]: addPlugins } = envelopPlugins.find((plugin): plugin is PluginsAdder => addPluginsField in plugin)
+      addPlugins(plugins)
+    },
   }
+}
 
-  return plugin
+const namespace = '@envelop/context'
+
+export interface GetContextOperation extends Operation {
+  field?: string
+}
+
+export function getContext(field?: string): GetContextOperation {
+  return { kind: `${namespace}/get`, field }
+}
+
+type ContextOperations = {
+  get: GetContextOperation
+}
+
+const contextPlugin: Plugin<ContextOperations> = {
+  namespace,
+
+  handlers: {
+    * get({ field }, { graphQLContext }) {
+      if (!field) return graphQLContext
+      return graphQLContext[field]
+    },
+  },
 }

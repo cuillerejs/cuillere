@@ -1,10 +1,12 @@
-import { envelop, useSchema } from '@envelop/core'
+import { Operation, Plugin } from '@cuillere/core'
+import { envelop, useSchema, Plugin as EnvelopPlugin, useExtendContext } from '@envelop/core'
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { TypeSource, IResolvers } from '@graphql-tools/utils'
 import { fastify } from 'fastify'
 import { getGraphQLParameters, processRequest, renderGraphiQL, shouldRenderGraphiQL } from 'graphql-helix'
 import fetch from 'node-fetch'
 
-import { useCuillere } from './envelop'
+import { getContext, useCuillere, useCuillerePlugins } from './envelop'
 
 let api
 describe('envelop', () => {
@@ -22,28 +24,38 @@ describe('envelop', () => {
   })
 
   it('should allow to use cuillere in root fields', async () => {
-    setSchema(/* GraphQL */`
+    setup({
+      typeDefs: /* GraphQL */`
         type Query { hello: String }
-      `, {
-      Query: { * hello() {
-        return 'Hello !'
-      } },
+      `,
+      resolvers: {
+        Query: {
+          * hello() {
+            return 'Hello!'
+          },
+        },
+      },
     })
 
     expect(await query(/* GraphQL */`
       query { hello }
     `)).toEqual({ data: {
-      hello: 'Hello !',
+      hello: 'Hello!',
     } })
   })
 
   it('should allow to use cuillere with parameter', async () => {
-    setSchema(/* GraphQL */`
+    setup({
+      typeDefs: /* GraphQL */`
         type Query { hello(name: String!): String }
-      `, {
-      Query: { * hello(_, { name }) {
-        return `Hello ${name}!`
-      } },
+      `,
+      resolvers: {
+        Query: {
+          * hello(_, { name }) {
+            return `Hello ${name}!`
+          },
+        },
+      },
     })
 
     expect(await query(/* GraphQL */`
@@ -54,21 +66,87 @@ describe('envelop', () => {
   })
 
   it('should allow to use cuillere in types', async () => {
-    setSchema(/* GraphQL */`
+    setup({
+      typeDefs: /* GraphQL */`
         type Query { hello: Greeting }
         type Greeting { message: String }
-      `, {
-      Query: { hello: () => ({}) },
-      Greeting: { * message() {
-        return 'Hello !'
-      } },
+      `,
+      resolvers: {
+        Query: {
+          hello: () => ({}),
+        },
+        Greeting: {
+          * message() {
+            return 'Hello!'
+          },
+        },
+      },
     })
 
     expect(await query(/* GraphQL */`
       query { hello { message } }
     `)).toEqual({ data: {
-      hello: { message: 'Hello !' },
+      hello: { message: 'Hello!' },
     } })
+  })
+
+  describe('getContext() operation', () => {
+    it('should allow to get GraphQL context values from nested functions', async () => {
+      setup({
+        typeDefs: /* GraphQL */`
+          type Query { hello: String }
+        `,
+        resolvers: {
+          Query: {
+            * hello() {
+              return yield getMessage()
+            },
+          },
+        },
+        plugins: [
+          useExtendContext(() => ({ helloMessage: 'Hello from the context!' })),
+        ],
+      })
+
+      function* getMessage() {
+        return yield getContext('helloMessage')
+      }
+
+      expect(await query(/* GraphQL */`
+        query { hello }
+      `)).toEqual({ data: {
+        hello: 'Hello from the context!',
+      } })
+    })
+  })
+
+  describe('useCuillerePlugins() envelop plugin', () => {
+    it('should allow to add cuillere plugins', () => {
+      const getMessagePlugin: Plugin<{ getMessage: Operation }> = {
+        namespace: '@test',
+        handlers: {
+          * getMessage() {
+            return 'Hello from a plugin!'
+          },
+        },
+      }
+
+      setup({
+        typeDefs: /* GraphQL */`
+        type Query { hello: String }
+      `,
+        resolvers: {
+          Query: {
+            * hello() {
+              return yield { kind: '@test/getMessage' }
+            },
+          },
+        },
+        plugins: [
+          useCuillerePlugins(getMessagePlugin),
+        ],
+      })
+    })
   })
 })
 
@@ -84,10 +162,11 @@ async function query(query, variables = {}): Promise<any> {
 
 let getEnveloped = envelop({ plugins: [] })
 
-function setSchema(typeDefs, resolvers) {
+function setup({ typeDefs, resolvers, plugins = [] }: { typeDefs: TypeSource; resolvers: IResolvers; plugins?: EnvelopPlugin<any>[] }) {
   getEnveloped = envelop({ plugins: [
     useSchema(makeExecutableSchema({ typeDefs, resolvers })),
     useCuillere(),
+    ...plugins,
   ] })
 }
 
