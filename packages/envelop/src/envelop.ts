@@ -74,6 +74,7 @@ const contextPlugin: Plugin<ContextOperations> = {
 
   handlers: {
     * get({ field }, { graphQLContext }) {
+      if (!graphQLContext) throw new Error('getContext() must not be used outside of resolvers')
       if (!field) return graphQLContext
       return graphQLContext[field]
     },

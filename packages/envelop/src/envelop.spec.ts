@@ -112,11 +112,43 @@ describe('envelop', () => {
         return yield getContext('helloMessage')
       }
 
-      expect(await query(/* GraphQL */`
+      await expect(query(/* GraphQL */`
         query { hello }
-      `)).toEqual({ data: {
+      `)).resolves.toEqual({ data: {
         hello: 'Hello from the context!',
       } })
+    })
+
+    describe('when yielded outside of execution phase', () => {
+      it('should throw an error', async () => {
+        setup({
+          typeDefs: /* GraphQL */`
+            type Query { hello: String }
+          `,
+          resolvers: {
+            Query: {
+              * hello() {
+                return 'Hello!'
+              },
+            },
+          },
+          plugins: [{
+            async onContextBuilding({ context }) {
+              await context.cuillere.call(function* () {
+                yield getContext()
+              })
+            },
+          }],
+        })
+
+        const result = query(/* GraphQL */`
+          query { hello }
+        `)
+
+        await expect(result).resolves.toEqual({
+          errors: [{ message: 'getContext() must not be used outside of resolvers' }],
+        })
+      })
     })
   })
 
