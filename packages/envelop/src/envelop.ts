@@ -1,7 +1,11 @@
-import { cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
+import { Cuillere, cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
 import { Plugin as EnvelopPlugin } from '@envelop/core'
 
-const addPluginsContextField = Symbol('addCuillerePlugins')
+const addPluginsField = Symbol('addPlugins')
+
+type PluginsAdder = EnvelopPlugin & {
+  [addPluginsField](plugins: Plugin[]): void
+}
 
 export type CuillereEnvelopPluginOptions = {
   plugins?: Plugin[]
@@ -14,20 +18,20 @@ export function useCuillere({
   instanceContextField = 'cuillere',
   contextContextField = 'cuillereContext',
 }: CuillereEnvelopPluginOptions = {}): EnvelopPlugin {
-  return {
+  let plugins: Plugin[] = [contextPlugin]
+  let cllr: Cuillere
+
+  function addPlugins(newPlugins: Plugin[]) {
+    plugins = [...plugins, ...newPlugins]
+    cllr = cuillere(...plugins)
+  }
+
+  addPlugins(basePlugins)
+
+  const plugin: EnvelopPlugin = {
     onEnveloped({ context, extendContext }) {
-      let plugins = [contextPlugin, ...basePlugins]
       const ctx = context[contextContextField] ?? {}
-      extendContext({
-        [instanceContextField]: cuillere(...plugins).ctx(ctx),
-        [contextContextField]: ctx,
-        [addPluginsContextField]: (newPlugins: Plugin[]) => {
-          plugins = [...plugins, ...newPlugins]
-          return {
-            [instanceContextField]: cuillere(...plugins).ctx(ctx),
-          }
-        },
-      })
+      extendContext({ [instanceContextField]: cllr.ctx(ctx), [contextContextField]: ctx })
     },
     onExecute({ args }) {
       args.contextValue[contextContextField].graphQLContext = args.contextValue
@@ -40,15 +44,17 @@ export function useCuillere({
       replaceResolverFn((obj, args, ctx, info) => context[instanceContextField].call(resolverFn, obj, args, ctx, info))
     },
   }
+
+  plugin[addPluginsField] = addPlugins
+
+  return plugin
 }
 
-export function useCuillerePlugins(...plugins: Plugin[]): EnvelopPlugin<{
-  [addPluginsContextField]?: (plugins: Plugin[]) => any
-}> {
+export function useCuillerePlugins(...plugins: Plugin[]): EnvelopPlugin {
   return {
-    onEnveloped({ context, extendContext }) {
-      if (!(addPluginsContextField in context)) throw new Error('useCuillerePlugins() cannot be used before useCuillere()')
-      extendContext(context[addPluginsContextField](plugins))
+    onPluginInit({ plugins: envelopPlugins }) {
+      const { [addPluginsField]: addPlugins } = envelopPlugins.find((plugin): plugin is PluginsAdder => addPluginsField in plugin)
+      addPlugins(plugins)
     },
   }
 }

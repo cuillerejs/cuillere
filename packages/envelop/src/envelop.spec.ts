@@ -187,7 +187,7 @@ describe('envelop', () => {
       } })
     })
 
-    it('should add cuillere plugins from sub-envelop', async () => {
+    it('should add cuillere plugins from onPluginInit hook', async () => {
       setup({
         typeDefs: /* GraphQL */`
         type Query { hello: String }
@@ -200,11 +200,11 @@ describe('envelop', () => {
           },
         },
         plugins: [
-          useEnvelop(envelop({
-            plugins: [
-              useCuillerePlugins(getMessagePlugin),
-            ],
-          })),
+          {
+            onPluginInit({ addPlugin }) {
+              addPlugin(useCuillerePlugins(getMessagePlugin))
+            },
+          },
         ],
       })
 
