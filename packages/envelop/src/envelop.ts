@@ -53,7 +53,10 @@ export function useCuillere({
 export function useCuillerePlugins(...plugins: Plugin[]): EnvelopPlugin {
   return {
     onPluginInit({ plugins: envelopPlugins }) {
-      const { [addPluginsField]: addPlugins } = envelopPlugins.find((plugin): plugin is PluginsAdder => addPluginsField in plugin)
+      const pluginsAdder = envelopPlugins.find((plugin): plugin is PluginsAdder => addPluginsField in plugin)
+      if (pluginsAdder == undefined) throw new Error('useCuillerePlugins cannot be used before useCuillere')
+
+      const { [addPluginsField]: addPlugins } = pluginsAdder
       addPlugins(plugins)
     },
   }
