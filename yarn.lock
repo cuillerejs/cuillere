@@ -1060,7 +1060,7 @@ __metadata:
   resolution: "@cuillere/envelop@workspace:packages/envelop"
   dependencies:
     "@cuillere/core": ^0.14.0-alpha.0
-    "@envelop/core": ^2.3.0
+    "@envelop/core": ^2.3.3
     "@graphql-tools/schema": ^8.3.7
     "@tsconfig/node16": ^1.0.2
     "@types/jest": ^27.4.1
@@ -1198,7 +1198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@envelop/core@npm:^2.0.0, @envelop/core@npm:^2.3.0":
+"@envelop/core@npm:^2.0.0":
   version: 2.3.0
   resolution: "@envelop/core@npm:2.3.0"
   dependencies:
@@ -1206,6 +1206,17 @@ __metadata:
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
   checksum: 636fee1cf436b91ba025b14f5a824c15afef0ccbba765e161d1cbdbf89ff52ee884a8350021464157e17af1644c74b9d99f6999dc061060ac492a1b069dd0b46
+  languageName: node
+  linkType: hard
+
+"@envelop/core@npm:^2.3.3":
+  version: 2.3.3
+  resolution: "@envelop/core@npm:2.3.3"
+  dependencies:
+    "@envelop/types": 2.2.1
+  peerDependencies:
+    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: 06a851265bd956f8bf2a91fb77c5e06d41b54fffabcb3701c74412abf295a9a199b6b0e403730e98a247c2d69917a35297bce2c39f5cfa274d5134e5b8504c12
   languageName: node
   linkType: hard
 
@@ -1237,6 +1248,15 @@ __metadata:
   peerDependencies:
     graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
   checksum: 52f9d1635f310be46a6e1ee28cbde398b8a1dba7a2f11f89175103c8871f67f51a44e72abf6d7766862aa73538d33e7c71ab54868c129f4a2d054d1096aeb3fc
+  languageName: node
+  linkType: hard
+
+"@envelop/types@npm:2.2.1":
+  version: 2.2.1
+  resolution: "@envelop/types@npm:2.2.1"
+  peerDependencies:
+    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: 294c282b72eecfc78c580ac815ecf96eb2bd6e03ee6fe5e3ec11400a438b2ff361f89b2ec95a0b82ea1b0def7b5efe8a9f995fa795910fd645e36ed30a849746
   languageName: node
   linkType: hard
 
