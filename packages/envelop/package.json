@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/envelop",
-  "version": "0.14.0-alpha.1",
+  "version": "0.14.0-alpha.2",
   "main": "dist/index.js",
   "engines": {
     "node": ">=16"
