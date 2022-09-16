@@ -39,9 +39,9 @@ export function useCuillere({
     onSubscribe({ args }) {
       args.contextValue[contextContextField].graphQLContext = args.contextValue
     },
-    onResolverCalled({ context, resolverFn, replaceResolverFn }) {
+    onResolverCalled({ resolverFn, replaceResolverFn }) {
       if (!isGeneratorFunction(resolverFn)) return
-      replaceResolverFn((obj, args, ctx, info) => context[instanceContextField].call(resolverFn, obj, args, ctx, info))
+      replaceResolverFn((obj, args, ctx, info) => ctx[instanceContextField].call(resolverFn, obj, args, ctx, info))
     },
   }
 
