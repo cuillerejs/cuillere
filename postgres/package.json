@@ -1,6 +1,6 @@
 {
   "name": "@cuillere/postgres",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "main": "dist/node/index.js",
   "types": "dist/types",
   "engines": {

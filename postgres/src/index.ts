@@ -1,5 +1,7 @@
 export * from './client-manager'
+export { setClientGetter } from './client-getter'
 export * from './plugins'
 export * from './pool-manager'
 export * from './query-config'
+export { setQueryHandler } from './query-handler'
 export * from './transaction-manager'
