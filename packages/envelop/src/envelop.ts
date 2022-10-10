@@ -1,3 +1,4 @@
+import { mapSchema, MapperKind } from '@graphql-tools/utils'
 import { Cuillere, cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
 import { Plugin as EnvelopPlugin } from '@envelop/core'
 
@@ -29,6 +30,18 @@ export function useCuillere({
   addPlugins(basePlugins)
 
   const plugin: EnvelopPlugin = {
+    onSchemaChange({ schema, replaceSchema }) {
+      replaceSchema(mapSchema(schema, {
+        [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+          const { resolve } = fieldConfig
+          if (!isGeneratorFunction(fieldConfig.resolve)) return fieldConfig
+          return {
+            ...fieldConfig,
+            resolve: (obj, args, ctx, info) => ctx[instanceContextField].call(resolve, obj, args, ctx, info),
+          }
+        },
+      }))
+    },
     onEnveloped({ context, extendContext }) {
       const ctx = context[contextContextField] ?? {}
       extendContext({ [instanceContextField]: cllr.ctx(ctx), [contextContextField]: ctx })
@@ -38,10 +51,6 @@ export function useCuillere({
     },
     onSubscribe({ args }) {
       args.contextValue[contextContextField].graphQLContext = args.contextValue
-    },
-    onResolverCalled({ resolverFn, replaceResolverFn }) {
-      if (!isGeneratorFunction(resolverFn)) return
-      replaceResolverFn((obj, args, ctx, info) => ctx[instanceContextField].call(resolverFn, obj, args, ctx, info))
     },
   }
 

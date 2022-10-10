@@ -33,6 +33,7 @@
   ],
   "dependencies": {
     "@envelop/core": "^2.3.3",
+    "@graphql-tools/utils": "^8.12.0",
     "npm-run-all": "^4.1.5"
   },
   "devDependencies": {
