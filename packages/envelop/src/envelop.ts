@@ -1,6 +1,6 @@
 import { mapSchema, MapperKind } from '@graphql-tools/utils'
-import { Cuillere, cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
-import { Plugin as EnvelopPlugin } from '@envelop/core'
+import { type Cuillere, cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
+import type { Plugin as EnvelopPlugin } from '@envelop/core'
 
 const addPluginsField = Symbol('addPlugins')
 
