@@ -27,7 +27,7 @@
     "ci": "yarn run-p build lint test"
   },
   "devDependencies": {
-    "@tsconfig/node16": "^1.0.2",
+    "@tsconfig/node16": "^1.0.3",
     "@types/jest": "^27.4.1",
     "@types/pg": "^8.6.5",
     "@typescript-eslint/eslint-plugin": "^5.18.0",
