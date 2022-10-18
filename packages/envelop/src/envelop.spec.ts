@@ -1,5 +1,5 @@
 import { Operation, Plugin } from '@cuillere/core'
-import { envelop, useSchema, Plugin as EnvelopPlugin, useExtendContext, useEnvelop } from '@envelop/core'
+import { envelop, useSchema, Plugin as EnvelopPlugin, useExtendContext } from '@envelop/core'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { TypeSource, IResolvers } from '@graphql-tools/utils'
 import { fastify } from 'fastify'
