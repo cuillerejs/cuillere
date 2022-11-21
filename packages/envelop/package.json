@@ -48,7 +48,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jest": "^26.1.4",
     "esm": "^3.2.25",
-    "fastify": "^3.28.0",
+    "fastify": "^3.29.4",
     "graphql-helix": "^1.12.0",
     "jest": "^27.5.1",
     "node-fetch": "^3.2.10",
