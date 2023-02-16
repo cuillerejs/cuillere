@@ -55,11 +55,16 @@ function isResolverOptions(value: any): value is IResolverOptions {
 }
 
 function mapResolverOption(value: IResolverOptions) {
-  return {
+  const result = {
     ...value,
-    resolve: value.resolve ? wrapFieldResolver(value.resolve) : value.resolve,
-    subscribe: value.subscribe ? wrapFieldResolver(value.subscribe) : value.subscribe,
   }
+  if (result.resolve) {
+    result.resolve = wrapFieldResolver(value.resolve)
+  }
+  if (result.subscribe) {
+    result.subscribe = wrapFieldResolver(value.subscribe)
+  }
+  return result
 }
 
 function isEnumResolver(value: any): value is IEnumResolver {
