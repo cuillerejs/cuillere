@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@cuillere/mariadb": "^0.13.0",
-    "@cuillere/postgres": "^0.13.0",
-    "@cuillere/server": "^0.13.0",
+    "@cuillere/postgres": "^0.13.1",
+    "@cuillere/server": "^0.13.2",
     "graphql-iso-date": "^3.6.1",
     "mariadb": "~2.5.1",
     "pg": "~8.5.1"
