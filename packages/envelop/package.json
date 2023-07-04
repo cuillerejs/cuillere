@@ -3,7 +3,7 @@
   "version": "0.14.0-alpha.4",
   "main": "dist/index.js",
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   },
   "repository": "https://github.com/cuillerejs/cuillere",
   "author": {
