@@ -1,6 +1,6 @@
 import type { Handler } from './plugin'
 import type { Cuillere } from './cuillere'
-import { type Generator } from './generator'
+import { type Generator, isGenerator } from './generator'
 import { type Operation, isOperation } from './operation'
 
 export class Runner<R> {
@@ -24,6 +24,10 @@ export class Runner<R> {
     generator: Generator<R, Operation>,
     cllr: Cuillere,
   ) {
+    if (!isGenerator(generator)) {
+      throw new TypeError(`${typeof generator} value is not a Generator`)
+    }
+
     this.handlers = handlers
     this.context = context
     this.generator = generator
@@ -77,7 +81,7 @@ export class Runner<R> {
 
   async handle(operation: Operation) {
     if (!isOperation(operation)) {
-      throw new TypeError(`${operation} is not a valid operation`)
+      throw new TypeError(`${typeof operation} value is not an operation`)
     }
 
     if (!this.handlers[operation.kind]) {

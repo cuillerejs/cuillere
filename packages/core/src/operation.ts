@@ -20,5 +20,5 @@ export type Operation = {
  * @returns `true` if `value` has a property named `kind`.
  */
 export function isOperation(value: any): value is Operation {
-  return 'kind' in value
+  return typeof value === 'object' && value !== null && 'kind' in value
 }
