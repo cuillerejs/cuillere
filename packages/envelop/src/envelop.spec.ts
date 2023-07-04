@@ -1,32 +1,15 @@
-import { describe, beforeAll, afterAll, it, expect } from 'vitest'
+import { describe, it, expect } from 'vitest'
 
 import { Operation, Plugin } from '@cuillere/core'
-import { envelop, useSchema, Plugin as EnvelopPlugin, useExtendContext } from '@envelop/core'
+import { useExtendContext } from '@envelop/core'
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { TypeSource, IResolvers } from '@graphql-tools/utils'
-import { fastify } from 'fastify'
-import { getGraphQLParameters, processRequest, renderGraphiQL, shouldRenderGraphiQL } from 'graphql-helix'
+import { createTestkit } from '@envelop/testing'
 
 import { getContext, useCuillere, useCuillerePlugins } from './envelop'
 
 describe('envelop', () => {
-  let apiURL: string
-
-  beforeAll(async () => {
-    apiURL = await app.listen({ port: 0 })
-  })
-
-  afterAll(async () => {
-    await app.close()
-  })
-
-  it('should have a graphql server started', async () => {
-    const response = await fetch(`${apiURL}/graphql`, { headers: { accept: 'text/html' } })
-    expect(response.status).toBe(200)
-  })
-
   it('should allow to use cuillere in root fields', async () => {
-    setup({
+    const testkit = createTestkit([useCuillere()], makeExecutableSchema({
       typeDefs: /* GraphQL */`
         type Query { hello: String }
       `,
@@ -37,9 +20,9 @@ describe('envelop', () => {
           },
         },
       },
-    })
+    }))
 
-    expect(await query(/* GraphQL */`
+    expect(await testkit.execute(/* GraphQL */`
       query { hello }
     `)).toEqual({
       data: {
@@ -49,7 +32,7 @@ describe('envelop', () => {
   })
 
   it('should allow to use cuillere with parameter', async () => {
-    setup({
+    const testkit = createTestkit([useCuillere()], makeExecutableSchema({
       typeDefs: /* GraphQL */`
         type Query { hello(name: String!): String }
       `,
@@ -60,9 +43,9 @@ describe('envelop', () => {
           },
         },
       },
-    })
+    }))
 
-    expect(await query(/* GraphQL */`
+    expect(await testkit.execute(/* GraphQL */`
       query { hello(name: "Valentin") }
     `)).toEqual({
       data: {
@@ -72,7 +55,7 @@ describe('envelop', () => {
   })
 
   it('should allow to use cuillere in types', async () => {
-    setup({
+    const testkit = createTestkit([useCuillere()], makeExecutableSchema({
       typeDefs: /* GraphQL */`
         type Query { hello: Greeting }
         type Greeting { message: String }
@@ -87,9 +70,9 @@ describe('envelop', () => {
           },
         },
       },
-    })
+    }))
 
-    expect(await query(/* GraphQL */`
+    expect(await testkit.execute(/* GraphQL */`
       query { hello { message } }
     `)).toEqual({
       data: {
@@ -100,7 +83,10 @@ describe('envelop', () => {
 
   describe('getContext() operation', () => {
     it('should allow to get GraphQL context values from nested functions', async () => {
-      setup({
+      const testkit = createTestkit([
+        useCuillere(),
+        useExtendContext(() => ({ helloMessage: 'Hello from the context!' })),
+      ], makeExecutableSchema({
         typeDefs: /* GraphQL */`
           type Query { hello: String }
         `,
@@ -111,16 +97,13 @@ describe('envelop', () => {
             },
           },
         },
-        plugins: [
-          useExtendContext(() => ({ helloMessage: 'Hello from the context!' })),
-        ],
-      })
+      }))
 
       function* getMessage() {
         return yield getContext('helloMessage')
       }
 
-      await expect(query(/* GraphQL */`
+      await expect(testkit.execute(/* GraphQL */`
         query { hello }
       `)).resolves.toEqual({
         data: {
@@ -131,7 +114,16 @@ describe('envelop', () => {
 
     describe('when yielded outside of execution phase', () => {
       it('should throw an error', async () => {
-        setup({
+        const testkit = createTestkit([
+          useCuillere(),
+          {
+            async onContextBuilding({ context }) {
+              await context.cuillere.call(function* () {
+                yield getContext()
+              })
+            },
+          },
+        ], makeExecutableSchema({
           typeDefs: /* GraphQL */`
             type Query { hello: String }
           `,
@@ -142,22 +134,11 @@ describe('envelop', () => {
               },
             },
           },
-          plugins: [{
-            async onContextBuilding({ context }) {
-              await context.cuillere.call(function* () {
-                yield getContext()
-              })
-            },
-          }],
-        })
+        }))
 
-        const result = query(/* GraphQL */`
+        await expect(testkit.execute(/* GraphQL */`
           query { hello }
-        `)
-
-        await expect(result).resolves.toEqual({
-          errors: [{ message: 'getContext() must not be used outside of resolvers' }],
-        })
+        `)).rejects.toEqual(new Error('getContext() must not be used outside of resolvers'))
       })
     })
   })
@@ -173,7 +154,10 @@ describe('envelop', () => {
     }
 
     it('should add cuillere plugins', async () => {
-      setup({
+      const testkit = createTestkit([
+        useCuillere(),
+        useCuillerePlugins(getMessagePlugin),
+      ], makeExecutableSchema({
         typeDefs: /* GraphQL */`
         type Query { hello: String }
       `,
@@ -184,12 +168,9 @@ describe('envelop', () => {
             },
           },
         },
-        plugins: [
-          useCuillerePlugins(getMessagePlugin),
-        ],
-      })
+      }))
 
-      await expect(query(/* GraphQL */`
+      await expect(testkit.execute(/* GraphQL */`
         query { hello }
       `)).resolves.toEqual({
         data: {
@@ -199,7 +180,14 @@ describe('envelop', () => {
     })
 
     it('should add cuillere plugins from onPluginInit hook', async () => {
-      setup({
+      const testkit = createTestkit([
+        useCuillere(),
+        {
+          onPluginInit({ addPlugin }) {
+            addPlugin(useCuillerePlugins(getMessagePlugin))
+          },
+        },
+      ], makeExecutableSchema({
         typeDefs: /* GraphQL */`
         type Query { hello: String }
       `,
@@ -210,16 +198,9 @@ describe('envelop', () => {
             },
           },
         },
-        plugins: [
-          {
-            onPluginInit({ addPlugin }) {
-              addPlugin(useCuillerePlugins(getMessagePlugin))
-            },
-          },
-        ],
-      })
+      }))
 
-      await expect(query(/* GraphQL */`
+      await expect(testkit.execute(/* GraphQL */`
         query { hello }
       `)).resolves.toEqual({
         data: {
@@ -228,70 +209,4 @@ describe('envelop', () => {
       })
     })
   })
-
-  async function query(query, variables = {}): Promise<any> {
-    const response = await fetch(`${apiURL}/graphql`, {
-      method: 'POST',
-      body: JSON.stringify({ query, variables }),
-      headers: { accept: 'application/json', 'content-type': 'application/json' },
-    })
-
-    return response.json()
-  }
-
-  let getEnveloped = envelop({ plugins: [] })
-
-  function setup({ typeDefs, resolvers, plugins = [] }: { typeDefs: TypeSource; resolvers: IResolvers; plugins?: EnvelopPlugin<any>[] }) {
-    getEnveloped = envelop({
-      plugins: [
-        useSchema(makeExecutableSchema({ typeDefs, resolvers })),
-        useCuillere(),
-        ...plugins,
-      ],
-    })
-  }
-
-  const app = fastify()
-
-  app.route({
-    method: ['GET', 'POST'],
-    url: '/graphql',
-    async handler(req, res) {
-      const { parse, validate, contextFactory, execute, schema } = getEnveloped({ req })
-      const request = {
-        body: req.body,
-        headers: req.headers,
-        method: req.method,
-        query: req.query,
-      }
-
-      if (shouldRenderGraphiQL(request)) {
-        res.type('text/html')
-        res.send(renderGraphiQL({}))
-      } else {
-        const { operationName, query, variables } = getGraphQLParameters(request)
-        const result = await processRequest({
-          operationName,
-          query,
-          variables,
-          request,
-          schema,
-          parse,
-          validate,
-          execute,
-          contextFactory,
-        })
-
-        if (result.type === 'RESPONSE') {
-          res.status(result.status)
-          res.send(result.payload)
-        } else {
-          // You can find a complete example with GraphQL Subscriptions and stream/defer here:
-          // https://github.com/contrawork/graphql-helix/blob/master/examples/fastify/server.ts
-          res.send({ errors: [{ message: 'Not Supported in this demo' }] })
-        }
-      }
-    },
-  })
 })
-

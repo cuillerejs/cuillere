@@ -1,8 +1,9 @@
-import { createServer } from 'graphql-yoga'
+import { createServer } from 'node:http'
+import { createSchema, createYoga } from 'graphql-yoga'
 import { useCuillere } from '@cuillere/envelop'
 
-const server = createServer({
-  schema: {
+const yoga = createYoga({
+  schema: createSchema({
     typeDefs: /* GraphQL */ `
       type Query {
         ping: String
@@ -15,13 +16,15 @@ const server = createServer({
         },
       },
     },
-  },
+  }),
 
   plugins: [
     useCuillere(),
   ],
 })
 
-server.start().then(() => {
+const server = createServer(yoga)
+
+server.listen(4000, () => {
   console.log('Listening at http://localhost:4000/')
 })

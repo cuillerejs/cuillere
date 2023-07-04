@@ -7,7 +7,7 @@
     "esbuild": "^0.18.11",
     "esbuild-runner": "^2.2.2",
     "graphql": "^16.7.1",
-    "graphql-yoga": "^2.13.13",
+    "graphql-yoga": "^4.0.3",
     "remove": "^0.1.5"
   },
   "scripts": {

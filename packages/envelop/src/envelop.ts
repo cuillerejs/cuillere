@@ -1,6 +1,7 @@
 import { mapSchema, MapperKind } from '@graphql-tools/utils'
 import { type Cuillere, cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
 import type { Plugin as EnvelopPlugin } from '@envelop/core'
+import { GraphQLError } from 'graphql'
 
 const addPluginsField = Symbol('addPlugins')
 
@@ -90,7 +91,7 @@ const contextPlugin: Plugin<ContextOperations> = {
 
   handlers: {
     * get({ field }, { graphQLContext }) {
-      if (!graphQLContext) throw new Error('getContext() must not be used outside of resolvers')
+      if (!graphQLContext) throw new GraphQLError('getContext() must not be used outside of resolvers')
       if (!field) return graphQLContext
       return graphQLContext[field]
     },
