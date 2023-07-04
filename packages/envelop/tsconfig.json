@@ -2,8 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src",
-    "moduleResolution": "node"
+    "rootDir": "src"
   },
   "exclude": [
     "src/**/*.spec.ts"
