@@ -29,18 +29,18 @@
     "@cuillere/core": "^0.14.0-alpha.0",
     "@cuillere/server-plugin": "^0.14.0-alpha.0",
     "graphql": "^15.6.1",
-    "mariadb": "~2"
+    "mariadb": ">=2 <4"
   },
   "devDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
     "@cuillere/server-plugin": "^0.14.0-alpha.0",
     "@tsconfig/node18": "^18.2.0",
-    "@types/pg": "^8.6.5",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5",
+    "mariadb": "^3.2.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.1.6",
     "vitest": "^0.32.4"
