@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
-    "@tsconfig/node16": "^1.0.3",
+    "@tsconfig/node18": "^18.2.0",
     "@types/jest": "^27.4.1",
     "@types/pg": "^8.6.5",
     "@typescript-eslint/eslint-plugin": "^5.18.0",
@@ -48,7 +48,7 @@
     "jest": "^27.5.1",
     "koa": "~2.13.4",
     "ts-jest": "^27.1.4",
-    "typescript": "^4.6.3"
+    "typescript": "^5.1.6"
   },
   "peerDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
