@@ -1,6 +1,5 @@
 {
   "name": "@cuillere/yoga-example",
-  "packageManager": "yarn@3.1.1",
   "private": true,
   "dependencies": {
     "@cuillere/core": "workspace:^",
