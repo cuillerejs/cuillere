@@ -36,8 +36,8 @@ describe('plugin', () => {
     }
 
     await callFuncAndExpectTest(cuillere(plugin1, plugin2))
-    expect(plugin1Fn).toBeCalled()
-    expect(plugin2Fn).toBeCalled()
+    expect(plugin1Fn).toHaveBeenCalled()
+    expect(plugin2Fn).toHaveBeenCalled()
   })
 
   it('should be able to catch exception from plugin (https://bugs.chromium.org/p/v8/issues/detail?id=10238)', async () => {
