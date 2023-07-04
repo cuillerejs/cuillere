@@ -32,5 +32,5 @@ export function isGeneratorFunction(value: any): value is GeneratorFunction {
  * @typeParam R Generator's return type.
  * @typeParam Yield Generator's yield type.
  */
-type GenericGenerator<R = any, Yield = any> = (Generator<Yield, R, any> | AsyncGenerator<Yield, R, any>) & { name?: string }
+type GenericGenerator<R = any, Yield = any> = (Generator<Yield, R, any> | AsyncGenerator<Yield, R, any>)
 export { GenericGenerator as Generator }

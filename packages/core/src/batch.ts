@@ -1,8 +1,7 @@
+import type { Cuillere } from './cuillere'
 import { type GeneratorFunction } from './generator'
-import { type Operation, call, terminal } from './operation'
+import { type Operation } from './operation'
 import { type Plugin } from './plugin'
-import { type Task } from './task'
-import { after } from './time'
 
 /**
  * Creates a batched generator function.
@@ -33,10 +32,13 @@ export function batched<Args extends any[] = any[], R = any>(
 ): GeneratorFunction<Args, R> {
   const { getBatchKey = () => func, wait } = options
   return {
-    * [func.name](...args: Args) {
+    async*[func.name](...args: Args) {
       const key = getBatchKey(...args)
-      yield terminal(key == null ? execute(func, args) : batch(func, args, key, wait))
-      return null as R // never actually reached, only for typing
+      if (key == null) {
+        return (yield* func([args]))[0]
+      }
+
+      return yield* batch(func, args, key, wait)
     },
   }[func.name]
 }
@@ -48,8 +50,6 @@ const NAMESPACE = '@cuillere/batch'
  */
 export type BatchOperations = {
   batch: Batch
-  execute: Execute
-  executeBatch: ExecuteBatch
 }
 
 /**
@@ -72,38 +72,34 @@ export const batchPlugin = ({ wait: defaultWait }: BatchOptions = {}): Plugin<Ba
   namespace: NAMESPACE,
 
   handlers: {
-    async* batch({ func, args, key, wait }, ctx) {
+    async batch({ func, args, key, wait }, ctx, cllr) {
       if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
       let entry: BatchEntry
       if (ctx[BATCH_CTX].has(key)) {
         entry = ctx[BATCH_CTX].get(key)
       } else {
-        let resolveResult: (value?: any[] | PromiseLike<any[]>) => void
-        const result = new Promise<any[]>((resolve) => { resolveResult = resolve })
-
-        entry = { resolves: [], rejects: [], args: [], func, result }
+        entry = {
+          args: [],
+          func,
+          result: new Promise<any[]>((resolve, reject) => {
+            setTimeout(() => executeBatch(cllr, ctx, key, resolve, reject), wait ?? defaultWait)
+          }),
+        }
         ctx[BATCH_CTX].set(key, entry)
-
-        const task: Task = yield after(executeBatch(key), wait ?? defaultWait)
-        resolveResult(task.result)
       }
 
       const index = entry.args.push(args) - 1
       return (await entry.result)[index]
     },
-
-    async* execute({ func, args }) {
-      return (yield call(func, [args]))[0]
-    },
-
-    async* executeBatch({ key }, ctx) {
-      const entry = ctx[BATCH_CTX].get(key)
-      ctx[BATCH_CTX].delete(key)
-      yield terminal(call(entry.func, entry.args))
-    },
   },
 })
+
+function executeBatch(cllr: Cuillere, ctx: BatchContext, key: any, resolve, reject) {
+  const entry = ctx[BATCH_CTX].get(key)
+  ctx[BATCH_CTX].delete(key)
+  cllr.run(entry.func(entry.args)).then(resolve, reject)
+}
 
 /**
  * Batch plugin options.
@@ -124,8 +120,6 @@ const BATCH_CTX = Symbol('BATCH_CTX')
 
 interface BatchEntry {
   result: Promise<any[]>
-  resolves: ((res: any) => void)[]
-  rejects: ((err: any) => void)[]
   func: GeneratorFunction
   args: any[][]
 }
@@ -137,23 +131,6 @@ interface Batch<Args extends any[] = any[], R = any> extends Operation {
   wait?: number
 }
 
-function batch<Args extends any[] = any[], R = any>(func: GeneratorFunction<[Args[]], R[]>, args: Args, key: any, wait?: number): Batch<Args, R> {
-  return { kind: `${NAMESPACE}/batch`, func, args, key, wait }
-}
-
-interface Execute<Args extends any[] = any[], R = any> extends Operation {
-  func: GeneratorFunction<[Args[]], R[]>
-  args: Args
-}
-
-function execute<Args extends any[] = any[], R = any>(func: GeneratorFunction<[Args[]], R[]>, args: Args): Execute<Args, R> {
-  return { kind: `${NAMESPACE}/execute`, func, args }
-}
-
-interface ExecuteBatch extends Operation {
-  key: any
-}
-
-function executeBatch(key: any): ExecuteBatch {
-  return { kind: `${NAMESPACE}/executeBatch`, key }
+function* batch<Args extends any[] = any[], R = any>(func: GeneratorFunction<[Args[]], R[]>, args: Args, key: any, wait?: number) {
+  return yield { kind: `${NAMESPACE}/batch`, func, args, key, wait } as R // LOL
 }

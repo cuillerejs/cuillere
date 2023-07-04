@@ -1,3 +1,4 @@
+import type { Cuillere } from '.'
 import type { Operation } from './operation'
 
 /**
@@ -34,6 +35,8 @@ export interface Plugin<KindTypeMap extends Record<string, Operation> = Record<s
    * ```
    */
   handlers: {
-    [Kind in keyof KindTypeMap]: <T extends KindTypeMap[Kind]>(operation: T, context: Context) => unknown
+    [Kind in keyof KindTypeMap]: <T extends KindTypeMap[Kind]>(operation: T, context: Context, cllr: Cuillere) => unknown
   }
+
+  onStart?: (context: Context) => void
 }
