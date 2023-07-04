@@ -1,7 +1,6 @@
-import { Effect } from './effect'
-import { fork, Operation } from './operation'
+import { Operation } from './operation'
 import { Plugin } from './plugin'
-import { type Task } from './task'
+import { Generator } from './generator'
 
 const NAMESPACE = '@cuillere/concurrent'
 
@@ -21,7 +20,7 @@ export interface ConcurrentOperation<K extends 'all' | 'allSettled'> extends Ope
   /**
    * Effects to be executed.
    */
-  effects: Iterable<Effect>
+  generators: Generator[]
 }
 
 /**
@@ -44,39 +43,24 @@ export const concurrentPlugin = (): Plugin<ConcurrentOperations> => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* all({ effects }) {
-      const tasks: Task[] = []
-      for (const effect of effects) tasks.push(yield fork(effect))
+    async* all({ generators }, ctx, cllr) {
+      const results = await Promise.allSettled(generators.map(generator => cllr.run(generator)))
+      const errors = results
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(({ reason }) => reason)
 
-      try {
-        return await Promise.all(tasks.map(({ result }) => result))
-      } catch (error) {
-        const results = await Promise.allSettled(tasks.map(task => task.cancel()))
-        error.errors = results
-          .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-          .map(({ reason }) => reason)
-          .filter(reason => reason !== error)
-        throw error
+      if (errors.length) {
+        throw new Error('Concurrent operation failed', { cause: errors })
       }
+
+      return (results as PromiseFulfilledResult<any>[]).map(({ value }) => value)
     },
 
-    async* allSettled({ effects }) {
-      const tasks = []
-      for (const effect of effects) tasks.push(yield fork(effect))
-      return Promise.allSettled(tasks.map(({ result }) => result))
+    async* allSettled({ generators }, ctx, cllr) {
+      return Promise.allSettled(generators.map(generator => cllr.run(generator)))
     },
   },
 })
-
-function concurrent<K extends 'all' | 'allSettled'>(kind: K) {
-  const fn = {
-    // Set the function name
-    [kind](effects: Iterable<Effect>): ConcurrentOperation<K> {
-      return { kind: `${NAMESPACE}/${kind}`, effects }
-    },
-  }
-  return fn[kind]
-}
 
 /**
  * Executes all `effects` concurrently, each one in a separate [[Task]].
@@ -89,7 +73,9 @@ function concurrent<K extends 'all' | 'allSettled'>(kind: K) {
  * @yields An array containing the return values of `effects`.
  * @category for creating effects
  */
-export const all = concurrent('all')
+export async function* all(generators: Generator[]) {
+  return yield { kind: `${NAMESPACE}/all`, generators }
+}
 
 /**
  * Executes all `effects` concurrently, each one in a separate [[Task]].
@@ -102,4 +88,6 @@ export const all = concurrent('all')
  * @yields An array containing the outcome of each effect, see [Promise.allSettled()](https://mdn.io/Promise.allSettled) return value.
  * @category for creating effects
  */
-export const allSettled = concurrent('allSettled')
+export async function* allSettled(generators: Generator[]) {
+  return yield { kind: `${NAMESPACE}/allSettled`, generators }
+}
