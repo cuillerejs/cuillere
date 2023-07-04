@@ -25,16 +25,16 @@
   ],
   "scripts": {
     "lint": "eslint --ext .ts src",
-    "test": "jest --passWithNoTests",
+    "test": "vitest --passWithNoTests",
+    "test:ci": "vitest -w false --passWithNoTests",
     "clean": "rm -rf dist",
     "build": "yarn clean && tsc",
     "prepack": "yarn ci",
-    "ci": "yarn run-p build lint test"
+    "ci": "yarn run-p build lint test:ci"
   },
   "devDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
     "@tsconfig/node18": "^18.2.0",
-    "@types/jest": "^29.5.2",
     "@types/pg": "^8.6.5",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
@@ -43,20 +43,13 @@
     "eslint": "^8.44.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jest": "^27.2.2",
-    "esm": "^3.2.25",
-    "jest": "^29.5.0",
     "koa": "~2.13.4",
     "npm-run-all": "^4.1.5",
-    "ts-jest": "^29.1.1",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "vitest": "^0.32.4"
   },
   "peerDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
     "graphql": "^15.6.1"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
   }
 }

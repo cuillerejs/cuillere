@@ -1,3 +1,5 @@
+import { describe, beforeEach, it, expect } from 'vitest'
+
 import { Cuillere, call, cuillere, fork } from '@cuillere/core'
 import { chan, send, recv, close, range, select, channelsPlugin } from '.'
 

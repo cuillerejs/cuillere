@@ -1,6 +1,6 @@
 import { describe, beforeEach, it, expect } from 'vitest'
 
-import { Cuillere, Effect, cuillere } from '.'
+import { Cuillere, cuillere } from '.'
 
 describe('stacktrace', () => {
   let cllr: Cuillere

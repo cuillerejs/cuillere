@@ -1,3 +1,5 @@
+import { describe, beforeAll, afterAll, it, expect } from 'vitest'
+
 import { Operation, Plugin } from '@cuillere/core'
 import { envelop, useSchema, Plugin as EnvelopPlugin, useExtendContext } from '@envelop/core'
 import { makeExecutableSchema } from '@graphql-tools/schema'
@@ -40,9 +42,11 @@ describe('envelop', () => {
 
     expect(await query(/* GraphQL */`
       query { hello }
-    `)).toEqual({ data: {
-      hello: 'Hello!',
-    } })
+    `)).toEqual({
+      data: {
+        hello: 'Hello!',
+      },
+    })
   })
 
   it('should allow to use cuillere with parameter', async () => {
@@ -61,9 +65,11 @@ describe('envelop', () => {
 
     expect(await query(/* GraphQL */`
       query { hello(name: "Valentin") }
-    `)).toEqual({ data: {
-      hello: 'Hello Valentin!',
-    } })
+    `)).toEqual({
+      data: {
+        hello: 'Hello Valentin!',
+      },
+    })
   })
 
   it('should allow to use cuillere in types', async () => {
@@ -86,9 +92,11 @@ describe('envelop', () => {
 
     expect(await query(/* GraphQL */`
       query { hello { message } }
-    `)).toEqual({ data: {
-      hello: { message: 'Hello!' },
-    } })
+    `)).toEqual({
+      data: {
+        hello: { message: 'Hello!' },
+      },
+    })
   })
 
   describe('getContext() operation', () => {
@@ -115,9 +123,11 @@ describe('envelop', () => {
 
       await expect(query(/* GraphQL */`
         query { hello }
-      `)).resolves.toEqual({ data: {
-        hello: 'Hello from the context!',
-      } })
+      `)).resolves.toEqual({
+        data: {
+          hello: 'Hello from the context!',
+        },
+      })
     })
 
     describe('when yielded outside of execution phase', () => {
@@ -182,9 +192,11 @@ describe('envelop', () => {
 
       await expect(query(/* GraphQL */`
         query { hello }
-      `)).resolves.toEqual({ data: {
-        hello: 'Hello from a plugin!',
-      } })
+      `)).resolves.toEqual({
+        data: {
+          hello: 'Hello from a plugin!',
+        },
+      })
     })
 
     it('should add cuillere plugins from onPluginInit hook', async () => {
@@ -210,9 +222,11 @@ describe('envelop', () => {
 
       await expect(query(/* GraphQL */`
         query { hello }
-      `)).resolves.toEqual({ data: {
-        hello: 'Hello from a plugin!',
-      } })
+      `)).resolves.toEqual({
+        data: {
+          hello: 'Hello from a plugin!',
+        },
+      })
     })
   })
 
@@ -229,11 +243,13 @@ describe('envelop', () => {
   let getEnveloped = envelop({ plugins: [] })
 
   function setup({ typeDefs, resolvers, plugins = [] }: { typeDefs: TypeSource; resolvers: IResolvers; plugins?: EnvelopPlugin<any>[] }) {
-    getEnveloped = envelop({ plugins: [
-      useSchema(makeExecutableSchema({ typeDefs, resolvers })),
-      useCuillere(),
-      ...plugins,
-    ] })
+    getEnveloped = envelop({
+      plugins: [
+        useSchema(makeExecutableSchema({ typeDefs, resolvers })),
+        useCuillere(),
+        ...plugins,
+      ],
+    })
   }
 
   const app = fastify()
