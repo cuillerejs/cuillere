@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@cuillere/core": "workspace:^",
-    "node-fetch": "^3.2.10"
+    "@cuillere/core": "workspace:^"
   }
 }

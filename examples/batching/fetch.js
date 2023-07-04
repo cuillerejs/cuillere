@@ -1,5 +1,4 @@
 import { all, batched, cuillere } from '@cuillere/core'
-import fetch from 'node-fetch'
 
 const getBeers = batched(async function* getBeers(calls) {
   const ids = calls.flat()

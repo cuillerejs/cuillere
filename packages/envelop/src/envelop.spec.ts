@@ -6,7 +6,6 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import { TypeSource, IResolvers } from '@graphql-tools/utils'
 import { fastify } from 'fastify'
 import { getGraphQLParameters, processRequest, renderGraphiQL, shouldRenderGraphiQL } from 'graphql-helix'
-import fetch from 'node-fetch'
 
 import { getContext, useCuillere, useCuillerePlugins } from './envelop'
 
