@@ -1,4 +1,6 @@
-import { Cuillere, cuillere } from '.'
+import { describe, beforeEach, it, expect } from 'vitest'
+
+import { Cuillere, Effect, cuillere } from '.'
 
 describe('stacktrace', () => {
   let cllr: Cuillere
@@ -12,7 +14,7 @@ describe('stacktrace', () => {
       throw new TypeError('test')
     }
 
-    let stack: string[]
+    let stack: string[] = []
     try {
       await cllr.call(test)
     } catch (e) {
@@ -33,7 +35,7 @@ describe('stacktrace', () => {
       throw new TypeError('test')
     }
 
-    let stack: string[]
+    let stack: string[] = []
     try {
       await cllr.call(test)
     } catch (e) {
@@ -55,7 +57,7 @@ describe('stacktrace', () => {
       throw new TypeError('test')
     }
 
-    let stack: string[]
+    let stack: string[] = []
     try {
       await cllr.execute(test())
     } catch (e) {
@@ -86,7 +88,7 @@ describe('stacktrace', () => {
       throw new TypeError('test')
     }
 
-    let stack: string[]
+    let stack: string[] = []
     try {
       await cllr.call(test)
     } catch (e) {
@@ -114,7 +116,7 @@ describe('stacktrace', () => {
       yield { kind: '@cuillere/test/test' as const }
     }
 
-    let stack: string[]
+    let stack: string[] = []
     try {
       await cllr.call(test)
     } catch (e) {
@@ -136,7 +138,7 @@ describe('stacktrace', () => {
       yield null
     }
 
-    let stack: string[]
+    let stack: string[] = []
     try {
       await cllr.call(test)
     } catch (e) {
@@ -152,7 +154,7 @@ describe('stacktrace', () => {
   })
 
   it('should not capture stack for start errors', async () => {
-    let stack: string[]
+    let stack: string[] = []
     try {
       await cllr.execute(null)
     } catch (e) {

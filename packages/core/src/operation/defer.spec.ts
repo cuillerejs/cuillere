@@ -1,3 +1,5 @@
+import { describe, beforeEach, it, expect } from 'vitest'
+
 import { Cuillere, call, cuillere, defer } from '..'
 
 describe('defer', () => {

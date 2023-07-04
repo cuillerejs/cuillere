@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect, vi } from 'vitest'
 import { Cuillere, Generator, all, allSettled, batched, call, cuillere, sleep, terminal } from '.'
 
 describe('batch', () => {
@@ -12,7 +13,7 @@ describe('batch', () => {
 
   beforeEach(() => {
     cllr = cuillere()
-    batchedFn = jest.fn(function* batchedFn(calls: [number][]) {
+    batchedFn = vi.fn(function* batchedFn(calls: [number][]) {
       return calls.flat()
     })
 

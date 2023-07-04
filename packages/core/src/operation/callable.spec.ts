@@ -1,3 +1,5 @@
+import { describe, beforeEach, it, expect } from 'vitest'
+
 import { Cuillere, Operation, Plugin, call, callable, cuillere } from '..'
 
 describe('callable', () => {

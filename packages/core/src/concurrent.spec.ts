@@ -1,4 +1,5 @@
 /* eslint-disable no-throw-literal */
+import { describe, beforeEach, it, expect } from 'vitest'
 
 import { Cuillere, all, allSettled, call, cuillere } from '.'
 

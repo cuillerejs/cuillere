@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest'
+
 import { isGenerator, isGeneratorFunction } from './generator'
 
 describe('generator', () => {
@@ -7,9 +9,9 @@ describe('generator', () => {
   async function asyncFunc() { /* test */ }
   function makeGenerator(): Generator {
     return {
-      next() { return undefined },
-      return() { return undefined },
-      throw() { return undefined },
+      next() { return { value: undefined } },
+      return() { return { value: undefined } },
+      throw() { return { value: undefined } },
       [Symbol.iterator]() { return this },
     }
   }

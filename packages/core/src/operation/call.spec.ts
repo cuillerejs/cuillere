@@ -1,4 +1,5 @@
-/* eslint-disable consistent-return, no-throw-literal */
+/* eslint-disable no-throw-literal */
+import { describe, beforeEach, it, expect } from 'vitest'
 
 import { Cuillere, call, cuillere } from '..'
 

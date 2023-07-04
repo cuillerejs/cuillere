@@ -1,6 +1,6 @@
-import { Cuillere, Plugin, cuillere, next } from '.'
+import { describe, expect, it, vi } from 'vitest'
 
-const nodeMajorVersion = Number(process.versions.node.split('.')[0])
+import { Cuillere, Plugin, cuillere, next } from '.'
 
 describe('plugin', () => {
   const callFuncAndExpectTest = async (cllr: Cuillere, expected = 'test') => {
@@ -15,7 +15,7 @@ describe('plugin', () => {
   })
 
   it('should call plugins for call operation', async () => {
-    const plugin1Fn = jest.fn()
+    const plugin1Fn = vi.fn()
     const plugin1: Plugin = {
       handlers: {
         * '@cuillere/core/call'() {
@@ -25,7 +25,7 @@ describe('plugin', () => {
       },
     }
 
-    const plugin2Fn = jest.fn()
+    const plugin2Fn = vi.fn()
     const plugin2: Plugin = {
       handlers: {
         * '@cuillere/core/call'() {
@@ -42,7 +42,7 @@ describe('plugin', () => {
 
   it('should be able to catch exception from plugin (https://bugs.chromium.org/p/v8/issues/detail?id=10238)', async () => {
     const error = new Error('test')
-    let catched: Error
+    let catched: Error | null = null
 
     async function* test() {
       try {
@@ -61,15 +61,7 @@ describe('plugin', () => {
       },
     }
 
-    // Bug won't be fixed on node v12
-    /* eslint-disable jest/no-conditional-expect */
-    if (nodeMajorVersion > 12) {
-      await expect(cuillere(plugin).call(test)).resolves.toBeUndefined()
-    } else {
-      await expect(cuillere(plugin).call(test)).rejects.toBe(error)
-    }
-    /* eslint-enable jest/no-conditional-expect */
-
+    await expect(cuillere(plugin).call(test)).resolves.toBeUndefined()
     expect(catched).toBe(error)
   })
 

@@ -1,8 +1,10 @@
+import { describe, it, expect } from 'vitest'
+
 import { Operation, Plugin, cuillere, delegate, next } from '..'
 
 describe('next', () => {
   it('should not be allowed outside handlers', async () => {
-    let catched: Error
+    let catched: Error | null = null
 
     function* test() {
       try {
@@ -17,18 +19,20 @@ describe('next', () => {
   })
 
   it('should not allow to change operation kind', async () => {
-    let catched: Error
+    let catched: Error | null = null
 
     await cuillere(
-      { handlers: {
-        * '@cuillere/test/test'() {
-          try {
-            yield next({ kind: '@cuillere/test/test2' })
-          } catch (e) {
-            catched = e
-          }
+      {
+        handlers: {
+          * '@cuillere/test/test'() {
+            try {
+              yield next({ kind: '@cuillere/test/test2' })
+            } catch (e) {
+              catched = e
+            }
+          },
         },
-      } },
+      },
     ).execute({ kind: '@cuillere/test/test' })
 
     expect(catched).toStrictEqual(new TypeError('next: effect kind mismatch, expected "@cuillere/test/test", received "@cuillere/test/test2"'))

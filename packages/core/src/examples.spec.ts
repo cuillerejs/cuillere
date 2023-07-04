@@ -1,3 +1,5 @@
+import { describe, it, expect } from 'vitest'
+
 import { Plugin, cuillere } from '.'
 
 describe('examples', () => {
