@@ -51,12 +51,12 @@
     "esm": "^3.2.25",
     "graphql": "^16.3.0",
     "jest": "^27.5.1",
+    "npm-run-all": "^4.1.5",
     "ts-jest": "^27.1.4",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@cuillere/server-plugin": "^0.14.0-alpha.0",
-    "npm-run-all": "^4.1.5"
+    "@cuillere/server-plugin": "^0.14.0-alpha.0"
   },
   "jest": {
     "preset": "ts-jest",
