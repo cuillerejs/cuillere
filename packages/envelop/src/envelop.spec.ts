@@ -13,7 +13,7 @@ describe('envelop', () => {
   let apiURL: string
 
   beforeAll(async () => {
-    apiURL = await app.listen(0)
+    apiURL = await app.listen({ port: 0 })
   })
 
   afterAll(async () => {
