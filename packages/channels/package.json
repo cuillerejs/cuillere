@@ -31,7 +31,7 @@
   "devDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
     "@tsconfig/node18": "^18.2.0",
-    "@types/pg": "^8.6.5",
+    "@types/pg": "^8.10.2",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",

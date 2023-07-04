@@ -33,21 +33,21 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@graphql-tools/utils": "^8.12.0"
+    "@graphql-tools/utils": "^8.13.1"
   },
   "devDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
-    "@envelop/core": "^2.3.3",
-    "@graphql-tools/schema": "^8.3.7",
+    "@envelop/core": "^2.6.0",
+    "@graphql-tools/schema": "^8.5.1",
     "@tsconfig/node18": "^18.2.0",
-    "@types/pg": "^8.6.5",
+    "@types/pg": "^8.10.2",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
     "eslint": "^8.44.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5",
-    "fastify": "^3.28.0",
-    "graphql-helix": "^1.12.0",
+    "fastify": "^3.29.5",
+    "graphql-helix": "^1.13.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.1.6",
     "vitest": "^0.32.4"

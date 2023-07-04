@@ -6,8 +6,8 @@
     "@cuillere/envelop": "workspace:^",
     "esbuild": "^0.18.11",
     "esbuild-runner": "^2.2.2",
-    "graphql": "^16.3.0",
-    "graphql-yoga": "^2.1.0",
+    "graphql": "^16.7.1",
+    "graphql-yoga": "^2.13.13",
     "remove": "^0.1.5"
   },
   "scripts": {
