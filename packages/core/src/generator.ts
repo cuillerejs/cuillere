@@ -1,7 +1,7 @@
-const GeneratorFunctionPrototype = Object.getPrototypeOf(function* () {}) // eslint-disable-line @typescript-eslint/no-empty-function
+const GeneratorFunctionPrototype = Object.getPrototypeOf(function* () { }) // eslint-disable-line @typescript-eslint/no-empty-function
 const GeneratorPrototype = GeneratorFunctionPrototype.prototype
 
-const AsyncGeneratorFunctionPrototype = Object.getPrototypeOf(async function* () {}) // eslint-disable-line @typescript-eslint/no-empty-function
+const AsyncGeneratorFunctionPrototype = Object.getPrototypeOf(async function* () { }) // eslint-disable-line @typescript-eslint/no-empty-function
 const AsyncGeneratorPrototype = AsyncGeneratorFunctionPrototype.prototype
 
 /**
@@ -34,13 +34,3 @@ export function isGeneratorFunction(value: any): value is GeneratorFunction {
  */
 type GenericGenerator<R = any, Yield = any> = (Generator<Yield, R, any> | AsyncGenerator<Yield, R, any>) & { name?: string }
 export { GenericGenerator as Generator }
-
-/**
- * Checks if `value` is a [Generator](https://mdn.io/Generator) or an [AsyncGenerator](https://mdn.io/AsyncGenerator).
- *
- * @param value Value to be checked.
- * @returns `true` if `value` is a [Generator](https://mdn.io/Generator) or an [AsyncGenerator](https://mdn.io/AsyncGenerator), `false` otherwise.
- */
-export function isGenerator(value: any): value is GenericGenerator {
-  return GeneratorPrototype.isPrototypeOf(value) || AsyncGeneratorPrototype.isPrototypeOf(value) // eslint-disable-line no-prototype-builtins
-}

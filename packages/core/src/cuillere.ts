@@ -1,12 +1,10 @@
 import { batchPlugin } from './batch'
 import { concurrentPlugin } from './concurrent'
 import { timePlugin } from './time'
-import { CORE_NAMESPACE } from './core-namespace'
-import type { Effect } from './effect'
-import type { Generator, GeneratorFunction } from './generator'
-import { type Operation, call, start } from './operation'
+import type { Generator } from './generator'
+import type { Operation } from './operation'
 import type { Plugin } from './plugin'
-import { Stack } from './stack'
+import { Runner } from './runner'
 
 /**
  * A configured Cuillere instance.
@@ -16,40 +14,22 @@ import { Stack } from './stack'
 export interface Cuillere {
 
   /**
-   * Replaces the context object used by this {@link Cuillere} instance.
+   * Creates a new {@link Cuillere} instance using the given context.
    *
-   * @param ctx The new context object to be used.
+   * @param context The new context object to be used.
    * @returns A new {@link Cuillere} instance.
    */
-  ctx: (ctx: any) => Cuillere
+  context: (context: any) => Cuillere
 
   /**
-   * Executes the given {@link Effect}.
+   * Runs the given Generator.
    *
-   * @param effect The effected to be executed.
-   * @typeParam R Return type of the effect.
-   * @returns Promise to be resolved with the result of the effect.
+   * @param generator The generator to be run.
+   * @typeParam R Return type of the generator.
+   * @returns Promise to be resolved with the result of the generator.
    */
-  execute: <R>(effect: Effect<R>) => Promise<Awaited<R>>
-
-  /**
-   * Calls the given generator function with the given arguments.
-   *
-   * Shorthand for:
-   * ```typescript
-   * cllr.execute(call(func, ...args))
-   * ```
-   *
-   * @param func Generator function to be called.
-   * @param args Arguments for the generator function.
-   * @typeParam Args Generator function's arguments type.
-   * @typeParam R Generator function's return type.
-   * @returns Promise to be resolved with the result of the value returned by the generator function.
-   */
-  call: <Args extends any[], R>(func: GeneratorFunction<Args, R, Effect>, ...args: Args) => Promise<Awaited<R>>
+  run: <R>(generator: Generator<R, Operation>) => Promise<R>
 }
-
-const namespacePrefix = '@'
 
 /**
  * Creates a new {@link Cuillere} instance with the given plugins.
@@ -64,39 +44,15 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
     timePlugin(),
   ])
 
-  const handlers: Record<string, ((operation: Operation, context: any) => Generator)[]> = {}
-  const validators: Record<string, (operation: Operation) => void> = {}
+  const handlers: Record<string, ((operation: Operation, context: any) => unknown)> = {}
+
+  // FIXME check plugins have a defined and unique namespace
 
   for (const plugin of allPlugins) {
-    const pluginHasNamespace = 'namespace' in plugin
+    for (const [kind, handler] of Object.entries(plugin.handlers)) {
+      const nsKind = `${plugin.namespace}/${kind}`
 
-    if (pluginHasNamespace && !plugin.namespace.startsWith(namespacePrefix)) {
-      throw TypeError(`Plugin namespace should start with ${namespacePrefix}, found ${plugin.namespace}`)
-    }
-
-    Object.entries(plugin.handlers).forEach(([kind, handler]) => {
-      let nsKind: string
-      if (pluginHasNamespace) nsKind = kind.startsWith(namespacePrefix) ? kind : `${plugin.namespace}/${kind}`
-      else {
-        if (!kind.startsWith(namespacePrefix)) throw TypeError(`Plugin without namespace must have only qualified handlers, found "${kind}"`)
-        nsKind = kind
-      }
-
-      if (!handlers[nsKind]) handlers[nsKind] = []
-
-      handlers[nsKind].push(handler)
-    })
-
-    if ('validators' in plugin) {
-      const pluginValidators = Object.entries(plugin.validators)
-
-      if (!pluginHasNamespace && pluginValidators.length > 0) throw TypeError('Plugin without namespace must not have validators')
-
-      pluginValidators.forEach(([kind, validator]) => {
-        if (kind.startsWith(namespacePrefix)) throw TypeError(`Qualified validators are forbidden, found "${kind}"`)
-
-        validators[`${plugin.namespace}/${kind}`] = validator
-      })
+      handlers[nsKind] = handler
     }
   }
 
@@ -108,11 +64,12 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
     if (instances.has(ctx)) return instances.get(ctx)
 
     const cllr: Cuillere = {
-      ctx: make,
-      execute: `${CORE_NAMESPACE}/start` in handlers
-        ? effect => new Stack(handlers, ctx, validators).start(start(effect)).result
-        : effect => new Stack(handlers, ctx, validators).start(effect).result,
-      call: (func, ...args) => cllr.execute(call(func, ...args)),
+      context: make,
+      run(generator) {
+        // FIXME start hooks
+
+        return new Runner(handlers, ctx, generator).run()
+      },
     }
 
     instances.set(ctx, cllr)

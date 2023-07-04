@@ -10,7 +10,7 @@ describe('examples', () => {
     const promisePlugin: Plugin = {
       namespace: '@cuillere/promise',
       handlers: {
-        async* await(operation: any) {
+        async await(operation: any) {
           return operation.func(...operation.args)
         },
       },
@@ -28,7 +28,7 @@ describe('examples', () => {
     }
 
     const entityToUpdate = { id: 1, test: 'test' }
-    const result = await cllr.call(update, entityToUpdate)
+    const result = await cllr.run(update(entityToUpdate))
 
     expect(result).toEqual(entityToUpdate)
   })
