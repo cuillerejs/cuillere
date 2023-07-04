@@ -3,7 +3,7 @@ import { concurrentPlugin } from './concurrent'
 import { timePlugin } from './time'
 import type { Generator } from './generator'
 import type { Operation } from './operation'
-import type { Plugin } from './plugin'
+import type { Handler, Plugin } from './plugin'
 import { Runner } from './runner'
 
 /**
@@ -44,7 +44,7 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
     timePlugin(),
   ])
 
-  const handlers: Record<string, ((operation: Operation, context: any) => unknown)> = {}
+  const handlers: Record<string, Handler> = {}
   const onStarts: Plugin['onStart'][] = []
 
   // FIXME check plugins have a defined and unique namespace
@@ -72,9 +72,9 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
       context: make,
       async run(generator) {
         if (onStarts.length) {
-          await Promise.all(onStarts.map(onStart => onStart(ctx, cllr)))
+          await Promise.all(onStarts.map(onStart => onStart(ctx)))
         }
-        return new Runner(handlers, ctx, generator).run()
+        return new Runner(handlers, ctx, generator, cllr).run()
       },
     }
 

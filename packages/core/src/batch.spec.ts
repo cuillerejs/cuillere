@@ -1,14 +1,14 @@
 import { describe, beforeEach, it, expect, vi } from 'vitest'
-import { Cuillere, Generator, all, allSettled, batched, call, cuillere, sleep, terminal } from '.'
+import { Cuillere, Generator, all, allSettled, batched, cuillere, sleep } from '.'
 
 describe('batch', () => {
   let cllr: Cuillere
   let batchedFn: (calls: [number][]) => Generator<any, number[]>
   let fn: (n: number) => Generator<any, number>
 
-  function* delayedFn(n: number, delay: number) {
-    yield sleep(delay)
-    yield terminal(fn(n))
+  async function* delayedFn(n: number, delay: number) {
+    yield* sleep(delay)
+    return yield* fn(n)
   }
 
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe('batch', () => {
 
   describe('without any options', () => {
     it('should group all concurrent calls in one batch', async () => {
-      await expect(cllr.execute(all([
+      await expect(cllr.run(all([
         fn(1),
         fn(2),
         fn(3),
@@ -31,7 +31,7 @@ describe('batch', () => {
     })
 
     it('should execute delayed calls in a second batch', async () => {
-      await expect(cllr.execute(all([
+      await expect(cllr.run(all([
         fn(1),
         delayedFn(2, 10),
         fn(3),
@@ -42,11 +42,11 @@ describe('batch', () => {
     })
 
     it('should be callable', async () => {
-      function* callFn(n: number) {
-        return yield call(fn, n)
+      async function* callFn(n: number) {
+        return yield* fn(n)
       }
 
-      await expect(cllr.execute(all([
+      await expect(cllr.run(all([
         callFn(1),
         callFn(2),
         callFn(3),
@@ -64,7 +64,7 @@ describe('batch', () => {
         throw error
       })
 
-      await expect(cllr.execute(allSettled([
+      await expect(cllr.run(allSettled([
         fn(1),
         fn(2),
         fn(3),
@@ -82,7 +82,7 @@ describe('batch', () => {
     })
 
     it('should not group concurrent calls', async () => {
-      await expect(cllr.execute(all([
+      await expect(cllr.run(all([
         fn(1),
         fn(2),
         fn(3),
@@ -99,7 +99,7 @@ describe('batch', () => {
     })
 
     it('should group concurrent calls with the same batch key', async () => {
-      await expect(cllr.execute(all([
+      await expect(cllr.run(all([
         fn(1),
         fn(2),
         fn(3),
@@ -116,7 +116,7 @@ describe('batch', () => {
     })
 
     it('should group all calls under wait time in one batch', async () => {
-      await expect(cllr.execute(all([
+      await expect(cllr.run(all([
         fn(1),
         delayedFn(2, 10),
         delayedFn(3, 20),
@@ -126,7 +126,7 @@ describe('batch', () => {
     })
 
     it('should execute calls after wait time in a second batch', async () => {
-      await expect(cllr.execute(all([
+      await expect(cllr.run(all([
         fn(1),
         delayedFn(2, 65),
         delayedFn(3, 25),

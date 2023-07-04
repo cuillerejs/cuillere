@@ -1,10 +1,12 @@
+import type { Handler } from './plugin'
+import type { Cuillere } from './cuillere'
 import { type Generator } from './generator'
 import { type Operation, isOperation } from './operation'
 
 export class Runner<R> {
   result: Promise<any>
 
-  private handlers: Record<string, ((operation: Operation, context: any) => unknown)>
+  private handlers: Record<string, Handler>
 
   private context: any
 
@@ -14,14 +16,18 @@ export class Runner<R> {
 
   private settled = false
 
+  private cllr: Cuillere
+
   constructor(
-    handlers: Record<string, ((operation: Operation, context: any) => unknown)>,
+    handlers: Record<string, Handler>,
     context: any,
     generator: Generator<R, Operation>,
+    cllr: Cuillere,
   ) {
     this.handlers = handlers
     this.context = context
     this.generator = generator
+    this.cllr = cllr
   }
 
   async run(): Promise<R> {
@@ -67,6 +73,8 @@ export class Runner<R> {
     }
   }
 
+  execute = <R>(generator: Generator<R, Operation>): Runner<R> => new Runner(this.handlers, this.context, generator, this.cllr)
+
   async handle(operation: Operation) {
     if (!isOperation(operation)) {
       throw new TypeError(`${operation} is not a valid operation`)
@@ -76,7 +84,7 @@ export class Runner<R> {
       throw new Error(`no handler defined for "${operation.kind}" operation kind`)
     }
 
-    return this.handlers[operation.kind](operation, this.context)
+    return this.handlers[operation.kind](operation, this.context, this.execute)
   }
 
   cancel() {

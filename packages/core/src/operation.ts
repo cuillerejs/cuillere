@@ -5,7 +5,7 @@
  *
  * @category for operations
  */
-export interface Operation {
+export type Operation = {
 
   /**
    * Operation's kind.

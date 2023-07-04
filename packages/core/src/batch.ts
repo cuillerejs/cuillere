@@ -1,5 +1,4 @@
-import type { Cuillere } from './cuillere'
-import { type GeneratorFunction } from './generator'
+import { type GeneratorFunction, Generator } from './generator'
 import { type Operation } from './operation'
 import { type Plugin } from './plugin'
 
@@ -32,6 +31,7 @@ export function batched<Args extends any[] = any[], R = any>(
 ): GeneratorFunction<Args, R> {
   const { getBatchKey = () => func, wait } = options
   return {
+    // eslint-disable-next-line generator-star-spacing
     async*[func.name](...args: Args) {
       const key = getBatchKey(...args)
       if (key == null) {
@@ -72,7 +72,7 @@ export const batchPlugin = ({ wait: defaultWait }: BatchOptions = {}): Plugin<Ba
   namespace: NAMESPACE,
 
   handlers: {
-    async batch({ func, args, key, wait }, ctx, cllr) {
+    async batch({ func, args, key, wait }, ctx, execute) {
       if (!ctx[BATCH_CTX]) ctx[BATCH_CTX] = new Map()
 
       let entry: BatchEntry
@@ -83,7 +83,7 @@ export const batchPlugin = ({ wait: defaultWait }: BatchOptions = {}): Plugin<Ba
           args: [],
           func,
           result: new Promise<any[]>((resolve, reject) => {
-            setTimeout(() => executeBatch(cllr, ctx, key, resolve, reject), wait ?? defaultWait)
+            setTimeout(() => executeBatch(execute, ctx, key, resolve, reject), wait ?? defaultWait)
           }),
         }
         ctx[BATCH_CTX].set(key, entry)
@@ -95,10 +95,10 @@ export const batchPlugin = ({ wait: defaultWait }: BatchOptions = {}): Plugin<Ba
   },
 })
 
-function executeBatch(cllr: Cuillere, ctx: BatchContext, key: any, resolve, reject) {
+function executeBatch(execute: (generator: Generator) => any, ctx: BatchContext, key: any, resolve, reject) {
   const entry = ctx[BATCH_CTX].get(key)
   ctx[BATCH_CTX].delete(key)
-  cllr.run(entry.func(entry.args)).then(resolve, reject)
+  execute(entry.func(entry.args)).run().then(resolve, reject)
 }
 
 /**

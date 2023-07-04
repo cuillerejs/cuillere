@@ -1,6 +1,7 @@
 import { Operation } from './operation'
 import { Plugin } from './plugin'
 import { Generator } from './generator'
+import { Runner } from './runner'
 
 const NAMESPACE = '@cuillere/concurrent'
 
@@ -43,21 +44,12 @@ export const concurrentPlugin = (): Plugin<ConcurrentOperations> => ({
   namespace: NAMESPACE,
 
   handlers: {
-    async* all({ generators }, ctx, cllr) {
-      const results = await Promise.allSettled(generators.map(generator => cllr.run(generator)))
-      const errors = results
-        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-        .map(({ reason }) => reason)
-
-      if (errors.length) {
-        throw new Error('Concurrent operation failed', { cause: errors })
-      }
-
-      return (results as PromiseFulfilledResult<any>[]).map(({ value }) => value)
+    async all({ generators }, ctx, execute) {
+      return Promise.all(generators.map(generator => execute(generator).run()))
     },
 
-    async* allSettled({ generators }, ctx, cllr) {
-      return Promise.allSettled(generators.map(generator => cllr.run(generator)))
+    async allSettled({ generators }, ctx, execute) {
+      return Promise.allSettled(generators.map(generator => execute(generator).run()))
     },
   },
 })
@@ -73,7 +65,7 @@ export const concurrentPlugin = (): Plugin<ConcurrentOperations> => ({
  * @yields An array containing the return values of `effects`.
  * @category for creating effects
  */
-export async function* all(generators: Generator[]) {
+export async function* all(generators: Generator[]): Generator<any, ConcurrentOperation<'all'>> {
   return yield { kind: `${NAMESPACE}/all`, generators }
 }
 
@@ -88,6 +80,6 @@ export async function* all(generators: Generator[]) {
  * @yields An array containing the outcome of each effect, see [Promise.allSettled()](https://mdn.io/Promise.allSettled) return value.
  * @category for creating effects
  */
-export async function* allSettled(generators: Generator[]) {
+export async function* allSettled(generators: Generator[]): Generator<any, ConcurrentOperation<'allSettled'>> {
   return yield { kind: `${NAMESPACE}/allSettled`, generators }
 }

@@ -1,5 +1,4 @@
-import { type Operation, type WrapperOperation, fork, terminal } from './operation'
-import type { Effect } from './effect'
+import { type Operation } from './operation'
 import type { Plugin } from './plugin'
 
 const namespace = '@cuillere/time'
@@ -9,7 +8,7 @@ const namespace = '@cuillere/time'
  */
 export type SleepOperations = {
   sleep: SleepOperation
-  after: AfterOperation
+  after: AfterOperation<any>
 }
 
 /**
@@ -20,13 +19,16 @@ export function timePlugin(): Plugin<SleepOperations> {
     namespace,
 
     handlers: {
-      async* sleep({ delay }: SleepOperation) {
+      async sleep({ delay }: SleepOperation) {
         return new Promise((resolve) => { setTimeout(resolve, delay) })
       },
 
-      * after({ effect, delay }: AfterOperation) {
-        yield sleep(delay)
-        return yield terminal(effect)
+      async after({ generator, delay }: AfterOperation<any>, ctx, execute) {
+        return {
+          delayed: new Promise((resolve) => {
+            setTimeout(resolve, delay)
+          }).then(() => execute(generator).run()),
+        }
       },
     },
   }
@@ -53,8 +55,8 @@ export interface SleepOperation extends Operation {
  * @yields `void`
  * @category for creating effects
  */
-export function sleep(delay?: number): SleepOperation {
-  return { kind: `${namespace}/sleep`, delay }
+export function* sleep(delay?: number): Generator<SleepOperation, void> {
+  yield { kind: `${namespace}/sleep`, delay }
 }
 
 /**
@@ -62,7 +64,12 @@ export function sleep(delay?: number): SleepOperation {
  *
  * @category for operations
  */
-export interface AfterOperation<T extends Effect = Effect> extends WrapperOperation<T> {
+export interface AfterOperation<T> extends Operation {
+
+  /**
+   * Generator to be executed after a delay
+   */
+  generator: Generator<Operation, T, any>
 
   /**
    * Delay before execution in milliseconds.
@@ -79,6 +86,7 @@ export interface AfterOperation<T extends Effect = Effect> extends WrapperOperat
  * @yields A new asynchronous [[Task]].
  * @category for creating effects
  */
-export function after<T extends Effect = Effect>(effect: T, delay?: number) {
-  return fork({ kind: `${namespace}/after`, effect, delay } as AfterOperation<T>)
+export function* after<T>(generator: Generator<Operation, T>, delay?: number): Generator<AfterOperation<T>, Promise<T>> {
+  const { delayed } = (yield { kind: `${namespace}/after`, generator, delay }) as any
+  return delayed
 }

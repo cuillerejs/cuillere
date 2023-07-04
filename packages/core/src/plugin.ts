@@ -1,5 +1,6 @@
-import type { Cuillere } from '.'
 import type { Operation } from './operation'
+import type { Runner } from './runner'
+import type { Generator } from './generator'
 
 /**
  * Interface for a Cuillere plugin.
@@ -35,8 +36,10 @@ export interface Plugin<KindTypeMap extends Record<string, Operation> = Record<s
    * ```
    */
   handlers: {
-    [Kind in keyof KindTypeMap]: <T extends KindTypeMap[Kind]>(operation: T, context: Context, cllr: Cuillere) => unknown
+    [Kind in keyof KindTypeMap]: <T extends KindTypeMap[Kind]>(operation: T, context: Context, execute: <R>(generator: Generator<R>) => Runner<R>) => unknown
   }
 
   onStart?: (context: Context) => void
 }
+
+export type Handler<T = Operation, Context = any> = (operation: T, context: Context, execute: <R>(generator: Generator<R>) => Runner<R>) => unknown

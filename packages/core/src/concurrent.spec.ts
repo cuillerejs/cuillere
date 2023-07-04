@@ -1,7 +1,7 @@
 /* eslint-disable no-throw-literal */
 import { describe, beforeEach, it, expect } from 'vitest'
 
-import { Cuillere, all, allSettled, call, cuillere } from '.'
+import { Cuillere, all, allSettled, cuillere } from '.'
 
 const delay = (timeout: number) => new Promise((resolve) => { setTimeout(resolve, timeout) })
 
@@ -34,11 +34,11 @@ describe('concurrent', () => {
 
   describe('all', () => {
     it('should run all effects in parallel', async () => {
-      function* test() {
-        return yield all([call(f1), call(f2), call(f3)])
+      async function* test() {
+        return yield* all([f1(), f2(), f3()])
       }
 
-      const result = await cllr.call(test)
+      const result = await cllr.run(test())
 
       expect(result).toEqual([1, 2, 3])
       expect(executionOrder).toEqual([3, 2, 1])
@@ -53,25 +53,25 @@ describe('concurrent', () => {
 
       async function* f2() {
         await delay(10)
-        yield call(f3)
+        yield* f3()
       }
 
       function* f3() {
         called = true
       }
 
-      await expect(cllr.execute(all([call(f1), call(f2)]))).rejects.toEqual({ error: 'test', errors: [] })
+      await expect(cllr.run(all([f1(), f2()]))).rejects.toMatchObject({ error: 'test' })
       expect(called).toBe(false)
     })
   })
 
   describe('allSettled', () => {
     it('should run all effects in parallel and settle', async () => {
-      function* test() {
-        return yield allSettled([call(f1), call(f2), call(f3)])
+      async function* test() {
+        return yield* allSettled([f1(), f2(), f3()])
       }
 
-      const result = await cllr.call(test)
+      const result = await cllr.run(test())
 
       expect(result).toEqual([{ status: 'fulfilled', value: 1 }, { status: 'fulfilled', value: 2 }, { status: 'fulfilled', value: 3 }])
       expect(executionOrder).toEqual([3, 2, 1])
