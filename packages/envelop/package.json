@@ -36,7 +36,7 @@
     "@graphql-tools/utils": "^10.0.3"
   },
   "devDependencies": {
-    "@cuillere/core": "^0.14.0-alpha.0",
+    "@cuillere/core": "workspace:*",
     "@envelop/core": "^4.0.0",
     "@envelop/testing": "^6.0.0",
     "@envelop/types": "^4.0.0",

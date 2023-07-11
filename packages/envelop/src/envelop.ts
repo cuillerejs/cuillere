@@ -1,13 +1,7 @@
 import { mapSchema, MapperKind } from '@graphql-tools/utils'
-import { type Cuillere, cuillere, isGeneratorFunction, Operation, Plugin } from '@cuillere/core'
+import { type Cuillere, cuillere, isGeneratorFunction, Plugin } from '@cuillere/core'
 import type { Plugin as EnvelopPlugin } from '@envelop/core'
-import { GraphQLError } from 'graphql'
-
-const addPluginsField = Symbol('addPlugins')
-
-type PluginsAdder = EnvelopPlugin & {
-  [addPluginsField](plugins: Plugin[]): void
-}
+import { contextPlugin } from './context-plugin'
 
 export type CuillereEnvelopPluginOptions = {
   plugins?: Plugin[]
@@ -17,20 +11,17 @@ export type CuillereEnvelopPluginOptions = {
 
 export function useCuillere({
   plugins: basePlugins = [],
-  instanceContextField = 'cuillere',
-  contextContextField = 'cuillereContext',
-}: CuillereEnvelopPluginOptions = {}): EnvelopPlugin {
+  instanceContextField = '_cuillere',
+  contextContextField = '_cuillereContext',
+}: CuillereEnvelopPluginOptions = {}): PluginsAdder {
   let plugins: Plugin[] = [contextPlugin]
   let cllr: Cuillere
 
-  function addPlugins(newPlugins: Plugin[]) {
-    plugins = [...plugins, ...newPlugins]
-    cllr = cuillere(...plugins)
-  }
-
-  addPlugins(basePlugins)
-
-  const plugin: EnvelopPlugin = {
+  const plugin = {
+    [addPlugins](newPlugins: Plugin[]) {
+      plugins = [...plugins, ...newPlugins]
+      cllr = cuillere(...plugins)
+    },
     onSchemaChange({ schema, replaceSchema }) {
       replaceSchema(mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
@@ -38,14 +29,14 @@ export function useCuillere({
           if (!isGeneratorFunction(fieldConfig.resolve)) return fieldConfig
           return {
             ...fieldConfig,
-            resolve: (obj, args, ctx, info) => ctx[instanceContextField].call(resolve, obj, args, ctx, info),
+            resolve: (obj, args, ctx, info) => ctx[instanceContextField].run(resolve(obj, args, ctx, info)),
           }
         },
       }))
     },
     onEnveloped({ context, extendContext }) {
       const ctx = context[contextContextField] ?? {}
-      extendContext({ [instanceContextField]: cllr.ctx(ctx), [contextContextField]: ctx })
+      extendContext({ [instanceContextField]: cllr.context(ctx), [contextContextField]: ctx })
     },
     onExecute({ args }) {
       args.contextValue[contextContextField].graphQLContext = args.contextValue
@@ -55,7 +46,7 @@ export function useCuillere({
     },
   }
 
-  plugin[addPluginsField] = addPlugins
+  plugin[addPlugins](basePlugins)
 
   return plugin
 }
@@ -63,37 +54,16 @@ export function useCuillere({
 export function useCuillerePlugins(...plugins: Plugin[]): EnvelopPlugin {
   return {
     onPluginInit({ plugins: envelopPlugins }) {
-      const pluginsAdder = envelopPlugins.find((plugin): plugin is PluginsAdder => plugin?.[addPluginsField] != null)
+      const pluginsAdder = envelopPlugins.find((plugin): plugin is PluginsAdder => plugin?.[addPlugins] != null)
       if (pluginsAdder == undefined) throw new Error('useCuillerePlugins cannot be used before useCuillere')
 
-      const { [addPluginsField]: addPlugins } = pluginsAdder
-      addPlugins(plugins)
+      pluginsAdder[addPlugins](plugins)
     },
   }
 }
 
-const namespace = '@envelop/context'
+const addPlugins = Symbol('addPlugins')
 
-export interface GetContextOperation extends Operation {
-  field?: string
-}
-
-export function getContext(field?: string): GetContextOperation {
-  return { kind: `${namespace}/get`, field }
-}
-
-type ContextOperations = {
-  get: GetContextOperation
-}
-
-const contextPlugin: Plugin<ContextOperations> = {
-  namespace,
-
-  handlers: {
-    * get({ field }, { graphQLContext }) {
-      if (!graphQLContext) throw new GraphQLError('getContext() must not be used outside of resolvers')
-      if (!field) return graphQLContext
-      return graphQLContext[field]
-    },
-  },
+type PluginsAdder = EnvelopPlugin & {
+  [addPlugins](plugins: Plugin[]): void
 }

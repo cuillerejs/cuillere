@@ -5,7 +5,7 @@ import { useExtendContext } from '@envelop/core'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { createTestkit } from '@envelop/testing'
 
-import { getContext, useCuillere, useCuillerePlugins } from './envelop'
+import { getContext, useCuillere, useCuillerePlugins } from '.'
 
 describe('envelop', () => {
   it('should allow to use cuillere in root fields', async () => {
@@ -93,14 +93,14 @@ describe('envelop', () => {
         resolvers: {
           Query: {
             * hello() {
-              return yield getMessage()
+              return yield* getMessage()
             },
           },
         },
       }))
 
       function* getMessage() {
-        return yield getContext('helloMessage')
+        return yield* getContext('helloMessage')
       }
 
       await expect(testkit.execute(/* GraphQL */`
@@ -118,9 +118,7 @@ describe('envelop', () => {
           useCuillere(),
           {
             async onContextBuilding({ context }) {
-              await context.cuillere.call(function* () {
-                yield getContext()
-              })
+              await context._cuillere.run(getContext())
             },
           },
         ], makeExecutableSchema({
@@ -147,7 +145,7 @@ describe('envelop', () => {
     const getMessagePlugin: Plugin<{ getMessage: Operation }> = {
       namespace: '@test',
       handlers: {
-        * getMessage() {
+        getMessage() {
           return 'Hello from a plugin!'
         },
       },
