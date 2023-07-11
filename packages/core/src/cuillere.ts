@@ -74,7 +74,7 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
         if (onStarts.length) {
           await Promise.all(onStarts.map(onStart => onStart(ctx)))
         }
-        return new Runner(handlers, ctx, generator, cllr).run()
+        return new Runner(handlers, ctx, generator).run()
       },
     }
 

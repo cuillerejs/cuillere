@@ -1,5 +1,4 @@
 import type { Handler } from './plugin'
-import type { Cuillere } from './cuillere'
 import { type Generator, isGenerator } from './generator'
 import { type Operation, isOperation } from './operation'
 
@@ -16,13 +15,10 @@ export class Runner<R> {
 
   private settled = false
 
-  private cllr: Cuillere
-
   constructor(
     handlers: Record<string, Handler>,
     context: any,
     generator: Generator<R, Operation>,
-    cllr: Cuillere,
   ) {
     if (!isGenerator(generator)) {
       throw new TypeError(`${typeof generator} value is not a Generator`)
@@ -31,7 +27,6 @@ export class Runner<R> {
     this.handlers = handlers
     this.context = context
     this.generator = generator
-    this.cllr = cllr
   }
 
   async run(): Promise<R> {
@@ -77,7 +72,7 @@ export class Runner<R> {
     }
   }
 
-  execute = <R>(generator: Generator<R, Operation>): Runner<R> => new Runner(this.handlers, this.context, generator, this.cllr)
+  execute = <R>(generator: Generator<R, Operation>): Runner<R> => new Runner(this.handlers, this.context, generator)
 
   async handle(operation: Operation) {
     if (!isOperation(operation)) {
