@@ -39,7 +39,7 @@ export interface Plugin<KindTypeMap extends Record<string, Operation> = Record<s
     [Kind in keyof KindTypeMap]: <T extends KindTypeMap[Kind]>(operation: T, context: Context, execute: <R>(generator: Generator<R>) => Runner<R>) => unknown
   }
 
-  onStart?: (context: Context) => void
+  wrap?: (next: () => any, context: Context) => Promise<unknown>
 }
 
 export type Handler<T = Operation, Context = any> = (operation: T, context: Context, execute: <R>(generator: Generator<R>) => Runner<R>) => unknown

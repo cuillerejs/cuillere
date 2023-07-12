@@ -45,7 +45,7 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
   ])
 
   const handlers: Record<string, Handler> = {}
-  const onStarts: Plugin['onStart'][] = []
+  const wrappers: Plugin['wrap'][] = []
 
   // FIXME check plugins have a defined and unique namespace
 
@@ -56,8 +56,8 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
       handlers[nsKind] = handler
     }
 
-    if (plugin.onStart) {
-      onStarts.push(plugin.onStart)
+    if (plugin.wrap) {
+      wrappers.push(plugin.wrap)
     }
   }
 
@@ -71,10 +71,10 @@ export function cuillere(...plugins: Plugin[]): Cuillere {
     const cllr: Cuillere = {
       context: make,
       async run(generator) {
-        if (onStarts.length) {
-          await Promise.all(onStarts.map(onStart => onStart(ctx)))
-        }
-        return new Runner(handlers, ctx, generator).run()
+        return wrappers.reduce<any>(
+          (next, wrap) => () => wrap(next, ctx),
+          () => new Runner(handlers, ctx, generator).run(),
+        )()
       },
     }
 
