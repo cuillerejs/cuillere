@@ -23,6 +23,9 @@ export interface ClientManagerOptions {
 }
 
 export interface ClientManager extends TaskListener {
+  getClient(name?: string): Promise<PoolClient>
+  query(query: QueryConfig): Promise<any>
+  getPools(): string[]
   end(): Promise<void>
 }
 
@@ -45,12 +48,12 @@ class ClientManagerImpl implements ClientManager {
     setPoolsGetter(ctx, () => this.getPools())
   }
 
-  private async query(query: QueryConfig) {
+  async query(query: QueryConfig) {
     if (query.usePoolQuery) return this.poolManager.query(query)
     return (await this.getClient(query.pool)).query(query)
   }
 
-  private getClient(name = DEFAULT_POOL) {
+  getClient(name = DEFAULT_POOL) {
     if (!(name in this.clients)) {
       this.clients[name] = this.poolManager.connect(name)
       if (this.transactionManager) this.clients[name] = this.transactionManager.connect(this.clients[name])
@@ -58,7 +61,7 @@ class ClientManagerImpl implements ClientManager {
     return this.clients[name]
   }
 
-  private getPools() {
+  getPools() {
     return Object.keys(this.poolManager.pools)
   }
 

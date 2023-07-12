@@ -2,6 +2,7 @@
   "name": "@cuillere/envelop",
   "version": "0.14.0-alpha.4",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "engines": {
     "node": ">=18"
   },

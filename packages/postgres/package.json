@@ -40,6 +40,7 @@
   "devDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
     "@cuillere/server-plugin": "^0.14.0-alpha.0",
+    "@envelop/core": "^4.0.0",
     "@tsconfig/node18": "^18.2.0",
     "@types/pg": "^8.10.2",
     "@typescript-eslint/eslint-plugin": "^5.61.0",

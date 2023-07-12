@@ -67,7 +67,7 @@ module.exports = {
     ],
     'no-await-in-loop': 'off',
     'no-cond-assign': 'off',
-    'no-console': 'off',
+    'no-console': ['error', { allow: ['warn', 'error'] }],
     'no-continue': 'off',
     'no-dupe-class-members': 'off',
     'no-multi-assign': 'off',

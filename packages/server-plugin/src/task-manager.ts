@@ -90,11 +90,9 @@ function someRejected(results: PromiseSettledResult<any>[]) {
 }
 
 function addErrorCauses(e: Error, results: PromiseSettledResult<any>[]) {
-  results
+  e.cause = results
     .filter(isRejected)
-    .forEach(({ reason }) => {
-      e.stack += `\nCaused by: ${reason}`
-    })
+    .map(({ reason }) => reason)
   return e
 }
 
