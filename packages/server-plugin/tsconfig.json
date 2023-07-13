@@ -4,7 +4,10 @@
     "outDir": "dist",
     "rootDir": "src"
   },
+  "include": [
+    "src/**/*.ts",
+  ],
   "exclude": [
-    "src/**/*.spec.ts"
+    "src/**/*.spec.ts",
   ]
 }

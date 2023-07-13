@@ -1,4 +1,4 @@
-import { Effect, Plugin, next } from '@cuillere/core'
+import { Plugin } from '@cuillere/core'
 
 class BaseTaskManager {
   private listeners: TaskListener[]
@@ -55,28 +55,6 @@ export class AsyncTaskManager extends BaseTaskManager {
   }
 }
 
-export class GeneratorTaskManager extends BaseTaskManager {
-  public async* execute(task: Effect, ctx: any) {
-    let error: any
-
-    try {
-      await this.initialize(ctx)
-
-      const result = yield task
-
-      await this.preComplete(result)
-      await this.complete(result)
-
-      return result
-    } catch (e) {
-      await this.error(error = e)
-      throw e
-    } finally {
-      await this.finalize(error)
-    }
-  }
-}
-
 export interface TaskListener {
   initialize?(ctx: any): void | Promise<void>
   preComplete?(result: any): void | Promise<void>
@@ -101,19 +79,18 @@ function isRejected(result: PromiseSettledResult<any>): result is PromiseRejecte
 }
 
 export function taskManagerPlugin(...listeners: TaskListener[]): Plugin {
-  const taskManager = new GeneratorTaskManager(...listeners)
+  const taskManager = new AsyncTaskManager(...listeners)
 
   return {
-    handlers: {
-      async* '@cuillere/core/start'(_, ctx) {
-        return yield* taskManager.execute(next(), ctx)
-      },
+    namespace: '@cuillere/task-manager',
+    wrap(next, ctx) {
+      return taskManager.execute(next(), ctx)
     },
+    handlers: {},
   }
 }
 
-export interface GetTaskManager<T extends AsyncTaskManager | GeneratorTaskManager, Args extends any[]> {
+export interface GetTaskManager<T extends AsyncTaskManager, Args extends any[]> {
   (...args: Args): T
 }
 export type GetAsyncTaskManager<Args extends any[]> = GetTaskManager<AsyncTaskManager, Args>
-export type GetGeneratorTaskManager<Args extends any[]> = GetTaskManager<GeneratorTaskManager, Args>
