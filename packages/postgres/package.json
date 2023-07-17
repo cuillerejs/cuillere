@@ -1,7 +1,20 @@
 {
   "name": "@cuillere/postgres",
   "version": "0.14.0-alpha.0",
-  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./envelop": {
+      "default": "./dist/plugins/envelop.js",
+      "types": "./dist/plugins/envelop.d.ts"
+    },
+    "./yoga": {
+      "default": "./dist/plugins/yoga.js",
+      "types": "./dist/plugins/yoga.d.ts"
+    }
+  },
   "engines": {
     "node": ">=18"
   },
@@ -35,6 +48,7 @@
   "peerDependencies": {
     "@cuillere/core": "^0.14.0-alpha.0",
     "@cuillere/server-plugin": "^0.14.0-alpha.0",
+    "graphql-yoga": ">= 4",
     "pg": ">=7 <9"
   },
   "devDependencies": {
@@ -49,6 +63,7 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5",
     "graphql": "^16.7.1",
+    "graphql-yoga": "^4.0.3",
     "npm-run-all": "^4.1.5",
     "pg": "^8.11.1",
     "typescript": "^5.1.6",

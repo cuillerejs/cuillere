@@ -104,6 +104,7 @@ __metadata:
     eslint-config-airbnb-base: ^15.0.0
     eslint-plugin-import: ^2.27.5
     graphql: ^16.7.1
+    graphql-yoga: ^4.0.3
     npm-run-all: ^4.1.5
     pg: ^8.11.1
     typescript: ^5.1.6
@@ -111,6 +112,7 @@ __metadata:
   peerDependencies:
     "@cuillere/core": ^0.14.0-alpha.0
     "@cuillere/server-plugin": ^0.14.0-alpha.0
+    graphql-yoga: ">= 4"
     pg: ">=7 <9"
   languageName: unknown
   linkType: soft
@@ -785,17 +787,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^17.0.45":
-  version: 17.0.45
-  resolution: "@types/node@npm:17.0.45"
-  checksum: aa04366b9103b7d6cfd6b2ef64182e0eaa7d4462c3f817618486ea0422984c51fc69fd0d436eae6c9e696ddfdbec9ccaa27a917f7c2e8c75c5d57827fe3d95e8
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:20.3.3":
+"@types/node@npm:*, @types/node@npm:20.3.3":
   version: 20.3.3
   resolution: "@types/node@npm:20.3.3"
   checksum: 7a0d00800451ca8cd8df63a8cc218c697edadb3143bf46cd6afeb974542a6a1665c3679459be0016c29216ccfed6616b7e55851747527dfa71c5608d9157528c
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^17.0.45":
+  version: 17.0.45
+  resolution: "@types/node@npm:17.0.45"
+  checksum: aa04366b9103b7d6cfd6b2ef64182e0eaa7d4462c3f817618486ea0422984c51fc69fd0d436eae6c9e696ddfdbec9ccaa27a917f7c2e8c75c5d57827fe3d95e8
   languageName: node
   linkType: hard
 

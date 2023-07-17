@@ -55,6 +55,26 @@ export class AsyncTaskManager extends BaseTaskManager {
   }
 }
 
+export class SyncTaskManager extends BaseTaskManager {
+  public async done(hasError: boolean) {
+    let thrown = false
+    try {
+      if (hasError) {
+        await this.error(hasError)
+      } else {
+        await this.preComplete(undefined)
+        await this.complete(undefined)
+      }
+    } catch (error) {
+      thrown = true
+      await this.error(error)
+      throw error
+    } finally {
+      await this.finalize(hasError || thrown)
+    }
+  }
+}
+
 export interface TaskListener {
   initialize?(ctx: any): void | Promise<void>
   preComplete?(result: any): void | Promise<void>

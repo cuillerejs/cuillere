@@ -1,10 +1,10 @@
 import { Plugin, Operation } from '@cuillere/core'
 
 import { AsyncTaskManager, TransactionManagerType } from '@cuillere/server-plugin'
-import { Client } from 'pg'
-import type { QueryConfig } from './query-config'
-import { PoolConfig, PoolManager } from './pool-manager'
-import { ClientManager, getClientManager } from './client-manager'
+import type { Client } from 'pg'
+import type { QueryConfig } from '../query-config'
+import { type PoolConfig, PoolManager } from '../pool-manager'
+import { type ClientManager, getClientManager } from '../client-manager'
 
 const namespace = '@cuillere/postgres'
 

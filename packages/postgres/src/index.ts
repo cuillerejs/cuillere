@@ -1,6 +1,6 @@
 export * from './client-manager'
 export * from './config'
-export * from './plugin'
+export * from './plugins/cuillere'
 export * from './pool-manager'
 export * from './query-config'
 export * from './transaction-manager'

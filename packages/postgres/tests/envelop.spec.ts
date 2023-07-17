@@ -1,10 +1,10 @@
 import { Pool } from 'pg'
-import { describe, it, expect, vi, Mock, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, Mock, beforeEach } from 'vitest'
 import { createTestkit } from '@envelop/testing'
 import { useCuillere } from '@cuillere/envelop'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { ExecutionResult } from '@envelop/core'
-import { usePostgres } from '../src/envelop'
+import { usePostgres } from '../src/plugins/envelop'
 import { PoolManager } from '../src/pool-manager'
 import { query } from '../src'
 
@@ -32,7 +32,7 @@ describe('postgres', () => {
       }
     `)
 
-      expect(mocks.connect).toBeCalledTimes(1)
+      expect(mocks.connect).toHaveBeenCalledOnce()
     })
 
     it('should release client', async () => {
@@ -40,7 +40,7 @@ describe('postgres', () => {
 
       await testKit.execute(/* GraphQL */'{ now }')
 
-      expect(mocks.release).toHaveBeenCalled()
+      expect(mocks.release).toHaveBeenCalledOnce()
     })
 
     it('should begin and commit transaction', async () => {

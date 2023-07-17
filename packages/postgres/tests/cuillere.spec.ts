@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach, Mock } from 'vitest'
 import { Pool } from 'pg'
 import { cuillere } from '@cuillere/core'
-import { getClient, postgresPlugin, query } from '../src/plugin'
+import { getClient, postgresPlugin, query } from '../src/plugins/cuillere'
 import { PoolManager } from '../dist'
 
 describe('postgres', () => {
@@ -30,7 +30,7 @@ describe('postgres', () => {
         yield* getClient()
       }())
 
-      expect(mocks.connect).toBeCalledTimes(1)
+      expect(mocks.connect).toHaveBeenCalledOnce()
     })
 
     it('should release client', async () => {
@@ -40,7 +40,7 @@ describe('postgres', () => {
 
       await cllr.run(query({ text: 'SELECT 1' }))
 
-      expect(mocks.release).toHaveBeenCalled()
+      expect(mocks.release).toHaveBeenCalledOnce()
     })
 
     it('should begin and commit transaction', async () => {

@@ -1,8 +1,9 @@
-import { Plugin, isAsyncIterable } from '@envelop/core'
+import { type Plugin, isAsyncIterable } from '@envelop/core'
 import { addPlugins } from '@cuillere/envelop'
-import { PoolManager } from './pool-manager'
-import { PostgresContext, PostgresPluginOptions, postgresPlugin } from './plugin'
-import { getClientManager } from './client-manager'
+import { SyncTaskManager } from '@cuillere/server-plugin'
+import { PoolManager } from '../pool-manager'
+import { type PostgresContext, type PostgresPluginOptions, postgresPlugin } from './cuillere'
+import { getClientManager } from '../client-manager'
 
 export function usePostgres({ pool, transactionManager }: PostgresPluginOptions): Plugin<PostgresContext> {
   const poolManager = pool instanceof PoolManager ? pool : new PoolManager(pool)
@@ -23,36 +24,31 @@ export function usePostgres({ pool, transactionManager }: PostgresPluginOptions)
       contextValue[cllrContextKey]._clientManager = getClientManager({ poolManager, transactionManager })
 
       return {
-        onExecuteDone({ result, args: { contextValue } }) {
-          const { [cllrContextKey]: { _clientManager } } = contextValue
-
-          function onEnd(errors: readonly any[]) {
-            let hasErrors = errors.length > 0
-            try {
-              return errors.length ? _clientManager.error(errors) : _clientManager.complete(result)
-            } catch (error) {
-              hasErrors = true
-              throw error
-            } finally {
-              _clientManager.finalize(hasErrors)
-            }
+        async onExecuteDone({ result, args: { contextValue } }) {
+          // If the clientManager is already present, it means the transaction is handled somewhere else
+          if (contextValue._clientManager) {
+            return
           }
 
+          const { [cllrContextKey]: { _clientManager } } = contextValue
+
+          const taskManager = new SyncTaskManager(_clientManager)
+
           if (isAsyncIterable(result)) {
-            const errors = []
+            let hasError = false
             return {
               onNext: async ({ result }) => {
-                if (result.errors) {
-                  errors.push(...result.errors)
+                if (result.errors?.length > 0) {
+                  hasError = true
                 }
               },
               onEnd() {
-                onEnd(errors)
+                taskManager.done(hasError)
               },
             }
           }
 
-          onEnd(result.errors || [])
+          await taskManager.done(result.errors?.length > 0)
         },
       }
     },
