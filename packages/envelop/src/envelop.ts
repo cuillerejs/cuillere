@@ -23,6 +23,9 @@ export function useCuillere({
       cllr = cuillere(...plugins)
       return { instanceContextField, contextContextField, plugins }
     },
+    getConfig() {
+      return { instanceContextField, contextContextField, plugins }
+    },
     onSchemaChange({ schema, replaceSchema }) {
       replaceSchema(mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
@@ -70,6 +73,7 @@ const addPluginsSymbol = Symbol('addPlugins')
 
 type PluginsAdder = EnvelopPlugin & {
   [addPluginsSymbol](plugins: Plugin[]): CuillereEnvelopPluginOptions
+  getConfig(): CuillereEnvelopPluginOptions
 }
 
 export function addPlugins(envelopPlugins: EnvelopPlugin[], cuillerePlugins: Plugin[]): CuillereEnvelopPluginOptions {
@@ -77,4 +81,10 @@ export function addPlugins(envelopPlugins: EnvelopPlugin[], cuillerePlugins: Plu
   if (pluginsAdder == undefined) throw new Error('useCuillere is missing in the envelop plugins or should be placed before other cuillere plugins')
 
   return pluginsAdder[addPluginsSymbol](cuillerePlugins)
+}
+
+export function getConfig(envelopPlugins: EnvelopPlugin[]): CuillereEnvelopPluginOptions {
+  const pluginsAdder = envelopPlugins.find((plugin): plugin is PluginsAdder => plugin?.[addPluginsSymbol] != null)
+  if (pluginsAdder == undefined) throw new Error('useCuillere is missing in the envelop plugins or should be placed before other cuillere plugins')
+  return pluginsAdder.getConfig()
 }

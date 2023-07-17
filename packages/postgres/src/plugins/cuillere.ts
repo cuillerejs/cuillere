@@ -1,7 +1,7 @@
 import { Plugin, Operation } from '@cuillere/core'
 
 import { AsyncTaskManager, TransactionManagerType } from '@cuillere/server-plugin'
-import type { Client } from 'pg'
+import type { Client, QueryResult } from 'pg'
 import type { QueryConfig } from '../query-config'
 import { type PoolConfig, PoolManager } from '../pool-manager'
 import { type ClientManager, getClientManager } from '../client-manager'
@@ -67,8 +67,8 @@ export interface Query extends Operation {
   config: QueryConfig
 }
 
-export function* query<T = any>(config: QueryConfig): Generator<Query, T> {
-  return (yield { kind: `${namespace}/query`, config }) as T
+export function* query<T = any>(config: QueryConfig): Generator<Query, QueryResult<T>> {
+  return (yield { kind: `${namespace}/query`, config }) as QueryResult<T>
 }
 
 export function* getPools(): Generator<Operation, string[]> {

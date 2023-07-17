@@ -1,7 +1,8 @@
 import { describe, vi, it, Mock, expect, afterEach } from 'vitest'
-import { createSchema, createYoga } from 'graphql-yoga'
+import { YogaServerInstance, createSchema, createYoga } from 'graphql-yoga'
 import { Pool } from 'pg'
-import { useCuillere } from '@cuillere/envelop'
+import { getContext, useCuillere } from '@cuillere/envelop'
+import { batched } from '@cuillere/core'
 import { query } from '../src/plugins/cuillere'
 import { usePostgres } from '../src/plugins/yoga'
 
@@ -79,53 +80,92 @@ describe('postgres', () => {
       expect(mocks.query).toHaveBeenCalledWith('ROLLBACK')
       expect(mocks.query).toHaveBeenCalledWith('COMMIT')
     })
+
+    it('should batch get in a single SQL request', async () => {
+      const response = await request([{ query: 'query { u1: user(id: "1") { id } }' }, { query: 'query { u2: user(id: "2") { id } }' }])
+      const result = await response.json()
+      expect(result).toEqual([{ data: { u1: { id: '1' } } }, { data: { u2: { id: '2' } } }])
+      expect(mocks.query).toHaveBeenCalledWith({ text: 'SELECT * FROM test_table WHERE id = ANY($1)', values: [['1', '2']] })
+    })
+
+    it('should not batch get in a single SQL request queries and mutations', async () => {
+      const response = await request([{ query: 'query { u1: user(id: "1") { id } }' }, { query: 'mutation { u2: user(id: "2") { id } }' }])
+      const result = await response.json()
+      expect(result).toEqual([{ data: { u1: { id: '1' } } }, { data: { u2: { id: '2' } } }])
+      expect(mocks.query).toHaveBeenCalledWith({ text: 'SELECT * FROM test_table WHERE id = ANY($1)', values: [['1']] })
+      expect(mocks.query).toHaveBeenCalledWith({ text: 'SELECT * FROM test_table WHERE id = ANY($1)', values: [['2']] })
+    })
+
+    // FIXME
+    it.skip('should give access to the context of the query', async () => {
+      let i = 0
+      const server = createYoga({
+        schema: createSchema({
+          typeDefs: /* GraphQL */'type Query { value: Int! } ',
+          resolvers: {
+            Query: {
+              * value() {
+                return yield* getContext('test')
+              },
+            },
+          },
+        }),
+        plugins: [useCuillere(), usePostgres({}), { onExecute: ({ args: { contextValue } }) => contextValue.test = i++ }],
+        batching: true,
+      })
+
+      const response = await requestYoga(server, [{ query: '{ value }' }, { query: '{ value }' }])
+      const result = await response.json()
+      expect(result).toEqual([{ data: { value: 1 } }, { data: { value: 2 } }])
+    })
   })
 })
 
-const yoga = createYoga({
-  schema: createSchema({
-    typeDefs: /* GraphQL */`
-      type Query {
-        value: String!
-        error: String!
-        noop: String!
-      }
+const resolvers = {
+  * value() {
+    const { rows: [{ value }] } = yield* query({ text: 'SELECT 1 as value' })
+    return value
+  },
+  * error() {
+    yield* query({ text: 'SELECT 1 as value' })
+    throw new Error('error')
+  },
+  async* user(_, { id }) {
+    return yield* get('test_table', id)
+  },
+  noop() {
+    return 'noop'
+  },
+}
 
-      type Mutation {
-        value: String!
-        error: String!
-        noop: String!
-      }
-    `,
-    resolvers: {
-      Query: {
-        * value() {
-          const { rows: [{ value }] } = yield* query({ text: 'SELECT 1 as value' })
-          return value
-        },
-        * error() {
-          yield* query({ text: 'SELECT 1 as value' })
-          throw new Error('error')
-        },
-        noop() {
-          return 'noop'
-        },
-      },
-      Mutation: {
-        * value() {
-          const { rows: [{ value }] } = yield* query({ text: 'SELECT 1 as value' })
-          return value
-        },
-        * error() {
-          yield* query({ text: 'SELECT 1 as value' })
-          throw new Error('error')
-        },
-        noop() {
-          return 'noop'
-        },
-      },
-    },
-  }),
+const schema = createSchema({
+  typeDefs: /* GraphQL */`
+    type Query {
+      value: String!
+      error: String!
+      noop: String!
+      user(id: String!): User!
+    }
+
+    type Mutation {
+      value: String!
+      error: String!
+      noop: String!
+      user(id: String!): User!
+    }
+
+    type User {
+      id: String!
+    }
+  `,
+  resolvers: {
+    Query: resolvers,
+    Mutation: resolvers,
+  },
+})
+
+const yoga = createYoga({
+  schema,
   plugins: [
     useCuillere(),
     usePostgres({}),
@@ -134,6 +174,10 @@ const yoga = createYoga({
 })
 
 function request(body: object) {
+  return requestYoga(yoga, body)
+}
+
+function requestYoga(yoga: YogaServerInstance<any, any>, body: object) {
   return yoga.fetch('https://yoga/graphql', {
     method: 'POST',
     body: JSON.stringify(body),
@@ -142,7 +186,13 @@ function request(body: object) {
 }
 
 const mocks: Record<string, Mock> = {
-  query: vi.fn(() => Promise.resolve({ rows: [{ value: '1' }] })),
+  query: vi.fn((arg) => {
+    if (Array.isArray(arg?.values?.[0])) {
+      // Fake simple seclect by id
+      return Promise.resolve({ rows: arg.values[0].map(id => ({ id })) })
+    }
+    return Promise.resolve({ rows: [{ value: '1' }] })
+  }),
   release: vi.fn(),
   connect: vi.fn(() => Promise.resolve({ query: mocks.query, release: mocks.release })),
   poolQuery: vi.fn(),
@@ -150,3 +200,18 @@ const mocks: Record<string, Mock> = {
 
 vi.spyOn(Pool.prototype, 'connect').mockImplementation(mocks.connect)
 vi.spyOn(Pool.prototype, 'query').mockImplementation(mocks.poolQuery)
+
+const get = batched<[string, string], { id: string }>(function* (calls) {
+  const [[tableName]] = calls
+  const ids = calls.map(([, id]) => id)
+
+  const sql = { text: `SELECT * FROM ${tableName} WHERE id = ANY($1)`, values: [ids] }
+  const { rows } = yield* query<{ id: string }>(sql)
+  const rowsById = Object.fromEntries(rows.map(row => [row.id, row]))
+  return ids.map(id => rowsById[id])
+}, {
+  getBatchKey(tableName: string) {
+    return `get_by_id_${tableName}`
+  },
+  wait: 10,
+})

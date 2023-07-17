@@ -1,4 +1,5 @@
 import { type Plugin, finalAsyncIterator, isAsyncIterable, mapAsyncIterator } from 'graphql-yoga'
+import { CuillereEnvelopPluginOptions, getConfig } from '@cuillere/envelop'
 import { SyncTaskManager } from '@cuillere/server-plugin'
 import { usePostgres as usePostgresEnvelop } from './envelop'
 import type { PostgresContext, PostgresPluginOptions } from './cuillere'
@@ -8,16 +9,26 @@ import { isMutation } from '../utils'
 
 export function usePostgres({ pool, transactionManager }: PostgresPluginOptions): Plugin<PostgresContext> {
   const poolManager = pool instanceof PoolManager ? pool : new PoolManager(pool)
-  const clientManagersByRequest = new WeakMap<Request, [ClientManager, number[]]>()
+  const clientManagersByRequest = new WeakMap<Request, { clientManager: ClientManager; toSkip: number[]; cllrCtx: any }>()
+
+  let cllrConfig: CuillereEnvelopPluginOptions
 
   return {
-    onPluginInit({ addPlugin }) {
+    onPluginInit({ addPlugin, plugins }) {
+      cllrConfig = getConfig(plugins)
+
       addPlugin({
         onExecute({ args: { contextValue, document } }) {
           // The shared client manager and transaction are only used for side effects free queries
           // Mutations and subscriptions will have their own client manager and transaction, handled by the envelop plugin
           if (!isMutation(document)) {
-            [contextValue._clientManager] = clientManagersByRequest.get(contextValue.request)
+            const { clientManager, cllrCtx } = clientManagersByRequest.get(contextValue.request)
+            contextValue._clientManager = clientManager
+            // FIXME: This is wrong. Since the cllr context is shared among all the queries, the graphqlContext can't be set here
+            //        Thes graphql context will be equal to the last executed query's context, which is not wanted
+            cllrCtx.graphQLContext = contextValue
+            contextValue[cllrConfig.instanceContextField] = contextValue[cllrConfig.instanceContextField].context(cllrCtx)
+            contextValue[cllrConfig.contextContextField] = cllrCtx
           }
         },
       })
@@ -35,14 +46,16 @@ export function usePostgres({ pool, transactionManager }: PostgresPluginOptions)
               }
             })
           }
-          clientManagersByRequest.set(request, [getClientManager({ poolManager, transactionManager }), toSkip])
+          clientManagersByRequest.set(request, { clientManager: getClientManager({ poolManager, transactionManager }), toSkip, cllrCtx: {} })
         },
       }
     },
 
     async onResultProcess({ request, result, setResult }) {
-      const r = clientManagersByRequest.get(request)
-      const [clientManager, toSkip] = r
+      if (!clientManagersByRequest.has(request)) {
+        return
+      }
+      const { clientManager, toSkip } = clientManagersByRequest.get(request)
       clientManagersByRequest.delete(request)
 
       const taskManager = new SyncTaskManager(clientManager)
