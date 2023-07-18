@@ -67,7 +67,7 @@ module.exports = {
     ],
     'no-await-in-loop': 'off',
     'no-cond-assign': 'off',
-    'no-console': ['error', { allow: ['warn', 'error'] }],
+    'no-console': ['error', { allow: ['warn', 'error', 'info'] }],
     'no-continue': 'off',
     'no-dupe-class-members': 'off',
     'no-multi-assign': 'off',
@@ -82,11 +82,6 @@ module.exports = {
         message:
           'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
       },
-      // disable this one in order to allow sequentially awaiting on a list of promises
-      // {
-      //     selector: 'ForOfStatement',
-      //     message: 'iterators/generators require regenerator-runtime, which is too heavyweight for this guide to allow them. Separately, loops should be avoided in favor of array iterations.',
-      // },
       {
         selector: 'LabeledStatement',
         message:

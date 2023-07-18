@@ -1,0 +1,26 @@
+{
+  "name": "graphql-postgres",
+  "scripts": {
+    "start": "ts-node --esm src/index.ts",
+    "setup": "node scripts/setup-database.js",
+    "check": "tsc --pretty --noEmit"
+  },
+  "private": true,
+  "main": "src/index.js",
+  "type": "module",
+  "packageManager": "yarn@3.6.1",
+  "dependencies": {
+    "@cuillere/envelop": "workspace:^",
+    "@cuillere/postgres": "workspace:^",
+    "@types/lodash-es": "^4.17.8",
+    "@types/node": "^20.4.2",
+    "eslint": "^8.45.0",
+    "graphql": "^16.7.1",
+    "graphql-yoga": "^4.0.3",
+    "lodash-es": "^4.17.21",
+    "pg": "^8.11.1",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.6"
+  }
+}

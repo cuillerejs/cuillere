@@ -1,6 +1,8 @@
 {
   "name": "@cuillere/postgres",
   "version": "0.14.0-alpha.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "default": "./dist/index.js",
