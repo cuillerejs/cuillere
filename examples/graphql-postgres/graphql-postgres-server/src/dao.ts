@@ -83,3 +83,7 @@ function* logedQuery(queryConfig: QueryConfig) {
     throw error
   }
 }
+
+export function* thisIsAnError() {
+  throw new Error('This is an error')
+}

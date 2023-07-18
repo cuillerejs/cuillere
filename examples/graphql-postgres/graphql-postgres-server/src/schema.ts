@@ -1,11 +1,12 @@
 import { createSchema } from 'graphql-yoga'
-import { posts, comments, users } from './dao.js'
+import { posts, comments, users, thisIsAnError } from './dao.js'
 
 export const schema = createSchema({
   typeDefs: /* GraphQL */ `
     type Query {
       posts: [Post!]!
       post(id: String!): Post
+      user(id: String!): User
     }
 
     type Mutation {
@@ -26,6 +27,7 @@ export const schema = createSchema({
       content: String!
       title: String!
       comments: [Comment!]!
+      authorId: String!
     }
 
     type Comment {
@@ -33,6 +35,7 @@ export const schema = createSchema({
       author: User!
       post: Post!
       content: String!
+      authorId: String!
     }
   `,
   resolvers: {
@@ -43,6 +46,9 @@ export const schema = createSchema({
       async* post(_, { id }) {
         return yield* posts.get(id)
       },
+      async* user(_, { id }) {
+        return yield* users.get(id)
+      }
     },
     Mutation: {
       async* post(_, { title, content }) {
@@ -53,6 +59,7 @@ export const schema = createSchema({
       },
       async* deletePost(_, { id }) {
         yield* comments.deleteBy('postId', id)
+        // yield* thisIsAnError()
         return yield* posts.delete(id)
       },
       async* deleteComment(_, { id }) {

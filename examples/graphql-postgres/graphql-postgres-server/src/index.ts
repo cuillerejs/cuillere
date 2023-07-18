@@ -18,7 +18,9 @@ const yoga = createYoga({
         user: 'postgres',
         password: 'postgres',
       }
-    })],
+    })
+  ],
+  batching: true,
 })
 
 const server = createServer(yoga)

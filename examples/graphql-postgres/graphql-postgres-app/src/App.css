@@ -1,0 +1,85 @@
+.App {
+  display: grid;
+  grid-template: min-content 1fr / 400px 1fr;
+  height: 100vh;
+  width: 100vw;
+}
+
+header {
+  grid-column: span 2;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+}
+
+nav > div {
+  padding: 0.5em;
+  padding-left: 2em;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+}
+
+nav > div:first-of-type {
+  border-top: 1px solid #ccc;
+}
+
+nav > button {
+  margin: 1em;
+}
+
+nav > div:hover {
+  background-color: #fff1;
+}
+
+nav > .post {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+nav > .post > button {
+  font-size: 0.8em;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  padding: 0em 2em;
+}
+
+main > form {
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  height: 100%;
+}
+
+main > form > textarea {
+  flex: 1
+}
+
+.comment {
+  padding-left: 2em;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment:first-of-type {
+  border-top: 1px solid #ccc;
+}
+
+.new_comment {
+  display: flex;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.new_comment textarea {
+  flex: 1;
+}
