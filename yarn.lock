@@ -74,7 +74,7 @@ __metadata:
     eslint: ^8.44.0
     eslint-config-airbnb-base: ^15.0.0
     eslint-plugin-import: ^2.27.5
-    graphql: ^16.7.1
+    graphql: ^16.8.1
     npm-run-all: ^4.1.5
     typescript: ^5.1.6
     vitest: ^0.32.4
@@ -121,7 +121,7 @@ __metadata:
     eslint: ^8.44.0
     eslint-config-airbnb-base: ^15.0.0
     eslint-plugin-import: ^2.27.5
-    graphql: ^16.7.1
+    graphql: ^16.8.1
     npm-run-all: ^4.1.5
     pg: ^8.11.1
     typescript: ^5.1.6
@@ -160,7 +160,7 @@ __metadata:
     "@cuillere/envelop": "workspace:^"
     esbuild: ^0.18.11
     esbuild-runner: ^2.2.2
-    graphql: ^16.7.1
+    graphql: ^16.8.1
     graphql-yoga: ^4.0.3
     remove: ^0.1.5
   languageName: unknown
@@ -2447,10 +2447,10 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"graphql@npm:^16.7.1":
-  version: 16.7.1
-  resolution: "graphql@npm:16.7.1"
-  checksum: c924d8428daf0e96a5ea43e9bc3cd1b6802899907d284478ac8f705c8fd233a0a51eef915f7569fb5de8acb2e85b802ccc6c85c2b157ad805c1e9adba5a299bd
+"graphql@npm:^16.8.1":
+  version: 16.8.1
+  resolution: "graphql@npm:16.8.1"
+  checksum: 8d304b7b6f708c8c5cc164b06e92467dfe36aff6d4f2cf31dd19c4c2905a0e7b89edac4b7e225871131fd24e21460836b369de0c06532644d15b461d55b1ccc0
   languageName: node
   linkType: hard
 
